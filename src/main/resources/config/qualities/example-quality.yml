@@ -1,0 +1,58 @@
+# 所支持的 minimessage 格式
+# <gradient>TEXT_TO_DISPLAY</gradient>
+# <#fffff>TEXT_TO_DISPLAY
+
+# 如果reload的时候删除了某武器拥有的词条，那么此武器不会再具备词条
+# 如果reload前移动了某词条到其他组，且此武器的词条空间内不存在也不会再具备词条
+品质组名:
+  # 内部品质可以直接使用minimessage格式
+  # 品质参考 [https://bukkit.windit.net/javadoc/org/bukkit/attribute/Attribute.html]
+  # Attribute.FOLLOW_RANGE 和 Attribute.SPAWN_REINFORCEMENTS 不可用
+  # [important 带百分号为乘算 否则为加算 important]
+  <red>品质1</red>:
+    slot: any  # any mainHand offhand chest等MC支持的物品佩戴位置  # 默认为ANY
+    weight: 1  # 品质的权重 不可缺少
+    attrs:  # modifier 下的key不能相同
+      # 表示在数值上使用加算  lore显示为红色
+      attack-damage: "<red>+10%</red>"  # 正负号一定要写
+      # 表示在数值上使用乘算  lore为绿色  数值增加10%  -> 武器白值 * (1 + 10%)的攻速白值
+      attack-speed: "<green>+10%</green>"
+  # 品质显示的名称为(蓝色的）品质2
+  <blue>品质2</blue>:
+    weight: 1
+    attrs:
+      critical-strike-chance: "-10"
+      critical-strike-damage: "-10"
+  品质3:
+    weight: 1
+    attrs:
+      skill-cooldown: "-10"  # 技能冷却 (所有)
+      skill-mana-cost: "-10"  # 技能蓝耗 (所有)
+  品质4:
+    weight: 1
+    attrs:
+      attack-knockback: "+10"
+      # 每0.1表示1 这里会显示 + 100
+      knockback-resistance: "+10"
+  品质5:
+    weight: 1
+    attrs:
+      armor: "+5"
+      armor-toughness: "+5"
+  品质6:
+    weight: 1.2
+
+品质组名1:
+  <#123456>scale前缀测试:
+    weight: 2
+    attrs:
+      scale: "+100%"
+  <#25525f>另一个测试:
+    slot: head
+    weight: 2
+    attrs:
+      step-height: "+2"
+  <#123456>伤害测试:
+    weight: 2
+    attrs:
+      attack-damage: "<red>+5</red>"

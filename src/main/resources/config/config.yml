@@ -1,0 +1,17 @@
+# 是否生成示例配置文件
+generate-examples: true  # true
+
+# 是否取消原版暴击特效, 伤害特效
+cancel-generic-particles: true  # false
+
+# 是否生成伤害文本显示
+generate-damage-indicator: true  # false
+
+# 武器耐久是否可通过铁砧修复(是否禁止进入铁砧, 能修复则会变成原版物品)
+anvil-repairable: false  # true
+# 武器可否通过砂轮修复(若能修复的话, 会变成对应的原版物品)
+grindstone-repairable: false  # true
+# 是否能使用附魔台附魔   注意,能附魔的话则可以附魔出经验修补
+can-enchant: false  # true
+
+# 其他的

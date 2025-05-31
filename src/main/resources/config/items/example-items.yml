@@ -1,0 +1,78 @@
+# 所支持的 minimessage 格式
+# <gradient>TEXT_TO_DISPLAY</gradient>
+# <#fffff>TEXT_TO_DISPLAY<#0fffff>TEXT_TO_DISPLAY.....
+物品内部名:
+  id: stone_sword  # 对应原版物品ID
+  display-name: <gradient:#ffffff:#fc4828>武器显示名(MiniMessage)</gradient>  # 武器在游戏内呈现的名称
+  custom-model-data: 1000  # 物品自定义模型或贴图
+  amount: 1  # 每次给与(制作)的数量  默认为1
+  max-stack: 1  # 最大堆叠数量(不设置默认1) [可堆叠则一定不可破坏]
+  max-durability: 5  # 最大耐久度
+  unbreakable: false  # 物品是否不可破坏    [可堆叠则一定不可破坏]
+  loss-when-break: false  # 耐久消耗完成后是否丢失物品(默认为true)
+  slot: MainHand  # (所有配置的属性，包含技能等)生效位置 默认为原版物品生效位置
+  cancel-damage: false  # 是否取消所有伤害(包括技能伤害)
+  attrs:
+    attack-damage: 10  # 武器面板伤害
+    entity-interaction-range: 0  # 实体交互触发距离 当值小于-3时可以取消近战伤害(玩家的实体交互距离时3)----法书可以使用
+    attack-speed: 2  # 武器-每秒可攻击次数近似
+    # [https://bukkit.windit.net/javadoc/org/bukkit/attribute/Attribute.html] 除去特殊的两条都能增加
+    critical-strike-chance: 0.2  # 设置物品技能暴击和武器本体攻击暴击概率(0-1), 此时暴击率为20%, 默认为 0
+    critical-strike-damage: 1.2  # 设置物品技能和攻击的暴击伤害加成(此时暴击造成面板伤害的120%) 默认为 0 即暴击0伤害
+  lore-template: default  # 在 /lore/lore-template [模板名称] 下  不写则只显示下方的lore内容
+  lore:  # 武器介绍/武器描述  对应模板名称中的 item-lore关键词
+    - <gradient:#fcd228:#fc4828>这是武器的描述</gradient>
+  hide-flags:  # 隐藏原版属性 [参考 https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemFlag.html]
+#    - ATTRIBUTES  # 不需要写前面的 "HIDE_"
+#    - UNBREAKABLE
+  skills:  # 将 <技能名1>... 附加在武器上
+    - 技能名1
+    - 技能名2
+  qualities:  # 将 在quality文件夹下  <品质组1>...  的所有品质按照权重随机添加到本武器上  不配置则默认没有
+    - 品质组名
+    - 品质组名1
+  soul-bind: true  # 灵魂绑定 如果绑定则无法丢出(能放到容器中) 默认false
+  # TODO 未实现
+  update: true  # 配置文件更新后是否更新物品实例
+  level-template: 示例武器升级模板  # 在 /level-up/任意文件名内的 [升级模板名] 下
+  gem-stack: 3  # 宝石槽位数量(所有宝石通用) 默认为0
+  # quality 预设 (不在qualities内则会置空)
+  quality: 伤害测试
+  # level 预设 (不符合升级模板内则会置为模板中的最低等级)
+  level: 9999
+  # 不支持自定义NBT
+
+盔甲内部名:
+  id: leather_helmet  # 自定义物品
+  display-name: <gradient:#fcd228:#ffffff>护甲显示名</gradient>  # 武器在游戏内呈现的名称
+  custom-model-data: 1001  # 物品自定义模型或贴图
+  attrs:
+    armor: 10  # 护甲值
+    armor-toughness: 10  # 护甲韧性
+    knockback-resistance: 0.1  # 抗击退效果
+  color: "#ffffff"  # rgb颜色配合 custom-model-data 使用(由于＃会转义为注释, 请务必使用双引号)
+  slot: Head  # (所有配置的属性，包含技能等)生效位置 默认为ANY
+  lore-template: default
+  lore:
+    - <gradient:#fcd228:#fc4828>盔甲描述测试</gradient>
+  hide-flags: # 隐藏原版属性 [参考 https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemFlag.html]
+#    - ATTRIBUTES  # 不需要写前面的 "HIDE_"
+#    - UNBREAKABLE
+#    - DYE
+  skills: # 将 <技能名1>... 附加在武器上
+    - 技能名1
+    - 技能名2
+  qualities: # 将 在quality文件夹下  <品质组1>...  的所有品质按照权重随机添加到本武器上  不配置则默认没有
+    - 品质组名
+    - 品质组名1
+  soul-bind: true  # 灵魂绑定 如果绑定则无法丢出(能放到容器中) 默认false
+  update: true  # 配置文件更新后是否更新物品实例
+
+可食用物内部名:
+  id: stone_sword  # 自定义任意物品
+  consumable: true  # 可食用（会自动绑定右键食用事件）同时不会储存任何其他
+  food: +5 # 饱食度回复(默认正数)
+  potion:
+    - slow 2 10  # 表示食用后给予使用者缓慢2, 持续10个tick (1s=20tick)
+    - glow 1 40  # 其余的药水效果均可
+  mana: +10  # 人物蓝量 +10 (默认为正数)

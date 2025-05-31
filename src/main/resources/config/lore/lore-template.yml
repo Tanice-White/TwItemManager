@@ -1,0 +1,46 @@
+# 分组名 [default] 禁止修改
+# 配置 lore-message.yml 文件中的关键词, 使其在物品的Lore中显示
+# 匹配到: 值为0则不显示   匹配不到这原样输出
+# =======================================
+# item-lore  # 显示物品创建模板部分输入的lore
+# quality-lore  # 显示前缀词条
+# skill-lore  # 显示技能描述
+# =======================================
+default:
+  - attack-damage
+  - attack-speed
+  - critical-strike-chance
+  - critical-strike-damage
+#  - skill-cooldown
+#  - skill-mana-cost
+  - attack-knockback
+  - knockback-resistance
+  - armor
+  - armor-toughness
+  - burning-time
+  - explosion-knockback-resistance
+  - fall-damage-multiplier
+  - flying-speed
+  - gravity
+  - jump-strength
+  - luck
+  - max-absorption
+  - max-health
+  - movement-efficiency
+  - movement-speed
+  - oxygen-bonus
+  - safe-fall-distance
+  - scale
+  - step-height
+  - water-movement-efficiency
+  - block-break-speed
+  - block-interaction-range
+  - entity-interaction-range
+  - mining-efficiency
+  - sneaking-speed
+  - submerged-mining-speed
+  - sweeping-damage-ratio
+  - quality  # 显示前缀词条
+  - skill  # 显示技能词条
+  - item  # 显示物品创建模板部分输入的lore
+  - gem  # 宝石槽

@@ -1,0 +1,119 @@
+package io.github.tanice.twItemManager.manager.item.base.impl;
+
+import io.github.tanice.twItemManager.TwItemManager;
+import io.github.tanice.twItemManager.manager.item.base.BaseItem;
+import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
+import io.github.tanice.twItemManager.util.MiniMessageUtil;
+import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static io.github.tanice.twItemManager.constance.key.AttributeKey.SLOT;
+import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
+import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
+
+/**
+ * 插件中的武器、护甲
+ */
+public class Item extends BaseItem {
+    /** 技能组名 */
+    private List<String> skills;
+    /** 可选品质组组名 */
+    private List<String> qualityGroups;
+    /** 模板名 */
+    @Getter
+    private String levelTemplateName;
+    /** 更新标记 */
+    @Getter
+    private boolean update;
+    /** 是否取消伤害 */
+    @Getter
+    private boolean cancelDamage;
+    /** 耐久消失是否销毁物品 */
+    @Getter
+    private boolean loseWhenBreak;
+    /** 是否进行灵魂绑定 */
+    @Getter
+    private boolean soulBind;
+    /** 宝石槽数量 */
+    @Getter
+    private Integer gemStackNumber;
+    /** 所属套装 */
+    @Getter
+    private String setName;
+
+    /**
+     * 依据内部名称和对应的config文件创建mc基础物品
+     */
+    public Item(@NotNull String innerName, @NotNull ConfigurationSection config) {
+        super(innerName, config);
+        this.skills = new ArrayList<>();
+        this.qualityGroups = new ArrayList<>();
+        generate(config);
+    }
+
+    @Override
+    protected void loadUnchangeableVar(@NotNull ConfigurationSection config) {
+        skills = config.getStringList(SKILLS);
+        qualityGroups = config.getStringList(QUALITY_GROUPS);
+        cancelDamage = config.getBoolean(CANCEL_DAMAGE, false);
+        loseWhenBreak = config.getBoolean(LOSE_WHEN_BREAK, false);
+        update = config.getBoolean(UPDATE, false);
+        soulBind = config.getBoolean(SOUL_BIND, false);
+        levelTemplateName = config.getString(LEVEL_TEMPLATE_NAME, "");
+        gemStackNumber = config.getInt(GEM_STACK_NUMBER, 0);
+        setName = config.getString(SET_NAME, "");
+    }
+
+    /**
+     * 读取物品基础信息
+     */
+    @Override
+    protected void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
+        meta.displayName(MiniMessageUtil.deserialize(config.getString(DISPLAY_NAME,"")));
+        meta.setMaxStackSize(config.getInt(MAX_STACK, 1));
+        meta.setUnbreakable(config.getBoolean(UNBREAKABLE, false));
+        if (meta.getMaxStackSize() != 1 && !meta.isUnbreakable()) {
+            logWarning( innerName + "可堆叠但是有耐久？");
+        }
+        int cmd = config.getInt(CUSTOM_MODEL_DATA);
+        if (cmd != 0) meta.setCustomModelData(cmd);
+        for (String flagName : config.getStringList(HIDE_FLAGS)) meta.addItemFlags(ItemFlag.valueOf("HIDE_" + flagName.toUpperCase()));
+        if (meta instanceof Damageable && config.contains(MAX_DURABILITY)) ((Damageable)meta).setMaxDamage(config.getInt(MAX_DURABILITY));
+        if (config.contains(COLOR)){
+            if (meta instanceof LeatherArmorMeta) ((LeatherArmorMeta) meta).setColor(MiniMessageUtil.gethexColor(config.getString(COLOR)));
+            else logWarning(innerName + "不是皮革制品，颜色无效。");
+        }
+    }
+
+    @Override
+    protected void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
+        /* PDC默认值 */
+        if (!setCalculablePDC(meta, new ItemPDC(innerName ,AttributeAdditionFromType.ITEM, config))) {
+            logWarning("ItemPDC 设置出错");
+        }
+        setSlot(meta ,config.getString(SLOT,"ANY"));
+        /* 灵魂绑定的玩家名(暂时不使用UUID) */
+        setOwner(meta, "");
+        /* 更新检测  code -1表示不更新 否则更新，每次reload code++; */
+        double code = -1;
+        if (isUpdate()) code = TwItemManager.getUpdateCode();
+        setUpdateCode(meta, code);
+        /* 需要监听是否损坏 */
+        setBroken(meta, false);
+        /* 在获取物品的时候会更新时间戳 */
+    }
+
+    public @NotNull List<String> getSkills() {return new ArrayList<>(skills);}
+
+    public @NotNull List<String> getQualityGroups() {return new ArrayList<>(qualityGroups);}
+}
