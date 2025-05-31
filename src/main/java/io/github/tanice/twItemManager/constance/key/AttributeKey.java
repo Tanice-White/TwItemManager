@@ -49,11 +49,10 @@ public final class AttributeKey {
     public static final String ARMOR_TOUGHNESS = "armor-toughness";
     public static final String PRE_ARMOR_REDUCTION = "pre-armor-reduction";
     public static final String AFTER_ARMOR_REDUCTION = "after-armor-reduction";
-
-    // TODO 未实现
     public static final String MANA_COST = "mana-cost";
     public static final String SKILL_COOLDOWN = "skill-cooldown";
-    public static final String SET_ADDITION = "set-addition";
+    public static final String SET_NAME = "set-name";
+    public static final String MAX_DURABILITY = "max-durability";
 
     public static final Set<String> OriginalKeys = Set.of(
             ATTACK_SPEED,ATTACK_KNOCKBACK,KNOCKBACK_RESISTANCE,LUCK,MAX_HEALTH,MOVEMENT_SPEED,BLOCK_BREAK_SPEED,BLOCK_INTERACTION_RANGE,ENTITY_INTERACTION_RANGE,MINING_EFFICIENCY,
@@ -61,7 +60,7 @@ public final class AttributeKey {
     );
 
     public static final Set<String> PDCKeys = Set.of(
-            SLOT,QUALITY,BASE_DAMAGE,LEVEL,CRITICAL_STRIKE_CHANCE,CRITICAL_STRIKE_DAMAGE,ARMOR,ARMOR_TOUGHNESS,PRE_ARMOR_REDUCTION,AFTER_ARMOR_REDUCTION,SET_ADDITION
+            SLOT,QUALITY,BASE_DAMAGE,LEVEL,CRITICAL_STRIKE_CHANCE,CRITICAL_STRIKE_DAMAGE,ARMOR,ARMOR_TOUGHNESS,PRE_ARMOR_REDUCTION,AFTER_ARMOR_REDUCTION,MANA_COST,SKILL_COOLDOWN,SET_NAME,MAX_DURABILITY
     );
 
     @Contract(pure = true)

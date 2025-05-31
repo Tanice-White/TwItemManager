@@ -4,7 +4,6 @@ import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
-import io.papermc.paper.persistence.PersistentDataContainerView;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -24,7 +23,7 @@ public class PDCAPI {
 
     private static final Plugin PDC_NAMESPACE = TwItemManager.getInstance();
     
-    private static final String ITEM_PDC_DATA_KEY_PREFIX = "TwItemManager-PDC-";
+    private static final String ITEM_PDC_DATA_KEY = "TwItemManager-PDC";
     private static final String INNER_NAME_KEY = "inner-name";
     private static final String OWNER_KEY = "owner";
     private static final String UPDATE_CODE_KEY = "update-code";
@@ -32,51 +31,21 @@ public class PDCAPI {
     private static final String TIME_STAMP_KEY = "time-stamp";
     private static final String CONSUMABLE_KEY = "consumable";
     private static final String SLOT_KEY = "slot";
-
-//    /**
-//     * 更改计算用的PDC属性
-//     */
-//    public static @Nullable ItemPDC getItemPDC(@NotNull ItemStack item) {
-//        return getItemPDC(item.getItemMeta());
-//    }
-//
-//    public static @Nullable ItemPDC getItemPDC(@NotNull ItemMeta meta) {
-//        byte[] dataBytes = meta.getPersistentDataContainer().get(
-//                new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
-//                PersistentDataType.BYTE_ARRAY
-//        );
-//        if (dataBytes == null) return null;
-//        return deserialize(dataBytes, ItemPDC.class);
-//    }
-//
-//    public static void setItemPDC(@NotNull ItemStack item, @NotNull ItemPDC aPDC){
-//        ItemMeta meta = item.getItemMeta();
-//        setItemPDC(meta, aPDC);
-//        item.setItemMeta(meta);
-//    }
-//
-//    public static void setItemPDC(@NotNull ItemMeta meta, @NotNull ItemPDC aPDC) {
-//        byte[] dataBytes = serialize(aPDC);
-//        if (dataBytes == null) return;
-//        meta.getPersistentDataContainer().set(
-//                new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
-//                PersistentDataType.BYTE_ARRAY,
-//                dataBytes
-//        );
-//    }
-
-    public static @Nullable Object getCalculablePDC(@NotNull ItemStack item, @NotNull AttributeAdditionFromType aft) {
+    private static final String MAX_DAMAGE_KEY = "damage";
+    private static final String CURRENT_DAMAGE_KEY = "current-damage";
+    
+    public static @Nullable CalculablePDC getCalculablePDC(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        return getCalculablePDC(meta, aft);
+        return getCalculablePDC(meta);
     }
 
-    public static @Nullable Object getCalculablePDC(@NotNull ItemMeta meta, @NotNull AttributeAdditionFromType aft) {
+    public static @Nullable CalculablePDC getCalculablePDC(@NotNull ItemMeta meta) {
         byte[] dataBytes = meta.getPersistentDataContainer().get(
-           new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY_PREFIX + aft),
+           new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
            PersistentDataType.BYTE_ARRAY
         );
         if (dataBytes == null) return null;
-        return deserialize(dataBytes);
+        return (CalculablePDC) deserialize(dataBytes);
     }
 
     public static boolean setCalculablePDC(@NotNull ItemStack item, @NotNull CalculablePDC cPDC) {
@@ -89,7 +58,7 @@ public class PDCAPI {
     public static boolean setCalculablePDC(@NotNull ItemMeta meta, @NotNull CalculablePDC cPDC) {
         byte[] dataBytes = serialize(cPDC);
         meta.getPersistentDataContainer().set(
-                new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY_PREFIX + cPDC.fromType()),
+                new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
                 PersistentDataType.BYTE_ARRAY,
                 dataBytes
         );
@@ -166,13 +135,13 @@ public class PDCAPI {
         );
     }
 
-    public static void setUpdateCode(@NotNull ItemStack item, @NotNull Double code) {
+    public static void setUpdateCode(@NotNull ItemStack item, double code) {
         ItemMeta meta = item.getItemMeta();
         setUpdateCode(meta, code);
         item.setItemMeta(meta);
     }
 
-    public static void setUpdateCode(@NotNull ItemMeta meta, @NotNull Double code) {
+    public static void setUpdateCode(@NotNull ItemMeta meta, double code) {
         meta.getPersistentDataContainer().set(
                 new NamespacedKey(PDC_NAMESPACE, UPDATE_CODE_KEY),
                 PersistentDataType.DOUBLE,
@@ -181,30 +150,55 @@ public class PDCAPI {
     }
 
     /**
-     * 物品是否损坏  用于算坏不丢失的事件监听
+     * 物品耐久相关
      */
-    public static boolean isBroken(@NotNull ItemStack item) {
-        return isBroken(item.getItemMeta());
+    public static @Nullable Integer getCurrentDamage(@NotNull ItemStack item) {
+        return getCurrentDamage(item.getItemMeta());
     }
 
-    public static boolean isBroken(@NotNull ItemMeta meta) {
-        PersistentDataContainerView p = meta.getPersistentDataContainer();
-        Object obj = p.get(new NamespacedKey(PDC_NAMESPACE, BROKEN_KEY), PersistentDataType.BOOLEAN);
-        if (obj == null) return false;
-        return obj.equals(Boolean.TRUE);
+    public static @Nullable Integer getCurrentDamage(@NotNull ItemMeta meta) {
+        return meta.getPersistentDataContainer().get(
+                new NamespacedKey(PDC_NAMESPACE, CURRENT_DAMAGE_KEY),
+                PersistentDataType.INTEGER
+        );
     }
 
-    public static void setBroken(@NotNull ItemStack item, @NotNull Boolean broken) {
+    public static @Nullable Integer getMaxDamage(@NotNull ItemStack item) {
+        return getMaxDamage(item.getItemMeta());
+    }
+
+    public static @Nullable Integer getMaxDamage(@NotNull ItemMeta meta) {
+        return meta.getPersistentDataContainer().get(
+                new NamespacedKey(PDC_NAMESPACE, MAX_DAMAGE_KEY),
+                PersistentDataType.INTEGER
+        );
+    }
+
+    public static void setMaxDamage(@NotNull ItemStack item, int maxDamage) {
         ItemMeta meta = item.getItemMeta();
-        setBroken(meta, broken);
+        setMaxDamage(meta, maxDamage);
         item.setItemMeta(meta);
     }
 
-    public static void setBroken(@NotNull ItemMeta meta, @NotNull Boolean broken) {
+    public static void setMaxDamage(@NotNull ItemMeta meta, int maxDamage) {
         meta.getPersistentDataContainer().set(
-                new NamespacedKey(PDC_NAMESPACE, BROKEN_KEY),
-                PersistentDataType.BOOLEAN,
-                broken
+                new NamespacedKey(PDC_NAMESPACE, MAX_DAMAGE_KEY),
+                PersistentDataType.INTEGER,
+                maxDamage
+        );
+    }
+
+    public static void setCurrentDamage(@NotNull ItemStack item, int currentDamage) {
+        ItemMeta meta = item.getItemMeta();
+        setCurrentDamage(meta, currentDamage);
+        item.setItemMeta(meta);
+    }
+
+    public static void setCurrentDamage(@NotNull ItemMeta meta, int currentDamage) {
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(PDC_NAMESPACE, CURRENT_DAMAGE_KEY),
+                PersistentDataType.INTEGER,
+                currentDamage
         );
     }
 
@@ -244,7 +238,7 @@ public class PDCAPI {
     }
     
     public static @NotNull String getQualityName(@NotNull ItemMeta meta) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return "";
         return itemPDC.getQualityName();
     }
@@ -257,7 +251,7 @@ public class PDCAPI {
     }
     
     public static boolean setQualityName(@NotNull ItemMeta meta, @NotNull String qualityInnerName) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return false;
         itemPDC.setQualityName(qualityInnerName);
         setCalculablePDC(meta, itemPDC);
@@ -272,7 +266,7 @@ public class PDCAPI {
     }
 
     public static String @Nullable [] getGems(@NotNull ItemMeta meta) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return null;
         return itemPDC.getGems();
     }
@@ -285,7 +279,7 @@ public class PDCAPI {
     }
 
     public static boolean addGem(@NotNull ItemMeta meta, @NotNull String gemInnerName) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return false;
         if (!itemPDC.addGem(gemInnerName)) return false;
         setCalculablePDC(meta, itemPDC);
@@ -306,7 +300,7 @@ public class PDCAPI {
      * 原本没有对应的宝石，若使用移除，会返回false
      */
     public static boolean removeGem(@NotNull ItemMeta meta, String gemInnerName) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return false;
         if (!itemPDC.removeGem(gemInnerName)) return false;
         setCalculablePDC(meta, itemPDC);
@@ -324,7 +318,7 @@ public class PDCAPI {
     }
 
     public static boolean emptyGems(@NotNull ItemMeta meta) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return true;
         if (!itemPDC.emptyGems()) return false;
         setCalculablePDC(meta, itemPDC);
@@ -339,7 +333,7 @@ public class PDCAPI {
     }
 
     public static @NotNull Integer getLevel(@NotNull ItemMeta meta) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return 0;
         return itemPDC.getLevel();
     }
@@ -352,7 +346,7 @@ public class PDCAPI {
     }
 
     public static boolean setLevel(@NotNull ItemMeta meta, int level) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return false;
         itemPDC.setLevel(level);
         setCalculablePDC(meta, itemPDC);
@@ -373,7 +367,7 @@ public class PDCAPI {
      * 不会检测合法性，统一在属性绑定时检测
      */
     public static boolean levelUp(@NotNull ItemMeta meta) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return false;
         itemPDC.levelUp();
         return true;
@@ -393,7 +387,7 @@ public class PDCAPI {
      * 不会检测合法性，统一在属性绑定时检测
      */
     public static boolean levelDown(@NotNull ItemMeta meta) {
-        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta, AttributeAdditionFromType.ITEM);
+        ItemPDC itemPDC = (ItemPDC) getCalculablePDC(meta);
         if (itemPDC == null) return false;
         itemPDC.levelDown();
         setCalculablePDC(meta, itemPDC);

@@ -25,12 +25,7 @@ public final class ConfigKey {
     public static final String SOUL_BIND = "soul-bind";
     public static final String LEVEL_TEMPLATE_NAME = "level-template";
     public static final String GEM_STACK_NUMBER = "gem-stack";
-    public static final String MAX_DURABILITY = "max-durability";
     public static final String COLOR = "color";
-    public static final String SET_NAME = "set-name";  // 套装名称
-    // 默认词条
-    public static final String DEFAULT_QUALITY = "quality";
-    public static final String DEFAULT_LEVEL = "level";
 
     /* Gem类 */
 }

@@ -8,7 +8,6 @@ import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.github.tanice.twItemManager.constance.key.AttributeKey.SLOT;
+import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
@@ -81,14 +80,13 @@ public class Item extends BaseItem {
     protected void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
         meta.displayName(MiniMessageUtil.deserialize(config.getString(DISPLAY_NAME,"")));
         meta.setMaxStackSize(config.getInt(MAX_STACK, 1));
-        meta.setUnbreakable(config.getBoolean(UNBREAKABLE, false));
-        if (meta.getMaxStackSize() != 1 && !meta.isUnbreakable()) {
-            logWarning( innerName + "可堆叠但是有耐久？");
-        }
-        int cmd = config.getInt(CUSTOM_MODEL_DATA);
-        if (cmd != 0) meta.setCustomModelData(cmd);
+        meta.setUnbreakable(true);
+        int i = config.getInt(CUSTOM_MODEL_DATA);
+        if (i != 0) meta.setCustomModelData(i);
         for (String flagName : config.getStringList(HIDE_FLAGS)) meta.addItemFlags(ItemFlag.valueOf("HIDE_" + flagName.toUpperCase()));
-        if (meta instanceof Damageable && config.contains(MAX_DURABILITY)) ((Damageable)meta).setMaxDamage(config.getInt(MAX_DURABILITY));
+        i = config.getInt(MAX_DURABILITY, -1);
+        setMaxDamage(meta, i);
+        setCurrentDamage(meta, i);
         if (config.contains(COLOR)){
             if (meta instanceof LeatherArmorMeta) ((LeatherArmorMeta) meta).setColor(MiniMessageUtil.gethexColor(config.getString(COLOR)));
             else logWarning(innerName + "不是皮革制品，颜色无效。");
@@ -108,8 +106,6 @@ public class Item extends BaseItem {
         double code = -1;
         if (isUpdate()) code = TwItemManager.getUpdateCode();
         setUpdateCode(meta, code);
-        /* 需要监听是否损坏 */
-        setBroken(meta, false);
         /* 在获取物品的时候会更新时间戳 */
     }
 

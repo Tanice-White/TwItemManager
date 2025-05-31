@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.util.Arrays;
 
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 import static io.github.tanice.twItemManager.util.MiniMessageUtil.stripAllTags;
@@ -51,13 +52,15 @@ public class AttributePDC extends CalculablePDC {
         return "CalculablePDC{" +
                 "fromType=" + fromType + "," +
                 "itemInnerName=" + innerName + "," +
-                "damage=[" + damage[0] + damage[1] + damage[2] + "]," +
+                "damage=" + Arrays.toString(damage) + "," +
                 "criticalStrikeChance=" + criticalStrikeChance + "," +
                 "criticalStrikeDamage=" + criticalStrikeDamage + "," +
                 "armor=" + armor + "," +
                 "armorToughness=" + armorToughness + "," +
                 "preArmorReduction=" + preArmorReduction + "," +
                 "afterArmorReduction=" + afterArmorReduction +
+                "manaCost=" + Arrays.toString(manaCost) + ", " +
+                "skillCoolDown=" + Arrays.toString(skillCoolDown) +
                 "}";
     }
 }

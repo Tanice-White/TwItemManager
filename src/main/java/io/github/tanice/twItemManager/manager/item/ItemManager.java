@@ -6,6 +6,7 @@ import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
 import io.github.tanice.twItemManager.manager.item.quality.QualityGroup;
+import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
@@ -101,7 +102,7 @@ public class ItemManager implements Manager {
     }
 
     public String getItemPDC(@NotNull ItemStack item) {
-        ItemPDC iPDC = (ItemPDC) getCalculablePDC(item, AttributeAdditionFromType.ITEM);
+        ItemPDC iPDC = (ItemPDC) getCalculablePDC(item);
         if (iPDC == null) return "此物品没有持久化的PDC";
         return iPDC.toString();
     }
@@ -142,9 +143,14 @@ public class ItemManager implements Manager {
 
     @Override
     public void updateItem(@NotNull ItemStack item) {
+        CalculablePDC cPDC = getCalculablePDC(item);
+        if (cPDC == null) return;
         /* lore 更新 */
-        /* 暂不兼容原版属性绑定 */
-        /* 等级显示 */
+        /* 原版属性绑定 + 等级显示 */
+        if (cPDC.fromType() == AttributeAdditionFromType.ITEM) {
+            ((ItemPDC)cPDC).attachOriAttrsTo(item);
+        }
+
     }
 
     @Override

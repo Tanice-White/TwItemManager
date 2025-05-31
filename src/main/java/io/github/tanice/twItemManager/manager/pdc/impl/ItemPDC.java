@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static io.github.tanice.twItemManager.constance.key.AttributeKey.isOriginalKey;
+import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.infrastructure.AttributeAPI.*;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getSlot;
@@ -64,14 +64,14 @@ public class ItemPDC extends CalculablePDC {
 
     public ItemPDC(@NotNull String innerName, @NotNull AttributeAdditionFromType fromType, @NotNull ConfigurationSection cfg) {
         super(innerName, fromType, cfg.getConfigurationSection(ATTR_SECTION_KEY));
-        qualityName = cfg.getString(DEFAULT_QUALITY, "");
+        qualityName = cfg.getString(QUALITY, "");
         int l = cfg.getInt(GEM_STACK_NUMBER, 0);
         if (l > 0) {
             gems = new String[l];
             Arrays.fill(gems, EMPTY_GEM);
         }
         else gems = new String[0];
-        level = cfg.getInt(DEFAULT_LEVEL, 0);
+        level = cfg.getInt(LEVEL, 0);
         oriAttrs = new HashMap<>();
         this.loadOriAttrs(cfg.getConfigurationSection(ATTR_SECTION_KEY));
     }
@@ -188,31 +188,23 @@ public class ItemPDC extends CalculablePDC {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("CalculablePDC{");
-        sb.append("fromType=").append(fromType).append(",");
-        sb.append("itemInnerName=").append(innerName).append(",");
-        sb.append("qualityName=").append(qualityName).append(",");
-        sb.append("level=").append(level).append(",");
-        sb.append("gem={");
-        boolean f= true;
-        if (gems != null) {
-            for (String gem : gems) {
-                if (!f) sb.append(",");
-                sb.append(gem);
-                f = false;
-            }
-        }
-        sb.append("},");
-        sb.append("damage=[").append(damage[0]).append(",").append(damage[1]).append("],");
-        sb.append("criticalStrikeChance=").append(criticalStrikeChance).append(",");
-        sb.append("criticalStrikeDamage=").append(criticalStrikeDamage).append(",");
-        sb.append("armor=").append(armor).append(",");
-        sb.append("armorToughness=").append(armorToughness).append(",");
-        sb.append("preArmorReduction=").append(preArmorReduction).append(",");
-        sb.append("afterArmorReduction=").append(afterArmorReduction);
-        sb.append("}");
-        return sb.toString();
+        return "CalculablePDC{" +
+                "fromType=" + fromType + ", " +
+                "itemInnerName=" + innerName + ", " +
+                "qualityName=" + qualityName + ", " +
+                "level=" + level + ", " +
+                "gem=" + Arrays.toString(gems) + ", " +
+                "damage=" + Arrays.toString(damage) + ", " +
+                "criticalStrikeChance=" + criticalStrikeChance + ", " +
+                "criticalStrikeDamage=" + criticalStrikeDamage + ", " +
+                "armor=" + armor + ", " +
+                "armorToughness=" + armorToughness + ", " +
+                "preArmorReduction=" + preArmorReduction + ", " +
+                "afterArmorReduction=" + afterArmorReduction + ", " +
+                "manaCost=" + Arrays.toString(manaCost) + ", " +
+                "skillCoolDown=" + Arrays.toString(skillCoolDown) +
+                "oriAttrs=" + mapToString(oriAttrs) +
+                "}";
     }
 
     /**
@@ -244,5 +236,18 @@ public class ItemPDC extends CalculablePDC {
     private void addOriAttrs(@NotNull String key, double @NotNull [] values) {
         if (values.length != 2) return;
         oriAttrs.put(key, new double[]{values[0], values[1]});
+    }
+
+    private @NotNull String mapToString(@NotNull Map<String, double[]> map) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        for (Map.Entry<String, double[]> entry : map.entrySet()) {
+            sb.append(entry.getKey());
+            sb.append("=");
+            sb.append(Arrays.toString(entry.getValue()));
+            sb.append("; ");
+        }
+        sb.append("}");
+        return sb.toString();
     }
 }

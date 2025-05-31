@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.util.Arrays;
 import java.util.List;
 
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
@@ -42,26 +43,19 @@ public class EntityPDC extends CalculablePDC {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("CalculablePDC{");
-        sb.append("BuffNames=[");
-        boolean f = true;
-        for(String buffName : buffName) {
-            if (!f) sb.append(",");
-            sb.append(buffName);
-            f = false;
-        }
-        sb.append("],");
-        sb.append("fromType=").append(fromType).append(",");
-        sb.append("itemInnerName=").append(innerName).append(",");
-        sb.append("damage=[").append(damage[0]).append(damage[1]).append(damage[2]).append("],");
-        sb.append("criticalStrikeChance=").append(criticalStrikeChance).append(",");
-        sb.append("criticalStrikeDamage=").append(criticalStrikeDamage).append(",");
-        sb.append("armor=").append(armor).append(",");
-        sb.append("armorToughness=").append(armorToughness).append(",");
-        sb.append("preArmorReduction=").append(preArmorReduction).append(",");
-        sb.append("afterArmorReduction=").append(afterArmorReduction);
-        sb.append("}");
-        return sb.toString();
+        return "CalculablePDC{" +
+                "BuffNames=" + buffName + ", " +
+                "fromType=" + fromType + ", " +
+                "itemInnerName=" + innerName + ", " +
+                "damage=[" + Arrays.toString(damage) + "], " +
+                "criticalStrikeChance=" + criticalStrikeChance + ", " +
+                "criticalStrikeDamage=" + criticalStrikeDamage + ", " +
+                "armor=" + armor + ", " +
+                "armorToughness=" + armorToughness + ", " +
+                "preArmorReduction=" + preArmorReduction + ", " +
+                "afterArmorReduction=" + afterArmorReduction +
+                "manaCost=" + Arrays.toString(manaCost) + ", " +
+                "skillCoolDown=" + Arrays.toString(skillCoolDown) +
+                "}";
     }
 }

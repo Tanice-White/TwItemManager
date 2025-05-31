@@ -46,6 +46,11 @@ public abstract class CalculablePDC implements Serializable {
     /* [0,FROM_TYPE_NUM)-百分比增加 */
     protected List<Double> preArmorReduction;
     protected List<Double> afterArmorReduction;
+    /* 技能相关 */
+    /* 不同物品提供的直接对应相加 */
+    /* 0-白值 1-百分比 */
+    protected double[] manaCost;
+    protected double[] skillCoolDown;
 
     /**
      * 供序列化使用
@@ -60,6 +65,8 @@ public abstract class CalculablePDC implements Serializable {
         armorToughness = 0D;
         preArmorReduction = new ArrayList<>();
         afterArmorReduction = new ArrayList<>();
+        manaCost = new double[]{0D, 0D};
+        skillCoolDown = new double[]{0D, 0D};
     }
 
     public CalculablePDC(@NotNull String innerName, @NotNull AttributeAdditionFromType aft) {
@@ -72,6 +79,8 @@ public abstract class CalculablePDC implements Serializable {
         armorToughness = 0D;
         preArmorReduction = new ArrayList<>();
         afterArmorReduction = new ArrayList<>();
+        manaCost = new double[]{0D, 0D};
+        skillCoolDown = new double[]{0D, 0D};
     }
     /* 传入attr下的配置即可 */
     public CalculablePDC(@NotNull String innerName, @NotNull AttributeAdditionFromType aft, @Nullable ConfigurationSection cfg) {
