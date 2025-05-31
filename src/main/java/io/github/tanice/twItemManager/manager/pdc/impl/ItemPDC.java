@@ -53,15 +53,6 @@ public class ItemPDC extends CalculablePDC {
         oriAttrs = new HashMap<>();
     }
 
-    public ItemPDC(@NotNull String innerName, @NotNull AttributeAdditionFromType fromType, int gemStack) {
-        super(innerName, fromType);
-        qualityName = "";
-        if (gemStack > 0) gems = new String[gemStack];
-        else gems = new String[0];
-        level = 0;
-        oriAttrs = new HashMap<>();
-    }
-
     public ItemPDC(@NotNull String innerName, @NotNull AttributeAdditionFromType fromType, @NotNull ConfigurationSection cfg) {
         super(innerName, fromType, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         qualityName = cfg.getString(QUALITY, "");

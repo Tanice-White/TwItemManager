@@ -31,9 +31,6 @@ public class Item extends BaseItem {
     /** 模板名 */
     @Getter
     private String levelTemplateName;
-    /** 更新标记 */
-    @Getter
-    private boolean update;
     /** 是否取消伤害 */
     @Getter
     private boolean cancelDamage;
@@ -66,7 +63,6 @@ public class Item extends BaseItem {
         qualityGroups = config.getStringList(QUALITY_GROUPS);
         cancelDamage = config.getBoolean(CANCEL_DAMAGE, false);
         loseWhenBreak = config.getBoolean(LOSE_WHEN_BREAK, false);
-        update = config.getBoolean(UPDATE, false);
         soulBind = config.getBoolean(SOUL_BIND, false);
         levelTemplateName = config.getString(LEVEL_TEMPLATE_NAME, "");
         gemStackNumber = config.getInt(GEM_STACK_NUMBER, 0);
@@ -102,11 +98,8 @@ public class Item extends BaseItem {
         setSlot(meta ,config.getString(SLOT,"ANY"));
         /* 灵魂绑定的玩家名(暂时不使用UUID) */
         setOwner(meta, "");
-        /* 更新检测  code -1表示不更新 否则更新，每次reload code++; */
-        double code = -1;
-        if (isUpdate()) code = TwItemManager.getUpdateCode();
-        setUpdateCode(meta, code);
-        /* 在获取物品的时候会更新时间戳 */
+        // TODO 使用更好的方式，比如哈希值
+        setUpdateCode(meta, TwItemManager.getUpdateCode());
     }
 
     public @NotNull List<String> getSkills() {return new ArrayList<>(skills);}
