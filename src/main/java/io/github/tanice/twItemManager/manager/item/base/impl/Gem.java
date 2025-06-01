@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.item.base.impl;
 
+import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.SLOT;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.DISPLAY_NAME;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.MAX_STACK;
-import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setCalculablePDC;
+import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setItemCalculablePDC;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setSlot;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
@@ -37,7 +38,7 @@ public class Gem extends BaseItem {
 
     @Override
     protected void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
-        if (!setCalculablePDC(meta, new AttributePDC(innerName , AttributeAdditionFromType.GEM, config))) {
+        if (!PDCAPI.setItemCalculablePDC(meta, new AttributePDC(innerName , AttributeAdditionFromType.GEM, config))) {
             logWarning("ItemPDC 设置出错");
         }
         setSlot(meta ,config.getString(SLOT,"ANY"));

@@ -39,6 +39,8 @@ public class ItemManager implements Manager {
     private final Map<String, QualityGroup> qualityGroupManagerMap;
     /** 全局可用品质(便于检索和切换) */
     private final Map<String, AttributePDC> qualityMap;
+    /** 全局可用的buff属性列表 */
+    private final Map<String, AttributePDC> buffMap;
     /** 物品描述模板 */
     // private final LoreManager loreManager;
     /** key 技能名 value 技能类 */
@@ -52,6 +54,7 @@ public class ItemManager implements Manager {
         gemMap = new HashMap<>();
         qualityGroupManagerMap = new HashMap<>();
         qualityMap = new HashMap<>();
+        buffMap = new HashMap<>();
         // skillManagerMap = new HashMap<>();
         levelTemplateMap = new HashMap<>();
         // loreManager = new LoreManager();
@@ -62,7 +65,10 @@ public class ItemManager implements Manager {
 
     public void reload() {
         itemMap.clear();
+        gemMap.clear();
         qualityGroupManagerMap.clear();
+        qualityMap.clear();
+        buffMap.clear();
         // skillManagerMap.clear();
         levelTemplateMap.clear();
         // loreManager 在 loadConfigs 中初始化
@@ -91,6 +97,13 @@ public class ItemManager implements Manager {
         return gemMap.keySet();
     }
 
+    /**
+     * 获取全局buff列表的具体属性
+     */
+    public @Nullable AttributePDC getBuffPDC(@NotNull String buffName) {
+        return buffMap.get(buffName);
+    }
+
     public boolean isNotTwItem(@NotNull ItemStack item) {
         String in = getInnerName(item);
         if (in == null) return true;
@@ -102,7 +115,7 @@ public class ItemManager implements Manager {
     }
 
     public String getItemPDC(@NotNull ItemStack item) {
-        ItemPDC iPDC = (ItemPDC) getCalculablePDC(item);
+        ItemPDC iPDC = (ItemPDC) getItemCalculablePDC(item);
         if (iPDC == null) return "此物品没有持久化的PDC";
         return iPDC.toString();
     }
@@ -134,16 +147,14 @@ public class ItemManager implements Manager {
             if (lvl < levelTemplateManager.getBegin() || lvl > levelTemplateManager.getMax())
                 setLevel(item, levelTemplateManager.getBegin());
         }
-
         // TODO step3 绑定技能
-
         updateItem(item);
         return item;
     }
 
     @Override
     public void updateItem(@NotNull ItemStack item) {
-        CalculablePDC cPDC = getCalculablePDC(item);
+        CalculablePDC cPDC = getItemCalculablePDC(item);
         if (cPDC == null) return;
         /* lore 更新 */
         /* 原版属性绑定 + 等级显示 */

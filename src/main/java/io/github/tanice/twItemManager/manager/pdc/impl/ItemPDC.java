@@ -3,7 +3,7 @@ package io.github.tanice.twItemManager.manager.pdc.impl;
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateType;
+import io.github.tanice.twItemManager.manager.pdc.type.OriAttributeAddType;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.configuration.ConfigurationSection;
@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serial;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
@@ -34,7 +33,6 @@ public class ItemPDC extends CalculablePDC {
     private static final long serialVersionUID = 1L;
 
     private static final String EMPTY_GEM = "$";
-    private static final String ATTR_SECTION_KEY = "attrs";
     /* 影响属性的值 */
     @Setter
     private String qualityName;
@@ -65,19 +63,6 @@ public class ItemPDC extends CalculablePDC {
         level = cfg.getInt(LEVEL, 0);
         oriAttrs = new HashMap<>();
         this.loadOriAttrs(cfg.getConfigurationSection(ATTR_SECTION_KEY));
-    }
-
-    @Override
-    public void selfCalculate() {
-        // TODO 将宝石和品质属性进行计算
-        // addOriAttrs(quality的PDC和gems的PDC);
-        return;
-    }
-
-    @Override
-    public void merge(CalculablePDC... o) {
-        // TODO 同类(AttributeAdditionFromType)物品数值合并
-        return;
     }
 
     /**
@@ -161,8 +146,8 @@ public class ItemPDC extends CalculablePDC {
         ItemMeta meta = item.getItemMeta();
         EquipmentSlotGroup es = slotJudge(getSlot(item));
         for (String k : oriAttrs.keySet()) {
-            if (oriAttrs.get(k)[0] != 0) setAttr(getOriAttrNamespaceKey(), meta, k, AttributeCalculateType.ADD, oriAttrs.get(k)[0], es);
-            if (oriAttrs.get(k)[1] != 0)  setAttr(getOriAttrNamespaceKey(), meta, k, AttributeCalculateType.MULTIPLY, oriAttrs.get(k)[0], es);
+            if (oriAttrs.get(k)[0] != 0) setAttr(getOriAttrNamespaceKey(), meta, k, OriAttributeAddType.ADD, oriAttrs.get(k)[0], es);
+            if (oriAttrs.get(k)[1] != 0)  setAttr(getOriAttrNamespaceKey(), meta, k, OriAttributeAddType.MULTIPLY, oriAttrs.get(k)[0], es);
         }
         item.setItemMeta(meta);
     }

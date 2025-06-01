@@ -5,7 +5,6 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.Arrays;
@@ -15,6 +14,7 @@ import static io.github.tanice.twItemManager.util.MiniMessageUtil.stripAllTags;
 
 /**
  * 单纯的某一个属性（基础属性）
+ * 可用于计算
  */
 @Getter
 public class AttributePDC extends CalculablePDC {
@@ -32,19 +32,9 @@ public class AttributePDC extends CalculablePDC {
         this.displayName = displayName;
     }
 
-    public AttributePDC(@NotNull String displayName, @NotNull AttributeAdditionFromType aft, @Nullable ConfigurationSection cfg) {
-        super(stripAllTags(displayName), aft, cfg);
+    public AttributePDC(@NotNull String displayName, @NotNull AttributeAdditionFromType aft, @NotNull ConfigurationSection cfg) {
+        super(stripAllTags(displayName), aft, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         this.displayName = displayName;
-    }
-
-    @Override
-    public void selfCalculate() {
-        logWarning("基础属性不需要自计算，请检查代码");
-    }
-
-    @Override
-    public void merge(CalculablePDC... o) {
-        logWarning("基础属性不可能合并，请检查代码");
     }
 
     @Override

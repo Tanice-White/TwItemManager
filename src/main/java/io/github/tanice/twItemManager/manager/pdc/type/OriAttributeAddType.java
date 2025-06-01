@@ -2,7 +2,7 @@ package io.github.tanice.twItemManager.manager.pdc.type;
 
 import java.io.Serializable;
 
-public enum AttributeCalculateType implements Serializable {
+public enum OriAttributeAddType implements Serializable {
     /**
      * 加算
      */

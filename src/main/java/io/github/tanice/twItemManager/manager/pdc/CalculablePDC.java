@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc;
 
+import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,8 @@ import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
 public abstract class CalculablePDC implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+
+    protected static final String ATTR_SECTION_KEY = "attrs";
 
     /* PDC所在物品的内部名称 */
     /* ITEM类型-可以为中文  其余-中英文都可 */
@@ -112,28 +115,31 @@ public abstract class CalculablePDC implements Serializable {
     }
 
     /**
-     * 自计算，将影响相关数据的属性计算得出最终的属性
+     * 数据整合(只整合统一的数据项)
+     * 不同的type需要分类merge！
      */
-    public abstract void selfCalculate();
-
-    /**
-     * 数据整合
-     */
-    public abstract void merge(CalculablePDC... o);
+    public void merge(CalculablePDC @NotNull ... o) {
+        for (CalculablePDC cPDC : o) {
+            if (cPDC == null) continue;
+            this.damage[0] += cPDC.damage[0];
+            this.damage[1] += cPDC.damage[1];
+            this.criticalStrikeChance += cPDC.criticalStrikeChance;
+            this.criticalStrikeDamage += cPDC.criticalStrikeDamage;
+            this.armor += cPDC.armor;
+            this.armorToughness += cPDC.armorToughness;
+            this.preArmorReduction.addAll(cPDC.preArmorReduction);
+            this.afterArmorReduction.addAll(cPDC.afterArmorReduction);
+            this.manaCost[0] += cPDC.manaCost[0];
+            this.manaCost[1] += cPDC.manaCost[1];
+            this.skillCoolDown[0] += cPDC.skillCoolDown[0];
+            this.skillCoolDown[1] += cPDC.skillCoolDown[1];
+        }
+    }
 
     /**
      * 显示形式
      */
     public abstract String toString();
-
-    /**
-     * 处理配置中的数值(将%转为小数)
-     */
-    protected Double getCfgValue(@NotNull String str) {
-        double v = Double.parseDouble(str.replace("%", ""));
-        if (str.endsWith("%")) v /= 100;
-        return v;
-    }
     /**
      * 返回自身属于的类型
      * @return 数据来源类型
@@ -143,9 +149,27 @@ public abstract class CalculablePDC implements Serializable {
     }
 
     /**
+     * 将类转为普通的数值计算基类
+     */
+    public @NotNull AttributePDC toAttributePDC() {
+        AttributePDC pdc = new AttributePDC();
+        pdc.merge(this);
+        return pdc;
+    }
+
+    /**
      * 将内部名称哈希，可作为key
      */
     protected @NotNull String hashInnerName() {
         return Hashing.sha256().hashString(innerName, StandardCharsets.UTF_8).toString().toLowerCase();
+    }
+
+    /**
+     * 处理配置中的数值(将%转为小数)
+     */
+    protected Double getCfgValue(@NotNull String str) {
+        double v = Double.parseDouble(str.replace("%", ""));
+        if (str.endsWith("%")) v /= 100;
+        return v;
     }
 }

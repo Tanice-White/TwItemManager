@@ -92,7 +92,7 @@ public class Item extends BaseItem {
     @Override
     protected void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
         /* PDC默认值 */
-        if (!setCalculablePDC(meta, new ItemPDC(innerName ,AttributeAdditionFromType.ITEM, config))) {
+        if (!setItemCalculablePDC(meta, new ItemPDC(innerName ,AttributeAdditionFromType.ITEM, config))) {
             logWarning("ItemPDC 设置出错");
         }
         setSlot(meta ,config.getString(SLOT,"ANY"));

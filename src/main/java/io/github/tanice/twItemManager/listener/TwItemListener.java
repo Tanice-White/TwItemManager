@@ -61,8 +61,6 @@ public class TwItemListener implements Listener {
             i.editMeta(meta -> meta.getPersistentDataContainer().set(k2, PersistentDataType.STRING, event.getPlayer().getName()));
         }
 
-        // TODO 持有者不是 OWNER 需要提示 自行决定是否需要禁用属性
-
         // TODO 触发自定义事件 - > 更新lore
     }
 

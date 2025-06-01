@@ -1,7 +1,7 @@
 package io.github.tanice.twItemManager.infrastructure;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateType;
+import io.github.tanice.twItemManager.manager.pdc.type.OriAttributeAddType;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -40,11 +40,11 @@ public class AttributeAPI {
      * @param v       对应属性需要修改成的值
      * @param slot    生效的位置
      */
-    public static void setAttr(@NotNull String from, @NotNull ItemMeta meta, @NotNull String attrKey, @NotNull AttributeCalculateType act, double v, @NotNull EquipmentSlotGroup slot) {
+    public static void setAttr(@NotNull String from, @NotNull ItemMeta meta, @NotNull String attrKey, @NotNull OriAttributeAddType act, double v, @NotNull EquipmentSlotGroup slot) {
         Attribute a = ATTRIBUTE_MAP.get(attrKey);
         if (a == null) return;
         meta.removeAttributeModifier(a);
-        if (act == AttributeCalculateType.ADD) {
+        if (act == OriAttributeAddType.ADD) {
             meta.addAttributeModifier(a, new AttributeModifier(
                     new NamespacedKey(from + SET_NAMESPACE_SUFFIX, attrKey),
                     v,
@@ -103,10 +103,10 @@ public class AttributeAPI {
      * @param v      需要增加的属性值
      * @param slot   生效槽位, 默认为主手
      */
-    public static void addAttr(@NotNull String from, @NotNull ItemMeta meta, @NotNull String attrKey, @NotNull AttributeCalculateType act, double v, @NotNull EquipmentSlotGroup slot) {
+    public static void addAttr(@NotNull String from, @NotNull ItemMeta meta, @NotNull String attrKey, @NotNull OriAttributeAddType act, double v, @NotNull EquipmentSlotGroup slot) {
         Attribute a = ATTRIBUTE_MAP.get(attrKey);
         if (a == null) return;
-        if (act == AttributeCalculateType.ADD) {
+        if (act == OriAttributeAddType.ADD) {
             meta.addAttributeModifier(a, new AttributeModifier(
                     new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
                     v,

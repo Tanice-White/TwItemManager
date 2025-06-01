@@ -1,10 +1,15 @@
 package io.github.tanice.twItemManager.manager.calculator;
 
+import io.github.tanice.twItemManager.manager.item.ItemManager;
 import lombok.Getter;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 @Getter
-public class CombatDefenceCalculator {
+public class CombatDefenceCalculator extends Calculator {
     /**
      * 防御值 更据转变系数转变为防御减伤
      */
@@ -18,21 +23,24 @@ public class CombatDefenceCalculator {
     /**
      * 防御减伤计算前的减伤
      */
-    private double preArmorReduction;
+    private List<Double> preArmorReduction;
     /**
      * 防御计算之后的减伤
      */
-    private double afterArmorReduction;
+    private List<Double> afterArmorReduction;
 
     /**
      * 是否使用 玩家减伤 的平衡计算方法
      */
     private boolean damageReductionBalance;
 
-    public CombatDefenceCalculator(Entity entity) {
-        // 遍历装备
-        // 遍历BUFF
-        // 遍历饰品
+    public CombatDefenceCalculator(@NotNull ItemManager im, @NotNull LivingEntity entity) {
+        super(im, entity);
+    }
+
+    @Override
+    public double getFinalV(@NotNull LivingEntity entity) {
+        return 0;
     }
 
     /**

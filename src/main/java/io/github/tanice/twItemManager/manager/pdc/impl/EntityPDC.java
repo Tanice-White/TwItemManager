@@ -31,17 +31,6 @@ public class EntityPDC extends CalculablePDC {
     }
 
     @Override
-    public void selfCalculate() {
-        // TODO 从buffManager中找到对应的AttributePDC并进行自计算
-        return;
-    }
-
-    @Override
-    public void merge(CalculablePDC... o) {
-        logWarning("一个实体的BUFF不可能合并，请检查代码");
-    }
-
-    @Override
     public String toString() {
         return "CalculablePDC{" +
                 "BuffNames=" + buffName + ", " +

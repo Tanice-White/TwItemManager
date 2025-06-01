@@ -6,14 +6,13 @@ import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
-
 @Getter
 public class LevelTemplate {
     private final String innerName;
     private final int begin;
     private final int max;
     private final double chance;
+    /* 升级所需物品的内部名 */
     private final String levelUpNeed;
     private final boolean levelDownWhenFailed;
     private final AttributePDC attributePDC;
@@ -26,8 +25,6 @@ public class LevelTemplate {
         /* items inner name */
         levelUpNeed = cfg.getString("level-up-need");
         levelDownWhenFailed = cfg.getBoolean("level-down-when-failed", false);
-        if (levelUpNeed == null || levelUpNeed.isEmpty())
-            logWarning("Level up need is empty, it will cause bug !!!");
         attributePDC = new AttributePDC(innerName, AttributeAdditionFromType.LEVEL, cfg);
     }
 }
