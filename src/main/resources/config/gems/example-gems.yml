@@ -4,24 +4,24 @@
   # 只会识别以下7个key
   # modifiers部分同等级以及品质(无颜色代码)一样的要求
   id: coal
-  custom-model-data: 2000
-  display-name: <yellow>力量宝石V</yellow>
+  custom_model_data: 2000
+  display_name: <yellow>力量宝石V</yellow>
   # 宝石默认无法破坏
-  hide-flags:
-    - UNBREAKABLE
+  hide_flags:
+    _ UNBREAKABLE
   lore:
-    - "这是一个宝石"
+    _ "这是一个宝石"
   attrs:
-    attack-damage: "+10"
-  embed-chance: 0.9  # 镶嵌成功率  默认为 1
-  remove-chance: 0.9  # 拆卸成功率 默认为1
-  loss-when-failed: true  # 镶嵌或者拆卸失败是否修丢失
+    attack_damage: "+10"
+  embed_chance: 0.9  # 镶嵌成功率  默认为 1
+  remove_chance: 0.9  # 拆卸成功率 默认为1
+  loss_when_failed: true  # 镶嵌或者拆卸失败是否修丢失
 
 
 测试宝石2:
   id: coal
-  custom-model-data: 2001
+  custom_model_data: 2001
   lore:
-    - "这是一个宝石"
+    _ "这是一个宝石"
   modifiers:
-    attack-speed: +10
+    attack_speed: +10

@@ -2,8 +2,7 @@ package io.github.tanice.twItemManager.manager.pdc.impl;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
-import io.github.tanice.twItemManager.manager.pdc.type.OriAttributeAddType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.configuration.ConfigurationSection;
@@ -23,9 +22,11 @@ import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.infrastructure.AttributeAPI.*;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getSlot;
 import static io.github.tanice.twItemManager.util.EquipmentSlotGroupUtil.slotJudge;
+import static io.github.tanice.twItemManager.util.Tool.*;
 
 /**
  * 物品持有的属性
+ * 武器的属性和宝石作为武器的基础面板计算
  */
 @Getter
 public class ItemPDC extends CalculablePDC {
@@ -51,8 +52,8 @@ public class ItemPDC extends CalculablePDC {
         oriAttrs = new HashMap<>();
     }
 
-    public ItemPDC(@NotNull String innerName, @NotNull AttributeAdditionFromType fromType, @NotNull ConfigurationSection cfg) {
-        super(innerName, fromType, cfg.getConfigurationSection(ATTR_SECTION_KEY));
+    public ItemPDC(@NotNull String innerName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
+        super(innerName, acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         qualityName = cfg.getString(QUALITY, "");
         int l = cfg.getInt(GEM_STACK_NUMBER, 0);
         if (l > 0) {
@@ -138,6 +139,21 @@ public class ItemPDC extends CalculablePDC {
         if (level >= 0) this.level = level;
     }
 
+    @Override
+    public String toString() {
+        return "CalculablePDC{" +
+                "priority=" + priority + ", " +
+                "itemInnerName=" + innerName + ", " +
+                "qualityName=" + qualityName + ", " +
+                "level=" + level + ", " +
+                "gem=" + Arrays.toString(gems) + ", " +
+                "oriAttrs=" + mapToString(oriAttrs) + ", " +
+                "attributeCalculateSection=" + attributeCalculateSection + ", " +
+                "attribute-addition=" + enumMapToString(vMap) +
+                "type-addition=" + enumMapToString(tMap) +
+                "}";
+    }
+
     /**
      * 将原版属性挂到物品上
      * 宝石属性会在被生成的时候绑定到实物上
@@ -146,8 +162,8 @@ public class ItemPDC extends CalculablePDC {
         ItemMeta meta = item.getItemMeta();
         EquipmentSlotGroup es = slotJudge(getSlot(item));
         for (String k : oriAttrs.keySet()) {
-            if (oriAttrs.get(k)[0] != 0) setAttr(getOriAttrNamespaceKey(), meta, k, OriAttributeAddType.ADD, oriAttrs.get(k)[0], es);
-            if (oriAttrs.get(k)[1] != 0)  setAttr(getOriAttrNamespaceKey(), meta, k, OriAttributeAddType.MULTIPLY, oriAttrs.get(k)[0], es);
+            if (oriAttrs.get(k)[0] != 0) setAttr(getOriAttrNamespaceKey(), meta, k, "+", oriAttrs.get(k)[0], es);
+            if (oriAttrs.get(k)[1] != 0)  setAttr(getOriAttrNamespaceKey(), meta, k, "*", oriAttrs.get(k)[1], es);
         }
         item.setItemMeta(meta);
     }
@@ -160,27 +176,6 @@ public class ItemPDC extends CalculablePDC {
         ItemMeta meta = item.getItemMeta();
         // 需要精确remove
         for (String k : oriAttrs.keySet()) removeAddAttrByKey(getOriAttrNamespaceKey(), meta, k);
-    }
-
-    @Override
-    public String toString() {
-        return "CalculablePDC{" +
-                "fromType=" + fromType + ", " +
-                "itemInnerName=" + innerName + ", " +
-                "qualityName=" + qualityName + ", " +
-                "level=" + level + ", " +
-                "gem=" + Arrays.toString(gems) + ", " +
-                "damage=" + Arrays.toString(damage) + ", " +
-                "criticalStrikeChance=" + criticalStrikeChance + ", " +
-                "criticalStrikeDamage=" + criticalStrikeDamage + ", " +
-                "armor=" + armor + ", " +
-                "armorToughness=" + armorToughness + ", " +
-                "preArmorReduction=" + preArmorReduction + ", " +
-                "afterArmorReduction=" + afterArmorReduction + ", " +
-                "manaCost=" + Arrays.toString(manaCost) + ", " +
-                "skillCoolDown=" + Arrays.toString(skillCoolDown) +
-                "oriAttrs=" + mapToString(oriAttrs) +
-                "}";
     }
 
     /**
@@ -214,16 +209,9 @@ public class ItemPDC extends CalculablePDC {
         oriAttrs.put(key, new double[]{values[0], values[1]});
     }
 
-    private @NotNull String mapToString(@NotNull Map<String, double[]> map) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        for (Map.Entry<String, double[]> entry : map.entrySet()) {
-            sb.append(entry.getKey());
-            sb.append("=");
-            sb.append(Arrays.toString(entry.getValue()));
-            sb.append("; ");
-        }
-        sb.append("}");
-        return sb.toString();
+    private double getCfgValue(@NotNull String v) {
+        double res = Double.parseDouble(v.replaceAll("%", ""));
+        if (v.endsWith("%")) res /= 100;
+        return res;
     }
 }

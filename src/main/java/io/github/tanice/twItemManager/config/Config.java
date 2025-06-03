@@ -34,12 +34,12 @@ public class Config {
     /** 激活时 加载全局配置文件 */
     public static void onEnable(@NotNull JavaPlugin plugin) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
-        generateExamples = cfg.getBoolean("generate-examples", true);
-        cancelGenericParticles = cfg.getBoolean("cancel-generic-particles", false);
-        generateDamageIndicator = cfg.getBoolean("generate-damage-indicator", false);
-        anvilRepairable = cfg.getBoolean("anvil-repairable", true);
-        grindstoneRepairable = cfg.getBoolean("grindstone-repairable", true);
-        canEnchant = cfg.getBoolean("can-enchant", true);
+        generateExamples = cfg.getBoolean("generate_examples", true);
+        cancelGenericParticles = cfg.getBoolean("cancel_generic_particles", false);
+        generateDamageIndicator = cfg.getBoolean("generate_damage_indicator", false);
+        anvilRepairable = cfg.getBoolean("anvil_repairable", true);
+        grindstoneRepairable = cfg.getBoolean("grindstone_repairable", true);
+        canEnchant = cfg.getBoolean("can_enchant", true);
     }
 
     /** 插件重载时 重载对应配置文件 */
@@ -47,16 +47,16 @@ public class Config {
         onEnable(plugin);
     }
 
-    /** 生成全局配置文件 config.yml 和 配置示例文件 /XX/example-XXX.yml */
+    /** 生成全局配置文件 config.yml 和 配置示例文件 /XX/example_XXX.yml */
     public static void save(@NotNull JavaPlugin plugin){
-        // 第一次加载-保存默认全局配置文件
+        // 第一次加载_保存默认全局配置文件
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         // 没有全局配置文件则直接创建
         if(!configFile.exists()){
             generateExampleConfig(plugin);
             return;
         }
-        // 已经有配置文件--判断是否需要生成示例配置文件
+        // 已经有配置文件__判断是否需要生成示例配置文件
         if(generateExamples) generateExampleConfig(plugin);
     }
 
@@ -82,7 +82,7 @@ public class Config {
         File targetFolder = plugin.getDataFolder();
         URL sourceUrl = plugin.getClass().getResource("");
         if (sourceUrl == null) {
-            plugin.getLogger().warning("The plugin package is incomplete, please re-download it!");
+            plugin.getLogger().warning("The plugin package is incomplete, please re_download it!");
             return;
         }
 

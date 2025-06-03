@@ -20,8 +20,6 @@ public final class TwItemManager extends JavaPlugin {
     private static Double updateCode = 0.0;
     @Getter
     private static ItemManager itemManager;
-//    @Getter
-//    private static GemManager gemManager;
     @Getter
     private static TwItemListener twItemListener;
     @Getter

@@ -1,15 +1,14 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.util.Arrays;
 import java.util.List;
 
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
+import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 /**
  * 实体持有的属性
@@ -26,25 +25,19 @@ public class EntityPDC extends CalculablePDC {
         super();
     }
 
-    public EntityPDC(@NotNull String innerName, @NotNull AttributeAdditionFromType aft) {
-        super(innerName, aft);
+    public EntityPDC(@NotNull String innerName) {
+        super(innerName, AttributeCalculateSection.OTHER, null);
     }
 
     @Override
     public String toString() {
         return "CalculablePDC{" +
-                "BuffNames=" + buffName + ", " +
-                "fromType=" + fromType + ", " +
+                "priority=" + priority + ", " +
                 "itemInnerName=" + innerName + ", " +
-                "damage=[" + Arrays.toString(damage) + "], " +
-                "criticalStrikeChance=" + criticalStrikeChance + ", " +
-                "criticalStrikeDamage=" + criticalStrikeDamage + ", " +
-                "armor=" + armor + ", " +
-                "armorToughness=" + armorToughness + ", " +
-                "preArmorReduction=" + preArmorReduction + ", " +
-                "afterArmorReduction=" + afterArmorReduction +
-                "manaCost=" + Arrays.toString(manaCost) + ", " +
-                "skillCoolDown=" + Arrays.toString(skillCoolDown) +
+                "buffName=" + buffName + ", " +
+                "attributeCalculateSection=" + attributeCalculateSection + ", " +
+                "attribute-addition=" + enumMapToString(vMap) +
+                "type-addition=" + enumMapToString(tMap) +
                 "}";
     }
 }

@@ -1,7 +1,7 @@
 package io.github.tanice.twItemManager.manager.item.level;
 
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +25,6 @@ public class LevelTemplate {
         /* items inner name */
         levelUpNeed = cfg.getString("level-up-need");
         levelDownWhenFailed = cfg.getBoolean("level-down-when-failed", false);
-        attributePDC = new AttributePDC(innerName, AttributeAdditionFromType.LEVEL, cfg);
+        attributePDC = new AttributePDC(innerName, AttributeCalculateSection.BASE, cfg);
     }
 }

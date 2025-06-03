@@ -3,7 +3,7 @@ package io.github.tanice.twItemManager.manager.item.base.impl;
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
@@ -92,7 +92,7 @@ public class Item extends BaseItem {
     @Override
     protected void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
         /* PDC默认值 */
-        if (!setItemCalculablePDC(meta, new ItemPDC(innerName ,AttributeAdditionFromType.ITEM, config))) {
+        if (!setItemCalculablePDC(meta, new ItemPDC(innerName, AttributeCalculateSection.BASE, config))) {
             logWarning("ItemPDC 设置出错");
         }
         setSlot(meta ,config.getString(SLOT,"ANY"));

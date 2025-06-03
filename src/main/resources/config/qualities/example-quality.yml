@@ -3,9 +3,9 @@
 # <#fffff>TEXT_TO_DISPLAY
 
 # 可更改的属性(attrs)：
-# attack-damage、critical-strike-chance、critical-strike-damage、
-# skill-cooldown、mana-cost、armor、armor-toughness、
-# pre-armor-reduction、after-armor-reduction
+# attack_damage、critical_strike_chance、critical_strike_damage、
+# skill_cooldown、mana_cost、armor、armor_toughness、
+# pre_armor_reduction、after_armor_reduction
 品质组名:
   # 带百分号为乘算 否则为加算
   <red>品质1</red>:
@@ -14,24 +14,24 @@
     attrs:
       # key不能相同
       # 表示在数值上使用乘算
-      attack-damage: "-10%"
+      attack_damage: "_10%"
 
   # 品质显示的名称为(蓝色的）品质2
   <blue>品质2</blue>:
     weight: 1
     attrs:
-      critical-strike-chance: "-10"
-      critical-strike-damage: "-10"
+      critical_strike_chance: "_10"
+      critical_strike_damage: "_10"
   品质3:
     weight: 1
     attrs:
-      skill-cooldown: "-10%"  # 技能冷却 (所有)
-      skill-mana-cost: "-10%"  # 技能蓝耗 (所有)
+      skill_cooldown: "_10%"  # 技能冷却 (所有)
+      skill_mana_cost: "_10%"  # 技能蓝耗 (所有)
   品质4:
     weight: 1
     attrs:
       armor: "+5"
-      armor-toughness: "+5"
+      armor_toughness: "+5"
   品质5:
     weight: 1.2
 
@@ -39,4 +39,4 @@
   <#123456>伤害测试:
     weight: 2
     attrs:
-      attack-damage: "+5"
+      attack_damage: "+5"

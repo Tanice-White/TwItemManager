@@ -8,24 +8,23 @@ public final class ConfigKey {
     public static final String ORI_MATERIAL = "id";
     public static final String AMOUNT = "amount";
     public static final String LORE = "lore";
-    public static final String LORE_TEMPLATE = "lore-template";
-    public static final String DISPLAY_NAME = "display-name";
+    public static final String LORE_TEMPLATE = "lore_template";
+    public static final String DISPLAY_NAME = "display_name";
     // 未使用
-    public static final String MAX_STACK = "max-stack";
-    public static final String UNBREAKABLE = "unbreakable";
-    public static final String CUSTOM_MODEL_DATA = "custom-model-data";
-    public static final String HIDE_FLAGS = "hide-flags";
+    public static final String MAX_STACK = "max_stack";
+    public static final String CUSTOM_MODEL_DATA = "custom_model_data";
+    public static final String HIDE_FLAGS = "hide_flags";
 
     /* Item类 */
     public static final String SKILLS = "skills";
     public static final String QUALITY_GROUPS = "qualities";
-    public static final String CANCEL_DAMAGE = "cancel-damage";
-    public static final String LOSE_WHEN_BREAK = "lose-when-break";
-    public static final String UPDATE = "update";
-    public static final String SOUL_BIND = "soul-bind";
-    public static final String LEVEL_TEMPLATE_NAME = "level-template";
-    public static final String GEM_STACK_NUMBER = "gem-stack";
+    public static final String CANCEL_DAMAGE = "cancel_damage";
+    public static final String LOSE_WHEN_BREAK = "lose_when_break";
+    public static final String SOUL_BIND = "soul_bind";
+    public static final String LEVEL_TEMPLATE_NAME = "level_template";
+    public static final String GEM_STACK_NUMBER = "gem_stack";
     public static final String COLOR = "color";
 
-    /* Gem类 */
+    /**/
+    public static final String ACS = "calculate_type";
 }

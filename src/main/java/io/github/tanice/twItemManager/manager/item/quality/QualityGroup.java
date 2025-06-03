@@ -1,7 +1,7 @@
 package io.github.tanice.twItemManager.manager.item.quality;
 
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.AlgorithmUtil;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
@@ -83,7 +83,7 @@ public class QualityGroup {
             inner = MiniMessageUtil.stripAllTags(key);
             tt += sc.getDouble("weight");
             this.prefixWeights.add(tt);
-            this.qualities.add(new AttributePDC(key , AttributeAdditionFromType.ITEM, sc));
+            this.qualities.add(new AttributePDC(key , AttributeCalculateSection.BASE, sc));
             this.qualityNames.add(inner);
             len++;
         }

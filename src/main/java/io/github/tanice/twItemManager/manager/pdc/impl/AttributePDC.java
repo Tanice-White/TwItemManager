@@ -1,20 +1,19 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.util.Arrays;
 
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
 import static io.github.tanice.twItemManager.util.MiniMessageUtil.stripAllTags;
+import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 /**
  * 单纯的某一个属性（基础属性）
- * 可用于计算
+ * 用于计算的基础类
  */
 @Getter
 public class AttributePDC extends CalculablePDC {
@@ -27,30 +26,20 @@ public class AttributePDC extends CalculablePDC {
         super();
     }
 
-    public AttributePDC(@NotNull String displayName, @NotNull AttributeAdditionFromType aft) {
-        super(stripAllTags(displayName), aft);
-        this.displayName = displayName;
-    }
-
-    public AttributePDC(@NotNull String displayName, @NotNull AttributeAdditionFromType aft, @NotNull ConfigurationSection cfg) {
-        super(stripAllTags(displayName), aft, cfg.getConfigurationSection(ATTR_SECTION_KEY));
+    public AttributePDC(@NotNull String displayName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
+        super(stripAllTags(displayName), acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         this.displayName = displayName;
     }
 
     @Override
     public String toString() {
         return "CalculablePDC{" +
-                "fromType=" + fromType + "," +
-                "itemInnerName=" + innerName + "," +
-                "damage=" + Arrays.toString(damage) + "," +
-                "criticalStrikeChance=" + criticalStrikeChance + "," +
-                "criticalStrikeDamage=" + criticalStrikeDamage + "," +
-                "armor=" + armor + "," +
-                "armorToughness=" + armorToughness + "," +
-                "preArmorReduction=" + preArmorReduction + "," +
-                "afterArmorReduction=" + afterArmorReduction +
-                "manaCost=" + Arrays.toString(manaCost) + ", " +
-                "skillCoolDown=" + Arrays.toString(skillCoolDown) +
+                "priority=" + priority + ", " +
+                "displayName='" + displayName + ", " +
+                "itemInnerName=" + innerName + ", " +
+                "attributeCalculateSection=" + attributeCalculateSection + ", " +
+                "attribute-addition=" + enumMapToString(vMap) +
+                "type-addition=" + enumMapToString(tMap) +
                 "}";
     }
 }

@@ -9,7 +9,6 @@ import io.github.tanice.twItemManager.manager.item.quality.QualityGroup;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -158,10 +157,7 @@ public class ItemManager implements Manager {
         if (cPDC == null) return;
         /* lore 更新 */
         /* 原版属性绑定 + 等级显示 */
-        if (cPDC.fromType() == AttributeAdditionFromType.ITEM) {
-            ((ItemPDC)cPDC).attachOriAttrsTo(item);
-        }
-
+        ((ItemPDC)cPDC).attachOriAttrsTo(item);
     }
 
     @Override

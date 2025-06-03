@@ -6,7 +6,6 @@ import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeAdditionFromType;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;

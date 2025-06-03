@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.item.base;
 
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
