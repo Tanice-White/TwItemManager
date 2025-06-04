@@ -5,13 +5,12 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.tanice.twItemManager.command.MainCommand;
 import io.github.tanice.twItemManager.command.impl.*;
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.listener.DamageIndicatorListener;
-import io.github.tanice.twItemManager.listener.GenericParticleListener;
-import io.github.tanice.twItemManager.listener.TwItemListener;
-import io.github.tanice.twItemManager.listener.WorkbenchListener;
+import io.github.tanice.twItemManager.listener.*;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.awt.event.ItemListener;
 
 public final class TwItemManager extends JavaPlugin {
     @Getter
@@ -28,6 +27,8 @@ public final class TwItemManager extends JavaPlugin {
     private static GenericParticleListener particleListener;
     @Getter
     private static DamageIndicatorListener damageIndicatorListener;
+    @Getter
+    private static DamageEventListener damageEventListener;
     @Getter
     private static MainCommand mainCommand;
 
@@ -47,6 +48,7 @@ public final class TwItemManager extends JavaPlugin {
         workbenchListener = new WorkbenchListener(this);
         particleListener = new GenericParticleListener();
         PacketEvents.getAPI().getEventManager().registerListener(particleListener, PacketListenerPriority.NORMAL);
+        damageEventListener = new DamageEventListener();
         // 指令不需要reload
         mainCommand = new MainCommand(this);
         mainCommand.register(new GiveCommand());

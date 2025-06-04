@@ -1,6 +1,5 @@
 package io.github.tanice.twItemManager.manager.item;
 
-import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
@@ -8,9 +7,12 @@ import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
 import io.github.tanice.twItemManager.manager.item.quality.QualityGroup;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,8 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
+import static io.github.tanice.twItemManager.config.Config.loadCustomConfigs;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 import static io.github.tanice.twItemManager.manager.item.quality.QualityGroup.multiplyRandomChoice;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
@@ -39,7 +46,9 @@ public class ItemManager implements Manager {
     /** 全局可用品质(便于检索和切换) */
     private final Map<String, AttributePDC> qualityMap;
     /** 全局可用的buff属性列表 */
-    private final Map<String, AttributePDC> buffMap;
+    private final EnumMap<AttributeCalculateSection, List<BuffPDC>> buffSectionMap;
+    /** 全局可用Buff(便于检索和切换) */
+    private final Map<String, BuffPDC> buffMap;
     /** 物品描述模板 */
     // private final LoreManager loreManager;
     /** key 技能名 value 技能类 */
@@ -53,6 +62,7 @@ public class ItemManager implements Manager {
         gemMap = new HashMap<>();
         qualityGroupManagerMap = new HashMap<>();
         qualityMap = new HashMap<>();
+        buffSectionMap = new EnumMap<>(AttributeCalculateSection.class);
         buffMap = new HashMap<>();
         // skillManagerMap = new HashMap<>();
         levelTemplateMap = new HashMap<>();
@@ -67,7 +77,7 @@ public class ItemManager implements Manager {
         gemMap.clear();
         qualityGroupManagerMap.clear();
         qualityMap.clear();
-        buffMap.clear();
+        buffSectionMap.clear();
         // skillManagerMap.clear();
         levelTemplateMap.clear();
         // loreManager 在 loadConfigs 中初始化
@@ -92,6 +102,20 @@ public class ItemManager implements Manager {
     public Gem getGem(@NotNull ItemStack item) {
         return gemMap.get(getInnerName(item));
     }
+
+    /**
+     * 根据宝石内部名称获取其对应的属性抽象
+     */
+    public @Nullable AttributePDC getGemAttributePDC(@NotNull String gemName) {
+        CalculablePDC cPDC = getItemCalculablePDC(gemMap.get(gemName).getItem());
+        if (cPDC == null) return null;
+        return cPDC.toAttributePDC();
+    }
+
+    /**
+     * 获取全局宝石名称列表
+     * @return
+     */
     public Set<String> getGemNameList() {
         return gemMap.keySet();
     }
@@ -99,18 +123,42 @@ public class ItemManager implements Manager {
     /**
      * 获取全局buff列表的具体属性
      */
-    public @Nullable AttributePDC getBuffPDC(@NotNull String buffName) {
+    public @Nullable BuffPDC getBuffPDC(@NotNull String buffName) {
         return buffMap.get(buffName);
+    }
+
+    /**
+     * 获取全局品质列表的具体属性
+     */
+    public AttributePDC getQualityPDC(@NotNull String qualityName) {
+        return qualityMap.get(qualityName);
+    }
+
+    /**
+     * 获取等级对应的属性
+     * 传入 level 便于扩展等级属性
+     * 如 不同等级不同属性，可累加，可选择等
+     */
+    public AttributePDC getLevelPDC(@NotNull String levelTemplateName, int level) {
+        return levelTemplateMap.get(levelTemplateName).getAttributePDC();
+    }
+
+    /**
+     * 获取等级模板属性
+     * 便于判定相关属性是否合法
+     */
+    public LevelTemplate getLevelTemplate(@NotNull String levelTemplateName) {
+        return levelTemplateMap.get(levelTemplateName);
+    }
+
+    public boolean isNotTwItem(@NotNull String innerName) {
+        return !itemMap.containsKey(innerName);
     }
 
     public boolean isNotTwItem(@NotNull ItemStack item) {
         String in = getInnerName(item);
         if (in == null) return true;
         return !itemMap.containsKey(in);
-    }
-
-    public boolean isNotTwItem(@NotNull String innerName) {
-        return !itemMap.containsKey(innerName);
     }
 
     public String getItemPDC(@NotNull ItemStack item) {
@@ -138,14 +186,6 @@ public class ItemManager implements Manager {
         AttributePDC aPDC = randomQuality(baseItem.getQualityGroups());
         if (aPDC != null) setQualityName(item, aPDC.getInnerName());
 
-        /* 等级绑定 */
-        if (levelTemplateMap.containsKey(baseItem.getLevelTemplateName())){
-            LevelTemplate levelTemplateManager = levelTemplateMap.get(baseItem.getLevelTemplateName());
-            /* 等级无效则默认最低等级 */
-            int lvl = getLevel(item);
-            if (lvl < levelTemplateManager.getBegin() || lvl > levelTemplateManager.getMax())
-                setLevel(item, levelTemplateManager.getBegin());
-        }
         // TODO step3 绑定技能
         updateItem(item);
         return item;
@@ -269,6 +309,7 @@ public class ItemManager implements Manager {
         this.loadQualityFiles();
         this.loadItemFiles();
         this.loadSkillFiles();
+        this.loadBuffFilesAndBuffMap();
     }
 
     /**
@@ -310,7 +351,7 @@ public class ItemManager implements Manager {
 
     private void loadItemFiles() {
         Map<String, ConfigurationSection> cfg = new HashMap<>();
-        Config.loadCustomConfigs(new File(rootDir, "items"), cfg, "");
+        loadCustomConfigs(new File(rootDir, "items"), cfg, "");
         ConfigurationSection sec;
         for (ConfigurationSection c : cfg.values()) {
             for (String key : c.getKeys(false)) {
@@ -334,7 +375,7 @@ public class ItemManager implements Manager {
 
     private void loadQualityFiles() {
         Map<String, ConfigurationSection> cfg = new HashMap<>();
-        Config.loadCustomConfigs(new File(rootDir, "qualities"), cfg, "");
+        loadCustomConfigs(new File(rootDir, "qualities"), cfg, "");
         ConfigurationSection sec;
         for (ConfigurationSection c : cfg.values()) {
             for (String key : c.getKeys(false)) {
@@ -354,7 +395,7 @@ public class ItemManager implements Manager {
 
     private void loadLevelFiles() {
         Map<String, ConfigurationSection> cfg = new HashMap<>();
-        Config.loadCustomConfigs(new File(rootDir, "levels"), cfg, "");
+        loadCustomConfigs(new File(rootDir, "levels"), cfg, "");
         ConfigurationSection sec;
         for (ConfigurationSection c : cfg.values()) {
             for (String key : c.getKeys(false)) {
@@ -366,7 +407,7 @@ public class ItemManager implements Manager {
                 if (sec == null) {
                     logWarning("LEVEL: " + key + " 的具体配置为空");
                     continue;
-                };
+                }
                 levelTemplateMap.put(key, new LevelTemplate(key, sec));
             }
         }
@@ -374,7 +415,7 @@ public class ItemManager implements Manager {
 
     private void loadGemFiles() {
         Map<String, ConfigurationSection> cfg = new HashMap<>();
-        Config.loadCustomConfigs(new File(rootDir, "gems"), cfg, "");
+        loadCustomConfigs(new File(rootDir, "gems"), cfg, "");
         ConfigurationSection sec;
         for (ConfigurationSection c : cfg.values()) {
             for (String key : c.getKeys(false)) {
@@ -394,5 +435,37 @@ public class ItemManager implements Manager {
 
     private void loadLoreTemplateFiles() {
         // Map<String, ConfigurationSection> cfg = loadSubFiles("lore");
+    }
+
+    private void loadBuffFilesAndBuffMap(){
+        Path buffDir = rootDir.toPath().resolve("buff"); ;
+        if (!Files.exists(buffDir) || !Files.isDirectory(buffDir)) return;
+        try (Stream<Path> files = Files.list(buffDir)) {
+            files.forEach(file -> {
+                String fileName = file.getFileName().toString();
+                String name = fileName.substring(0, fileName.lastIndexOf('.'));
+                BuffPDC bPDC;
+                ConfigurationSection subsection;
+                if (fileName.endsWith(".yml")) {
+                    ConfigurationSection section = YamlConfiguration.loadConfiguration(file.toFile());
+                    for (String k : section.getKeys(false)) {
+                        subsection = section.getConfigurationSection(k);
+                        if (subsection == null) continue;
+                        bPDC = new BuffPDC(k, section);
+                        buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>()).add(bPDC);
+                        buffMap.put(k, bPDC);
+                    }
+                }
+                else if (fileName.endsWith(".js")) {
+                    bPDC = new BuffPDC(name, file);
+                    buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>()).add(bPDC);
+                    buffMap.put(bPDC.getInnerName(), bPDC);
+                }
+                else logWarning("未知的文件格式: " + fileName);
+            });
+        } catch (IOException e) {
+            logWarning("加载BUFF文件错误");
+            logWarning(e.toString());
+        }
     }
 }

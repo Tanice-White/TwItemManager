@@ -4,6 +4,7 @@ import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
@@ -30,7 +31,7 @@ public class Item extends BaseItem {
     private List<String> qualityGroups;
     /** 模板名 */
     @Getter
-    private String levelTemplateName;
+    private String levelTemplateName;  //TODO 冗余，PDC中也有levelTemplateName，需要删除PDC中的
     /** 是否取消伤害 */
     @Getter
     private boolean cancelDamage;
@@ -47,6 +48,17 @@ public class Item extends BaseItem {
     @Getter
     private String setName;
 
+    /** 物品需要有伤害类型 */
+    @Getter
+    private DamageType damageType;
+
+    /** 持有自带buff */
+    @Getter
+    private List<String> holdBuffs;
+    /** 攻击挂载buff */
+    @Getter
+    private List<String> attackBuffs;
+
     /**
      * 依据内部名称和对应的config文件创建mc基础物品
      */
@@ -54,6 +66,8 @@ public class Item extends BaseItem {
         super(innerName, config);
         this.skills = new ArrayList<>();
         this.qualityGroups = new ArrayList<>();
+        this.holdBuffs = new ArrayList<>();
+        this.attackBuffs = new ArrayList<>();
         generate(config);
     }
 
@@ -67,6 +81,9 @@ public class Item extends BaseItem {
         levelTemplateName = config.getString(LEVEL_TEMPLATE_NAME, "");
         gemStackNumber = config.getInt(GEM_STACK_NUMBER, 0);
         setName = config.getString(SET_NAME, "");
+        damageType = DamageType.valueOf(config.getString(DAMAGE_TYPE, "OTHER").toUpperCase());
+        holdBuffs = config.getStringList(HOLD_BUFF);
+        attackBuffs = config.getStringList(ATTACK_BUFF);
     }
 
     /**

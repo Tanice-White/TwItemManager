@@ -6,7 +6,9 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
@@ -19,7 +21,7 @@ public class EntityPDC extends CalculablePDC {
     private static final long serialVersionUID = 1L;
 
     /* 影响属性的值 */
-    private List<String> buffName;
+    private Map<String, BuffPDC> buffs;
 
     public EntityPDC(){
         super();
@@ -34,10 +36,21 @@ public class EntityPDC extends CalculablePDC {
         return "CalculablePDC{" +
                 "priority=" + priority + ", " +
                 "itemInnerName=" + innerName + ", " +
-                "buffName=" + buffName + ", " +
+                "buffName={" + buffs.keySet() + "}, " +
                 "attributeCalculateSection=" + attributeCalculateSection + ", " +
                 "attribute-addition=" + enumMapToString(vMap) +
                 "type-addition=" + enumMapToString(tMap) +
                 "}";
+    }
+
+    /**
+     * 获取buff名称
+     */
+    public List<CalculablePDC> getBuffPDCs(long currentTime){
+        List<CalculablePDC> res = new ArrayList<>();
+        for (BuffPDC bPDC : buffs.values()) {
+            if (bPDC != null && bPDC.getEndTimeStamp() < currentTime) res.add(bPDC);
+        }
+        return res;
     }
 }

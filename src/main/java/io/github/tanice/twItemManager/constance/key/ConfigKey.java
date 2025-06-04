@@ -24,7 +24,15 @@ public final class ConfigKey {
     public static final String LEVEL_TEMPLATE_NAME = "level_template";
     public static final String GEM_STACK_NUMBER = "gem_stack";
     public static final String COLOR = "color";
+    public static final String HOLD_BUFF = "hold_buff";
+    public static final String ATTACK_BUFF = "attack_buff";
 
-    /**/
+    /*属性关键词*/
     public static final String ACS = "calculate_type";
+    public static final String DURATION = "duration";
+    public static final String CHANCE = "chance";
+    public static final String CD = "cd";
+    public static final String INNER_NAME = "inner_name";
+    public static final String PRIORITY = "priority";
+    public static final String DAMAGE_TYPE = "damage_type";
 }

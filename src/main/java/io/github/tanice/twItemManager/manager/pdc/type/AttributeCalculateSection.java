@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 属性计算分区
  */
 public enum AttributeCalculateSection implements Serializable {
-    /* 其他（用于用户自定义） */
+    /* 其他（用于用户自定义或者bug） */
     OTHER,
     /* 每秒激活 */
     TIMER,

@@ -26,6 +26,7 @@ public class AttributeAPI {
     private static final String ADD_NAMESPACE_SUFFIX = "-add";
 
     /** 移除所有原版属性 */
+    @Deprecated
     public static void removeAllAttr(@NotNull ItemMeta meta) {
         meta.setAttributeModifiers(null);
     }
@@ -68,6 +69,7 @@ public class AttributeAPI {
      * @param attrKey Attribute的TwItems的内部关键词
      * @return List<AttributeModifier>
      */
+    @Deprecated
     public static @Nullable Collection<AttributeModifier> getAttrModifiers(@NotNull ItemMeta meta, @NotNull String attrKey) {
         Attribute a = ATTRIBUTE_MAP.get(attrKey);
         if (a == null) return null;
@@ -103,24 +105,25 @@ public class AttributeAPI {
      * @param v      需要增加的属性值
      * @param slot   生效槽位, 默认为主手
      */
+    @Deprecated
     public static void addAttr(@NotNull String from, @NotNull ItemMeta meta, @NotNull String attrKey, @NotNull DamageType act, double v, @NotNull EquipmentSlotGroup slot) {
-        Attribute a = ATTRIBUTE_MAP.get(attrKey);
-        if (a == null) return;
-        if (act == DamageType.ADD) {
-            meta.addAttributeModifier(a, new AttributeModifier(
-                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
-                    v,
-                    AttributeModifier.Operation.ADD_NUMBER,
-                    slot
-            ));
-        } else {
-            meta.addAttributeModifier(a, new AttributeModifier(
-                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
-                    v,
-                    AttributeModifier.Operation.ADD_SCALAR,
-                    slot
-            ));
-        }
+//        Attribute a = ATTRIBUTE_MAP.get(attrKey);
+//        if (a == null) return;
+//        if (act == DamageType.ADD) {
+//            meta.addAttributeModifier(a, new AttributeModifier(
+//                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
+//                    v,
+//                    AttributeModifier.Operation.ADD_NUMBER,
+//                    slot
+//            ));
+//        } else {
+//            meta.addAttributeModifier(a, new AttributeModifier(
+//                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
+//                    v,
+//                    AttributeModifier.Operation.ADD_SCALAR,
+//                    slot
+//            ));
+//        }
     }
 
     /**
@@ -164,6 +167,7 @@ public class AttributeAPI {
      * @param attrKey 属性名称
      * @return 是否成功(没有这个属性则返回 false )
      */
+    @Deprecated
     public static boolean removeAddAttrByKey(@NotNull String key, @NotNull ItemMeta meta, @NotNull String attrKey) {
         AttributeModifier amd = getCustomAddAttrByKey(key, meta, attrKey);
         if (amd == null) return false;

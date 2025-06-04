@@ -15,13 +15,15 @@ import java.io.Serializable;
 import java.util.*;
 
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
+import static io.github.tanice.twItemManager.constance.key.ConfigKey.CHANCE;
+import static io.github.tanice.twItemManager.constance.key.ConfigKey.DURATION;
 
 /**
  * 属性抽象
  */
 @Getter
 @Setter
-public abstract class CalculablePDC implements Serializable {
+public abstract class CalculablePDC implements Serializable, Comparable<CalculablePDC> {
     @Serial
     private static final long serialVersionUID = 1L;
     /* 属性在具体配置中的所属路径 */
@@ -33,6 +35,14 @@ public abstract class CalculablePDC implements Serializable {
     protected int priority;
     /* 所属计算区 */
     protected AttributeCalculateSection attributeCalculateSection;
+
+    /* 属性结束时间(负数则永续) */
+    protected long endTimeStamp;
+    /* 激活几率 */
+    protected double chance;
+    /* 持续时间 */
+    protected int duration;
+
     /* 属性具体值 */
     protected EnumMap<AttributeType, Double> vMap;
     /* 职业增伤 */
@@ -45,6 +55,9 @@ public abstract class CalculablePDC implements Serializable {
         innerName = "default";
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = AttributeCalculateSection.OTHER;
+        endTimeStamp = -1;
+        chance = 1;
+        duration = -1;
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
     }
@@ -59,10 +72,17 @@ public abstract class CalculablePDC implements Serializable {
         this.innerName = innerName;
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = acs;
+        endTimeStamp = -1;
+        chance = 1D;
+        duration = -1;
+
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
 
         if (cfg == null) return;
+        /* 覆写 */
+        chance = cfg.getDouble(CHANCE, 1D);
+        duration = cfg.getInt(DURATION, -1);
         /* vMap初始化 */
         vMap.put(AttributeType.DAMAGE, cfg.getDouble(BASE_DAMAGE, 0D));
         vMap.put(AttributeType.ARMOR, cfg.getDouble(ARMOR, 0D));
@@ -85,6 +105,7 @@ public abstract class CalculablePDC implements Serializable {
     /**
      * 数据整合(只整合统一的数据项)
      * 不同的type需要分类merge！
+     * 此时的时间属性无效
      */
     public void merge(CalculablePDC @NotNull ... o) {
         for (CalculablePDC cPDC : o) {
@@ -119,5 +140,11 @@ public abstract class CalculablePDC implements Serializable {
         pdc.attributeCalculateSection = attributeCalculateSection;
         pdc.merge(this);
         return pdc;
+    }
+
+    @Override
+    public int compareTo(@NotNull CalculablePDC other) {
+        // 按优先级升序排序
+        return Integer.compare(this.priority, other.priority);
     }
 }

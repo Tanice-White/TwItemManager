@@ -2,6 +2,9 @@ package io.github.tanice.twItemManager.manager.pdc.type;
 
 import java.io.Serializable;
 
+/**
+ * 同类加算
+ */
 public enum AttributeType implements Serializable {
     DAMAGE,
     ARMOR,

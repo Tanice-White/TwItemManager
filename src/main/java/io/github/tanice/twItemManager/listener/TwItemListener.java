@@ -2,12 +2,17 @@ package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
+import io.github.tanice.twItemManager.manager.calculator.CombatEntityCalculator;
+import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.ReflectUtil;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -28,8 +33,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**
  * 所有和本插件生成的物品事件
@@ -71,30 +77,6 @@ public class TwItemListener implements Listener {
     public void onPlayerDrop(PlayerDropItemEvent event) {
         ItemStack i = event.getItemDrop().getItemStack();
         if (isTwItem(i) && isSoulBind(i)) event.setCancelled(true);
-    }
-
-    /**
-     * 最先判断伤害事件(是否取消伤害)
-     */
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player)) return;
-        ItemStack i = ((Player) event.getDamager()).getInventory().getItemInMainHand();
-        // 判空
-        if (i.getType() == Material.AIR || !isTwItem(i)) return;
-        if (isCancelDamage(i)) {
-            event.setCancelled(true);
-            return;
-        }
-        PersistentDataContainerView p = i.getPersistentDataContainer();
-        // 暴击伤害事件
-        Object obj = p.get(new NamespacedKey(plugin, "critical-strike-chance"), PersistentDataType.DOUBLE);
-        if (obj == null) return;
-        double chance = Double.parseDouble(obj.toString());
-        if (Math.random() < chance){
-            event.setDamage(p.get(new NamespacedKey(plugin, "critical-strike-damage"), PersistentDataType.DOUBLE) * event.getDamage());
-            ReflectUtil.setCriticalTrue(event);
-        }
     }
 
     /**

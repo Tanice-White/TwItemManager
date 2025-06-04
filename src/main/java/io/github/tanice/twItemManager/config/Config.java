@@ -67,7 +67,9 @@ public class Config {
      * @param path 起始路径(用于递归记录当前路径)
      */
     public static void loadCustomConfigs(@NotNull File directory, Map<String, ConfigurationSection> configs, String path) {
-        for (File file : Objects.requireNonNull(directory.listFiles())) {
+        File[] fs = directory.listFiles();
+        if (fs == null) return;
+        for (File file : fs) {
             String filePath = !path.isEmpty() ? path + File.separator + file.getName() : file.getName();
             if (file.isDirectory()) {
                 loadCustomConfigs(file, configs, filePath);

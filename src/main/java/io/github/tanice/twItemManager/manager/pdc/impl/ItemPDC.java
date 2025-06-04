@@ -1,6 +1,7 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
 import io.github.tanice.twItemManager.TwItemManager;
+import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
@@ -13,9 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
@@ -39,6 +38,7 @@ public class ItemPDC extends CalculablePDC {
     private String qualityName;
     private final String[] gems;
     private int level;
+    private final String levelTemplateName;
 
     /* ITEM类兼容原版属性字符串 */
     /* 0-白值增加 1-百分比增加 */
@@ -50,6 +50,7 @@ public class ItemPDC extends CalculablePDC {
         gems = new String[0];
         level = 0;
         oriAttrs = new HashMap<>();
+        levelTemplateName = "";
     }
 
     public ItemPDC(@NotNull String innerName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
@@ -62,6 +63,7 @@ public class ItemPDC extends CalculablePDC {
         }
         else gems = new String[0];
         level = cfg.getInt(LEVEL, 0);
+        levelTemplateName = cfg.getString(LEVEL_TEMPLATE_NAME, "");
         oriAttrs = new HashMap<>();
         this.loadOriAttrs(cfg.getConfigurationSection(ATTR_SECTION_KEY));
     }
@@ -152,6 +154,24 @@ public class ItemPDC extends CalculablePDC {
                 "attribute-addition=" + enumMapToString(vMap) +
                 "type-addition=" + enumMapToString(tMap) +
                 "}";
+    }
+
+    /**
+     * 将影响自身属性的额外属性计算进本体属性中
+     */
+    public void selfCalculate() {
+        ItemManager im = TwItemManager.getItemManager();
+
+        merge(im.getQualityPDC(qualityName));
+
+        merge(im.getLevelPDC(levelTemplateName, level));
+
+        AttributePDC aPDC;
+        for (String gem : gems) {
+            if (gem.equals(EMPTY_GEM)) continue;
+            aPDC = im.getGemAttributePDC(gem);
+            if (aPDC != null) merge(aPDC);
+        }
     }
 
     /**

@@ -40,6 +40,6 @@ public class Gem extends BaseItem {
         if (!PDCAPI.setItemCalculablePDC(meta, new AttributePDC(innerName , AttributeCalculateSection.BASE, config))) {
             logWarning("GemPDC 设置出错");
         }
-        setSlot(meta ,config.getString(SLOT,"ANY"));
+        // setSlot(meta ,config.getString(SLOT,"ANY"));
     }
 }

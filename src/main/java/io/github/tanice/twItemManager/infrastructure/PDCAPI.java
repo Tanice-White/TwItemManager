@@ -356,60 +356,54 @@ public class PDCAPI {
         return itemPDC.getLevel();
     }
 
-    public static boolean setLevel(@NotNull ItemStack item, int level) {
+    public static void setLevel(@NotNull ItemStack item, int level) {
         ItemMeta meta = item.getItemMeta();
-        if (!setLevel(meta, level)) return false;
+        setLevel(meta, level);
         item.setItemMeta(meta);
-        return true;
     }
 
-    public static boolean setLevel(@NotNull ItemMeta meta, int level) {
+    public static void setLevel(@NotNull ItemMeta meta, int level) {
         ItemPDC itemPDC = (ItemPDC) getItemCalculablePDC(meta);
-        if (itemPDC == null) return false;
+        if (itemPDC == null) return;
         itemPDC.setLevel(level);
         setItemCalculablePDC(meta, itemPDC);
-        return true;
     }
 
     /**
      * 不会检测合法性，统一在属性绑定时检测
      */
-    public static boolean levelUp(@NotNull ItemStack item) {
+    public static void levelUp(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (!levelUp(meta)) return false;
+        levelUp(meta);
         item.setItemMeta(meta);
-        return true;
     }
 
     /**
      * 不会检测合法性，统一在属性绑定时检测
      */
-    public static boolean levelUp(@NotNull ItemMeta meta) {
+    public static void levelUp(@NotNull ItemMeta meta) {
         ItemPDC itemPDC = (ItemPDC) getItemCalculablePDC(meta);
-        if (itemPDC == null) return false;
+        if (itemPDC == null) return;
         itemPDC.levelUp();
-        return true;
     }
 
     /**
      * 不会检测合法性，统一在属性绑定时检测
      */
-    public static boolean levelDown(@NotNull ItemStack item) {
+    public static void levelDown(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (!levelDown(meta)) return false;
+        levelDown(meta);
         item.setItemMeta(meta);
-        return true;
     }
 
     /**
      * 不会检测合法性，统一在属性绑定时检测
      */
-    public static boolean levelDown(@NotNull ItemMeta meta) {
+    public static void levelDown(@NotNull ItemMeta meta) {
         ItemPDC itemPDC = (ItemPDC) getItemCalculablePDC(meta);
-        if (itemPDC == null) return false;
+        if (itemPDC == null) return;
         itemPDC.levelDown();
         setItemCalculablePDC(meta, itemPDC);
-        return true;
     }
 
     /**

@@ -1,11 +1,14 @@
 package io.github.tanice.twItemManager.manager.calculator;
 
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
-import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.manager.pdc.type.DamageFromType;
+import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
@@ -22,33 +25,41 @@ import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 public abstract class Calculator {
     private static final String[] SLOTS = new String[]{"HAND", "OFF_HAND", "FEET", "LEGS", "CHEST", "HEAD"};
 
-    // 统计数据
-    protected final List<ItemPDC> equipmentPDCList;
-    protected final EntityPDC entityPDC;
-    protected final List<ItemPDC> accessoryPDCList;
+    /**
+     * 根据就算区分好的属性Map
+     * Timer 和 Other 不记录
+     * Before_Damage 和 After_damage 单独记录
+     */
+    protected final EnumMap<AttributeCalculateSection, CalculablePDC> resulMap = new EnumMap<>(AttributeCalculateSection.class);
+    protected final List<BuffPDC> beforeList = new ArrayList<>();
+    protected final List<BuffPDC> afterList = new ArrayList<>();
 
-    protected ItemManager itemManager;
+    public Calculator(@NotNull LivingEntity living) {
+        List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(living);
+        PDCs.addAll(getEffectiveAccessory(living));
+        PDCs.addAll(getEntityCalculablePDC(living));
 
-    // 结果属性
-    protected final EnumMap<AttributeAdditionFromType, AttributePDC> vMap = new EnumMap<>(AttributeAdditionFromType.class);
+        AttributeCalculateSection acs;
+        for (CalculablePDC pdc : PDCs) {
+            acs = pdc.getAttributeCalculateSection();
+            if (acs == AttributeCalculateSection.OTHER) continue;
+            /* 具体细节 */
+            if (acs == AttributeCalculateSection.BEFORE_DAMAGE) beforeList.add((BuffPDC) pdc);
+            else if (acs == AttributeCalculateSection.AFTER_DAMAGE) beforeList.add((BuffPDC) pdc);
+            else resulMap.getOrDefault(pdc.getAttributeCalculateSection(), new AttributePDC()).merge(pdc);
+        }
 
-    public Calculator(@NotNull ItemManager im, @NotNull LivingEntity living) {
-        itemManager = im;
-        equipmentPDCList = getEffectiveEquipmentPDC(living);
-        entityPDC = getEntityCalculablePDC(living);
-        accessoryPDCList = getEffectiveAccessory(living);
-        calculateAttributePDCByType();
     }
 
     /**
      * 遍历物体生效槽位返回物品列表
-     * 返回6个实体 [主手 副手 鞋子 裤子 胸甲 头盔]
+     * 返回 <=6个实体 [主手 副手 鞋子 裤子 胸甲 头盔]
      */
-    protected @NotNull List<ItemPDC> getEffectiveEquipmentPDC(@NotNull LivingEntity entity) {
+    protected @NotNull List<CalculablePDC> getEffectiveEquipmentPDC(@NotNull LivingEntity entity) {
         EntityEquipment equip = entity.getEquipment();
         if (equip == null) return new ArrayList<>();
 
-        List<ItemPDC> res = new ArrayList<>();
+        List<CalculablePDC> res = new ArrayList<>();
         List<ItemStack> itemList = new ArrayList<>();
         itemList.add(equip.getItemInMainHand());
         itemList.add(equip.getItemInOffHand());
@@ -56,21 +67,20 @@ public abstract class Calculator {
 
         int i = -1;
         CalculablePDC cPDC;
+        ItemPDC iPDC;
         String slot;
         for (ItemStack item : itemList) {
             i ++;
-            if (item == null || item.getType() == Material.AIR) {
-                res.add(null);
-                continue;
-            }
+            if (item == null || item.getType() == Material.AIR) continue;
             slot = getSlot(item);
-            if (slot == null || !(slot.equalsIgnoreCase(SLOTS[i]) || slot.equalsIgnoreCase("any"))) {
-                res.add(null);
-                continue;
-            }
+            if (slot == null || !(slot.equalsIgnoreCase(SLOTS[i]) || slot.equalsIgnoreCase("any"))) continue;
+
             cPDC = getItemCalculablePDC(item);
             if (cPDC == null) continue;
-            res.add((ItemPDC) cPDC);
+            /* 转为itemPDC再调用 */
+            iPDC = (ItemPDC)cPDC;
+            iPDC.selfCalculate();
+            res.add(iPDC);
         }
         return res;
     }
@@ -78,47 +88,28 @@ public abstract class Calculator {
     /**
      * 获取目标生效的buff
      */
-    protected @Nullable EntityPDC getEntityCalculablePDC(@NotNull LivingEntity entity) {
-        return PDCAPI.getEntityCalculablePDC(entity);
+    protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity entity) {
+        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(entity);
+        if (ePDC == null) return new ArrayList<>();
+
+        long ct = System.currentTimeMillis();
+        return ePDC.getBuffPDCs(ct);
     }
 
     /**
      * 遍历目标的饰品
      */
-    protected @NotNull List<ItemPDC> getEffectiveAccessory(@NotNull LivingEntity entity) {
+    protected @NotNull List<AttributePDC> getEffectiveAccessory(@NotNull LivingEntity entity) {
         return new ArrayList<>();
     }
 
     /**
-     * 得到不同type的结果AttributePDC
+     * 获取伤害计算值并返回此实体的伤害来源
      */
-    protected void calculateAttributePDCByType() {
-        /* 初始化 */
-        for (AttributeAdditionFromType type : AttributeAdditionFromType.values()) {
-            vMap.put(type, new AttributePDC());
-        }
-
-        for (ItemPDC item : equipmentPDCList) {
-
-        }
-        // 保存 品质 装备
-        vMap.put(AttributeAdditionFromType.QUALITY, attributePDC);
-
-        attributePDC = new AttributePDC();
-        for (ItemPDC item : accessoryPDCList) {
-
-        }
-        vMap.put(AttributeAdditionFromType.ACCESSORY, attributePDC);
-
-        for (String buffName : entityPDC.getBuffName()) {
-            AttributePDC a = itemManager.getBuffPDC(buffName);
-            if (a == null) continue;
-            vMap.get(AttributeAdditionFromType.BUFF).merge(a);
-        }
-    }
+    public abstract DamageType getCombatValue();
 
     /**
-     * 获取计算器最终的计算结果
+     * 获取防御计算 并得到最终结果
      */
-    public abstract double getFinalV(@NotNull LivingEntity entity);
+    public abstract double calculateFinalDamage(double CombatValue , @Nullable DamageFromType damageFromType);
 }

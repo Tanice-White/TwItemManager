@@ -1,8 +1,8 @@
-const innerName = "测试增益";
+const inner_name = "测试增益";
 const chance = 0.75;
 const cd = 10;
 const priority= 0;
-const attributeCalculateSection = "ADD"; // 必写
+const calculate_type = "ADD"; // 必写
 const damage= 0;
 const armor= 0;
 const critical_strike_chance= 0.8;
