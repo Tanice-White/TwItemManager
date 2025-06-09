@@ -7,10 +7,10 @@ import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -32,9 +32,14 @@ public class BuffPDC extends CalculablePDC {
     protected int cd;
     private Path jsPath;
     private transient Context jsContext;
+    private String jsContent;
 
     public BuffPDC() {
         super();
+    }
+
+    public BuffPDC(AttributeCalculateSection s) {
+        super(s);
     }
 
     public BuffPDC(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
@@ -68,21 +73,23 @@ public class BuffPDC extends CalculablePDC {
     }
 
     /**
-     * 传入的参数为: attacker(攻击方) defender(被攻击方) damage(伤害值)
+     * 传入的参数为: attacker(LivingEntity攻击方) defender(LivingEntity被攻击方) damage(伤害值) List(3)[防御前减伤, 护甲值, 防御后减伤]
      * 如果类型是 OTHER，除了EntityPDC之外一般为bug
      * 类型 TIMER 会根据 cd 和 duration 持续伤害或标记
-     * BEFORE_DAMAGE 会在伤害计算前执行 此时 damage 无意义
-     * AFTER_DAMAGE 会在伤害计算后执行 此时 damage 表示最终伤害
+     * BEFORE_DAMAGE 会在伤害计算前执行 此时 damage List 无意义
+     * BETWEEN_DAMAGE_AD_DEFENCE 会在伤害计算后，防御减伤计算前执行 均有意义
+     * AFTER_DAMAGE 会在伤害计算后执行 此时 damage 表示最终伤害  List 无意义
      */
     public Object execute(Object... params) {
         try {
+            // 获取并执行 run 函数
             Value runFunction = jsContext.getBindings("js").getMember("run");
             if (runFunction != null && runFunction.canExecute()) {
-                return runFunction.execute(params).as(Object.class);
+                return runFunction.execute(params).asHostObject();
             }
             return null;
-        } catch (PolyglotException e) {
-            throw new RuntimeException("JS execution error", e);
+        } catch (Exception e) {
+            throw new RuntimeException("JS 执行错误: ", e);
         }
     }
 
@@ -90,12 +97,11 @@ public class BuffPDC extends CalculablePDC {
      * 初始化JavaScript执行环境
      */
     private void initializeJS() {
+        jsContext = Context.newBuilder("js").allowAllAccess(true).build();
         try {
-            jsContext = Context.newBuilder("js").allowAllAccess(true).allowHostClassLookup(className -> true).build();
-            String jsContent = Files.readString(jsPath);
-            jsContext.eval("js", jsContent);
-        } catch (Exception e) {
-            logWarning("Buff: " + innerName + " 初始化错误");
+            jsContent = Files.readString(jsPath);
+        } catch (IOException e) {
+            logWarning("Failed to read js file: " + jsPath.toAbsolutePath());
         }
     }
 
@@ -120,11 +126,11 @@ public class BuffPDC extends CalculablePDC {
     @SuppressWarnings("unchecked")
     private <T> T getScriptValue(String variableName, T defaultValue) {
         try {
-            Value value = jsContext.getBindings("js").getMember(variableName);
-            if (value == null || value.isNull()) return defaultValue;
+            Object value = jsContext.getBindings("js").getMember(variableName);
+            if (value == null) return defaultValue;
             return (T) value;
         } catch (Exception e) {
-            logWarning("JS变量:" + variableName + "读取错误");
+            logWarning("JS变量:" + variableName + "读取错误: " + e.getMessage());
             return defaultValue;
         }
     }

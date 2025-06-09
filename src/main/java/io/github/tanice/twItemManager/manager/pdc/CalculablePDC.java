@@ -62,6 +62,17 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         tMap = new EnumMap<>(DamageType.class);
     }
 
+    public CalculablePDC(AttributeCalculateSection attributeCalculateSection) {
+        innerName = "default";
+        priority = Integer.MAX_VALUE;
+        this.attributeCalculateSection = attributeCalculateSection;
+        endTimeStamp = -1;
+        chance = 1;
+        duration = -1;
+        vMap = new EnumMap<>(AttributeType.class);
+        tMap = new EnumMap<>(DamageType.class);
+    }
+
     /**
      * 根据配置文件生成属性
      * @param innerName 属性内部名

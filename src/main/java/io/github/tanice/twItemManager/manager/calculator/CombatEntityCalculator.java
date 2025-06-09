@@ -1,50 +1,61 @@
 package io.github.tanice.twItemManager.manager.calculator;
 
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageFromType;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import lombok.Getter;
-import org.bukkit.entity.LivingEntity;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
-import java.util.List;
+
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
+import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 @Getter
 public class CombatEntityCalculator extends Calculator {
     /**
      * 是否使用 玩家减伤 的平衡计算方法
      */
-    private boolean useDamageReductionBalance;
+    private boolean useDamageReductionBalance = false;
 
-    public CombatEntityCalculator(@NotNull LivingEntity entity) {
+    public CombatEntityCalculator() {
+        super(null);
+    }
+
+    public CombatEntityCalculator(@Nullable Entity entity) {
         super(entity);
     }
 
     @Override
-    public DamageType getCombatValue() {
-        // 获取最高加成，作为伤害来源
-        EnumMap<DamageType, Double> tMap = new EnumMap<>(DamageType.class);
-        double base = 0, add = 0, mul = 0, fin = 0, critical_chance = 0, critical_damage = 0, fix = 0;
-        CalculablePDC cPDC;
-        for (AttributeCalculateSection acs : resulMap.keySet()) {
-            /* 排除 */
-            if (acs == AttributeCalculateSection.BEFORE_DAMAGE || acs == AttributeCalculateSection.AFTER_DAMAGE || acs == AttributeCalculateSection.OTHER) continue;
-            /* 数值整合计算 */
-            cPDC = resulMap.get(acs);
-            /* 1.属性统计(逐个CalculatePDC统计) */
+    public EnumMap<AttributeType, Double> getAttrsValue() {
+        CalculablePDC pdc;
+        EnumMap<AttributeType, Double> res = new EnumMap<>(AttributeType.class);
+        Double result = null;
+        for (AttributeType attrType : AttributeType.values()) {
+            pdc = resultMap.get(AttributeCalculateSection.BASE);
+            if (pdc != null) result = pdc.getVMap().get(attrType);
+            if (result == null) result = 0D;
+            if (result != 0D){
+                for (AttributeCalculateSection section : AttributeCalculateSection.values()) {
+                    if (section == AttributeCalculateSection.BASE) continue;
+                    pdc = resultMap.get(section);
+                    if (pdc == null) continue;
+                    Double value = pdc.getVMap().get(attrType);
+                    // 攻击力根据不同的section乘算
+                    // if (attrType == AttributeType.DAMAGE) result *= (1 + value);
+                    // 其余的都是加算
+                    // else result += value;
+                    result *= (1 + value);
+                }
+            }
+            res.put(attrType, result);
         }
 
-        return DamageType.OTHER;
-    }
+        res.put(AttributeType.PRE_ARMOR_REDUCTION, drBalance(res.get(AttributeType.PRE_ARMOR_REDUCTION)));
+        res.put(AttributeType.AFTER_ARMOR_REDUCTION, drBalance(res.get(AttributeType.AFTER_ARMOR_REDUCTION)));
 
-    // TODO 针对某一类特定的伤害类型做出减免
-    @Override
-    public double calculateFinalDamage(double CombatValue, @Nullable DamageFromType damageFromType) {
-        return 0;
+        return res;
     }
 
     /**
@@ -52,7 +63,8 @@ public class CombatEntityCalculator extends Calculator {
      * @param oriDr 理论伤害减免比例
      * @return 平衡后的伤害减免比例
      */
-    private double drBalance(double oriDr) {
+    public double drBalance(Double oriDr) {
+        if (oriDr == null) return 0D;
         if (useDamageReductionBalance) return oriDr / (1 + oriDr);
         return oriDr;
     }

@@ -53,6 +53,15 @@ public class ItemPDC extends CalculablePDC {
         levelTemplateName = "";
     }
 
+    public ItemPDC(AttributeCalculateSection s) {
+        super(s);
+        qualityName = "";
+        gems = new String[0];
+        level = 0;
+        oriAttrs = new HashMap<>();
+        levelTemplateName = "";
+    }
+
     public ItemPDC(@NotNull String innerName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
         super(innerName, acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         qualityName = cfg.getString(QUALITY, "");

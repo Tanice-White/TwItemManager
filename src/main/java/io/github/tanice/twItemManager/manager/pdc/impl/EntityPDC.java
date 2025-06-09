@@ -27,6 +27,10 @@ public class EntityPDC extends CalculablePDC {
         super();
     }
 
+    public EntityPDC(AttributeCalculateSection s){
+        super(s);
+    }
+
     public EntityPDC(@NotNull String innerName) {
         super(innerName, AttributeCalculateSection.OTHER, null);
     }

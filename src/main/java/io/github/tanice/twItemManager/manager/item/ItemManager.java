@@ -89,7 +89,7 @@ public class ItemManager implements Manager {
     /**
      * 根据物品 item 获取内部的持久类
      */
-    public Item getItem(@NotNull ItemStack item){
+    public @Nullable Item getItem(@NotNull ItemStack item){
         return itemMap.get(getInnerName(item));
     }
     public Set<String> getItemNameList() {
@@ -445,6 +445,7 @@ public class ItemManager implements Manager {
                 String fileName = file.getFileName().toString();
                 String name = fileName.substring(0, fileName.lastIndexOf('.'));
                 BuffPDC bPDC;
+                List<BuffPDC> bPDCList = new ArrayList<>();
                 ConfigurationSection subsection;
                 if (fileName.endsWith(".yml")) {
                     ConfigurationSection section = YamlConfiguration.loadConfiguration(file.toFile());
@@ -452,13 +453,17 @@ public class ItemManager implements Manager {
                         subsection = section.getConfigurationSection(k);
                         if (subsection == null) continue;
                         bPDC = new BuffPDC(k, section);
-                        buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>()).add(bPDC);
+                        bPDCList = buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>());
+                        bPDCList.add(bPDC);
+                        buffSectionMap.put(bPDC.getAttributeCalculateSection(), bPDCList);
                         buffMap.put(k, bPDC);
                     }
                 }
                 else if (fileName.endsWith(".js")) {
                     bPDC = new BuffPDC(name, file);
-                    buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>()).add(bPDC);
+                    bPDCList = buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>());
+                    bPDCList.add(bPDC);
+                    buffSectionMap.put(bPDC.getAttributeCalculateSection(), bPDCList);
                     buffMap.put(bPDC.getInnerName(), bPDC);
                 }
                 else logWarning("未知的文件格式: " + fileName);

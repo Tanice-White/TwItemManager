@@ -26,6 +26,10 @@ public class AttributePDC extends CalculablePDC {
         super();
     }
 
+    public AttributePDC(AttributeCalculateSection s){
+        super(s);
+    }
+
     public AttributePDC(@NotNull String displayName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
         super(stripAllTags(displayName), acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         this.displayName = displayName;

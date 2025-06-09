@@ -7,40 +7,40 @@
 # skill_lore  # 显示技能描述
 # =======================================
 default:
-  _ attack_damage
-  _ attack_speed
-  _ critical_strike_chance
-  _ critical_strike_damage
-#  _ skill_cooldown
-#  _ skill_mana_cost
-  _ attack_knockback
-  _ knockback_resistance
-  _ armor
-  _ armor_toughness
-  _ burning_time
-  _ explosion_knockback_resistance
-  _ fall_damage_multiplier
-  _ flying_speed
-  _ gravity
-  _ jump_strength
-  _ luck
-  _ max_absorption
-  _ max_health
-  _ movement_efficiency
-  _ movement_speed
-  _ oxygen_bonus
-  _ safe_fall_distance
-  _ scale
-  _ step_height
-  _ water_movement_efficiency
-  _ block_break_speed
-  _ block_interaction_range
-  _ entity_interaction_range
-  _ mining_efficiency
-  _ sneaking_speed
-  _ submerged_mining_speed
-  _ sweeping_damage_ratio
-  _ quality  # 显示前缀词条
-  _ skill  # 显示技能词条
-  _ item  # 显示物品创建模板部分输入的lore
-  _ gem  # 宝石槽
+  - attack_damage
+  - attack_speed
+  - critical_strike_chance
+  - critical_strike_damage
+#  - skill_cooldown
+#  - skill_mana_cost
+  - attack_knockback
+  - knockback_resistance
+  - armor
+  - armor_toughness
+  - burning_time
+  - explosion_knockback_resistance
+  - fall_damage_multiplier
+  - flying_speed
+  - gravity
+  - jump_strength
+  - luck
+  - max_absorption
+  - max_health
+  - movement_efficiency
+  - movement_speed
+  - oxygen_bonus
+  - safe_fall_distance
+  - scale
+  - step_height
+  - water_movement_efficiency
+  - block_break_speed
+  - block_interaction_range
+  - entity_interaction_range
+  - mining_efficiency
+  - sneaking_speed
+  - submerged_mining_speed
+  - sweeping_damage_ratio
+  - quality  # 显示前缀词条
+  - skill  # 显示技能词条
+  - item  # 显示物品创建模板部分输入的lore
+  - gem  # 宝石槽

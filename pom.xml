@@ -107,11 +107,16 @@
             <artifactId>guava</artifactId>
             <version>33.4.8-jre</version>
         </dependency>
-        <!-- GraalVM JavaScript 引擎 -->
+        <!-- js engin -->
         <dependency>
-            <groupId>org.graalvm.polyglot</groupId>
-            <artifactId>polyglot</artifactId>
-            <version>23.1.2</version> <!-- 使用最新版本 -->
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>22.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js-scriptengine</artifactId>
+            <version>22.3.1</version>
         </dependency>
     </dependencies>
 </project>

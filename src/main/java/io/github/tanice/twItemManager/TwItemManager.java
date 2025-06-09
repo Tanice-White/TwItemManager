@@ -48,7 +48,7 @@ public final class TwItemManager extends JavaPlugin {
         workbenchListener = new WorkbenchListener(this);
         particleListener = new GenericParticleListener();
         PacketEvents.getAPI().getEventManager().registerListener(particleListener, PacketListenerPriority.NORMAL);
-        damageEventListener = new DamageEventListener();
+        damageEventListener = new DamageEventListener(this);
         // 指令不需要reload
         mainCommand = new MainCommand(this);
         mainCommand.register(new GiveCommand());

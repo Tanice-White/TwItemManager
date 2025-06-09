@@ -36,6 +36,7 @@ public class PDCAPI {
     
     public static @Nullable CalculablePDC getItemCalculablePDC(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
         return getItemCalculablePDC(meta);
     }
 
@@ -50,6 +51,7 @@ public class PDCAPI {
 
     public static boolean setItemCalculablePDC(@NotNull ItemStack item, @NotNull CalculablePDC cPDC) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
         if (!setItemCalculablePDC(meta, cPDC)) return false;
         item.setItemMeta(meta);
         return true;
@@ -86,11 +88,15 @@ public class PDCAPI {
     /**
      * 获取物品内部名称
      */
-    public static @Nullable String getInnerName(@NotNull ItemStack item) {
+    public static @Nullable String getInnerName(@Nullable ItemStack item) {
+        if (item == null) return null;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
         return getInnerName(item.getItemMeta());
     }
 
-    public static @Nullable String getInnerName(@NotNull ItemMeta meta) {
+    public static @Nullable String getInnerName(@Nullable ItemMeta meta) {
+        if (meta == null) return null;
         return meta.getPersistentDataContainer().get(
                 new NamespacedKey(PDC_NAMESPACE, INNER_NAME_KEY),
                 PersistentDataType.STRING
@@ -99,6 +105,7 @@ public class PDCAPI {
 
     public static void setInnerName(@NotNull ItemStack item, @NotNull String innerName){
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setInnerName(meta, innerName);
         item.setItemMeta(meta);
     }
@@ -127,6 +134,7 @@ public class PDCAPI {
 
     public static void setOwner(@NotNull ItemStack item, @NotNull String owner) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setOwner(meta, owner);
         item.setItemMeta(meta);
     }
@@ -155,6 +163,7 @@ public class PDCAPI {
 
     public static void setUpdateCode(@NotNull ItemStack item, double code) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setUpdateCode(meta, code);
         item.setItemMeta(meta);
     }
@@ -171,7 +180,9 @@ public class PDCAPI {
      * 物品耐久相关
      */
     public static @Nullable Integer getCurrentDamage(@NotNull ItemStack item) {
-        return getCurrentDamage(item.getItemMeta());
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+        return getCurrentDamage(meta);
     }
 
     public static @Nullable Integer getCurrentDamage(@NotNull ItemMeta meta) {
@@ -182,7 +193,9 @@ public class PDCAPI {
     }
 
     public static @Nullable Integer getMaxDamage(@NotNull ItemStack item) {
-        return getMaxDamage(item.getItemMeta());
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+        return getMaxDamage(meta);
     }
 
     public static @Nullable Integer getMaxDamage(@NotNull ItemMeta meta) {
@@ -194,6 +207,7 @@ public class PDCAPI {
 
     public static void setMaxDamage(@NotNull ItemStack item, int maxDamage) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setMaxDamage(meta, maxDamage);
         item.setItemMeta(meta);
     }
@@ -208,6 +222,7 @@ public class PDCAPI {
 
     public static void setCurrentDamage(@NotNull ItemStack item, int currentDamage) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setCurrentDamage(meta, currentDamage);
         item.setItemMeta(meta);
     }
@@ -224,7 +239,9 @@ public class PDCAPI {
      * 属性生效槽位
      */
     public static @Nullable String getSlot(@NotNull ItemStack item) {
-        return getSlot(item.getItemMeta());
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+        return getSlot(meta);
     }
 
     public static @Nullable String getSlot(@NotNull ItemMeta meta) {
@@ -236,6 +253,7 @@ public class PDCAPI {
 
     public static void setSlot(@NotNull ItemStack item, @NotNull String slot) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setSlot(meta , slot);
         item.setItemMeta(meta);
     }
@@ -252,7 +270,9 @@ public class PDCAPI {
      * 品质相关
      */
     public static @NotNull String getQualityName(@NotNull ItemStack item) {
-        return getQualityName(item.getItemMeta());
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return "";
+        return getQualityName(meta);
     }
     
     public static @NotNull String getQualityName(@NotNull ItemMeta meta) {
@@ -263,6 +283,7 @@ public class PDCAPI {
     
     public static boolean setQualityName(@NotNull ItemStack item, @NotNull String qualityInnerName) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
         if (!setQualityName(meta, qualityInnerName)) return false;
         item.setItemMeta(meta);
         return true;
@@ -280,7 +301,9 @@ public class PDCAPI {
      * 宝石相关操作
      */
     public static String @Nullable [] getGems(@NotNull ItemStack item) {
-        return getGems(item.getItemMeta());
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+        return getGems(meta);
     }
 
     public static String @Nullable [] getGems(@NotNull ItemMeta meta) {
@@ -291,6 +314,7 @@ public class PDCAPI {
 
     public static boolean addGem(@NotNull ItemStack item, @NotNull String gemInnerName) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
         if (!addGem(meta, gemInnerName)) return false;
         item.setItemMeta(meta);
         return true;
@@ -309,6 +333,7 @@ public class PDCAPI {
      */
     public static boolean removeGem(@NotNull ItemStack item, @NotNull String gemInnerName) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
         if (!removeGem(meta, gemInnerName)) return false;
         item.setItemMeta(meta);
         return true;
@@ -330,7 +355,7 @@ public class PDCAPI {
      */
     public static boolean emptyGems(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (!emptyGems(meta)) return false;
+        if (meta == null || !emptyGems(meta)) return false;
         item.setItemMeta(meta);
         return true;
     }
@@ -347,7 +372,9 @@ public class PDCAPI {
      * 等级相关操作
      */
     public static @NotNull Integer getLevel(@NotNull ItemStack item) {
-        return getLevel(item.getItemMeta());
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return 0;
+        return getLevel(meta);
     }
 
     public static @NotNull Integer getLevel(@NotNull ItemMeta meta) {
@@ -358,6 +385,7 @@ public class PDCAPI {
 
     public static void setLevel(@NotNull ItemStack item, int level) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setLevel(meta, level);
         item.setItemMeta(meta);
     }
@@ -374,6 +402,7 @@ public class PDCAPI {
      */
     public static void levelUp(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         levelUp(meta);
         item.setItemMeta(meta);
     }
@@ -392,6 +421,7 @@ public class PDCAPI {
      */
     public static void levelDown(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         levelDown(meta);
         item.setItemMeta(meta);
     }
@@ -425,6 +455,7 @@ public class PDCAPI {
 
     public static void setTimeStamp(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setTimeStamp(meta);
         item.setItemMeta(meta);
     }
@@ -442,6 +473,7 @@ public class PDCAPI {
      */
     public static void setConsumable(@NotNull ItemStack item, boolean consumable) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         setConsumable(meta, consumable);
         item.setItemMeta(meta);
     }

@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.util;
 
+import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -50,5 +51,21 @@ public class Tool {
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    /**
+     * 获取Map中的最大键值对
+     */
+    public static DamageType getMax(EnumMap<DamageType, Double> map) {
+        if (map == null || map.isEmpty()) return DamageType.OTHER;
+        DamageType maxKey = null;
+        double maxValue = Double.MIN_VALUE;
+        for (Map.Entry<DamageType, Double> entry : map.entrySet()) {
+            if (entry.getValue() > maxValue) {
+                maxValue = entry.getValue();
+                maxKey = entry.getKey();
+            }
+        }
+        return maxKey;
     }
 }

@@ -14,19 +14,19 @@
     attrs:
       # key不能相同
       # 表示在数值上使用乘算
-      attack_damage: "_10%"
+      attack_damage: "-10%"
 
   # 品质显示的名称为(蓝色的）品质2
   <blue>品质2</blue>:
     weight: 1
     attrs:
-      critical_strike_chance: "_10"
-      critical_strike_damage: "_10"
+      critical_strike_chance: "-0.1"
+      critical_strike_damage: "-0.1"
   品质3:
     weight: 1
     attrs:
-      skill_cooldown: "_10%"  # 技能冷却 (所有)
-      skill_mana_cost: "_10%"  # 技能蓝耗 (所有)
+      skill_cooldown: "-10%"  # 技能冷却 (所有)
+      skill_mana_cost: "-10%"  # 技能蓝耗 (所有)
   品质4:
     weight: 1
     attrs:

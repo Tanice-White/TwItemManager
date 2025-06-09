@@ -7,12 +7,14 @@ import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageFromType;
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,67 +22,94 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 @Getter
 public abstract class Calculator {
-    private static final String[] SLOTS = new String[]{"HAND", "OFF_HAND", "FEET", "LEGS", "CHEST", "HEAD"};
-
     /**
      * 根据就算区分好的属性Map
      * Timer 和 Other 不记录
      * Before_Damage 和 After_damage 单独记录
      */
-    protected final EnumMap<AttributeCalculateSection, CalculablePDC> resulMap = new EnumMap<>(AttributeCalculateSection.class);
+    protected final EnumMap<DamageType, Double> damageTypeMap = new EnumMap<>(DamageType.class);
+    protected final EnumMap<AttributeCalculateSection, CalculablePDC> resultMap = new EnumMap<>(AttributeCalculateSection.class);
     protected final List<BuffPDC> beforeList = new ArrayList<>();
+    protected final List<BuffPDC> betweenList = new ArrayList<>();
     protected final List<BuffPDC> afterList = new ArrayList<>();
 
-    public Calculator(@NotNull LivingEntity living) {
+    public Calculator(@Nullable Entity e) {
+        if (!(e instanceof LivingEntity living)) return;
         List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(living);
         PDCs.addAll(getEffectiveAccessory(living));
         PDCs.addAll(getEntityCalculablePDC(living));
 
         AttributeCalculateSection acs;
+        CalculablePDC aPDC;
         for (CalculablePDC pdc : PDCs) {
             acs = pdc.getAttributeCalculateSection();
             if (acs == AttributeCalculateSection.OTHER) continue;
-            /* 具体细节 */
+            /* 具体 */
             if (acs == AttributeCalculateSection.BEFORE_DAMAGE) beforeList.add((BuffPDC) pdc);
             else if (acs == AttributeCalculateSection.AFTER_DAMAGE) beforeList.add((BuffPDC) pdc);
-            else resulMap.getOrDefault(pdc.getAttributeCalculateSection(), new AttributePDC()).merge(pdc);
+            else if (acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) betweenList.add((BuffPDC) pdc);
+            else {
+                aPDC = resultMap.getOrDefault(acs, new AttributePDC(acs));
+                aPDC.merge(pdc);
+                resultMap.put(acs, aPDC);
+            }
         }
-
+        initDamageMap();
     }
 
     /**
      * 遍历物体生效槽位返回物品列表
-     * 返回 <=6个实体 [主手 副手 鞋子 裤子 胸甲 头盔]
      */
     protected @NotNull List<CalculablePDC> getEffectiveEquipmentPDC(@NotNull LivingEntity entity) {
         EntityEquipment equip = entity.getEquipment();
         if (equip == null) return new ArrayList<>();
 
         List<CalculablePDC> res = new ArrayList<>();
-        List<ItemStack> itemList = new ArrayList<>();
-        itemList.add(equip.getItemInMainHand());
-        itemList.add(equip.getItemInOffHand());
-        itemList.addAll(List.of(equip.getArmorContents()));
-
-        int i = -1;
-        CalculablePDC cPDC;
-        ItemPDC iPDC;
+        CalculablePDC cp;
         String slot;
-        for (ItemStack item : itemList) {
-            i ++;
-            if (item == null || item.getType() == Material.AIR) continue;
-            slot = getSlot(item);
-            if (slot == null || !(slot.equalsIgnoreCase(SLOTS[i]) || slot.equalsIgnoreCase("any"))) continue;
+        ItemStack it;
+        it = equip.getItemInMainHand();
+        slot = getSlot(it);
+        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("mainHand"))) {
+            cp = getItemCalculablePDC(it);
+            if (cp != null) res.add(cp);
+        }
 
-            cPDC = getItemCalculablePDC(item);
-            if (cPDC == null) continue;
-            /* 转为itemPDC再调用 */
-            iPDC = (ItemPDC)cPDC;
-            iPDC.selfCalculate();
-            res.add(iPDC);
+        equip.getItemInOffHand();
+        slot = getSlot(it);
+        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("offHand"))) {
+            cp = getItemCalculablePDC(it);
+            if (cp != null) res.add(cp);
+        }
+
+        equip.getHelmet();
+        slot = getSlot(it);
+        if (slot != null && (slot.equalsIgnoreCase("head") || slot.equalsIgnoreCase("helmet"))) {
+            cp = getItemCalculablePDC(it);
+            if (cp != null) res.add(cp);
+        }
+
+        equip.getChestplate();
+        slot = getSlot(it);
+        if (slot != null && (slot.equalsIgnoreCase("chest") || slot.equalsIgnoreCase("chestPlate"))) {
+            cp = getItemCalculablePDC(it);
+            if (cp != null) res.add(cp);
+        }
+
+        equip.getLeggings();
+        if (slot != null && (slot.equalsIgnoreCase("legs") || slot.equalsIgnoreCase("leggings"))) {
+            cp = getItemCalculablePDC(it);
+            if (cp != null) res.add(cp);
+        }
+
+        equip.getBoots();
+        if (slot != null && (slot.equalsIgnoreCase("boots") || slot.equalsIgnoreCase("feet"))) {
+            cp = getItemCalculablePDC(it);
+            if (cp != null) res.add(cp);
         }
         return res;
     }
@@ -104,12 +133,28 @@ public abstract class Calculator {
     }
 
     /**
-     * 获取伤害计算值并返回此实体的伤害来源
+     * 获取伤害计算各个区的顺序
+     * [BASE, DAMAGE_TYPE_ADDITION, ADD, MULTIPLY, FIX]
+     * 根据攻击实体武器的伤害类型
      */
-    public abstract DamageType getCombatValue();
+    public abstract EnumMap<AttributeType, Double> getAttrsValue();
 
     /**
-     * 获取防御计算 并得到最终结果
+     * 获取玩家 DamageType 属性 Map
      */
-    public abstract double calculateFinalDamage(double CombatValue , @Nullable DamageFromType damageFromType);
+    protected void initDamageMap() {
+        CalculablePDC cPDC;
+        EnumMap<DamageType, Double> ctMap;
+        for (AttributeCalculateSection acs : resultMap.keySet()) {
+            /* 排除 */
+            if (acs == AttributeCalculateSection.BEFORE_DAMAGE || acs == AttributeCalculateSection.AFTER_DAMAGE || acs == AttributeCalculateSection.OTHER) continue;
+            /* 数值整合计算 */
+            cPDC = resultMap.get(acs);
+            ctMap = cPDC.getTMap();
+            /* 1.属性统计(逐个CalculatePDC统计) */
+            for (DamageType dt : DamageType.values()) {
+                damageTypeMap.put(dt, damageTypeMap.getOrDefault(dt, 0D) + ctMap.getOrDefault(dt, 0D));
+            }
+        }
+    }
 }
