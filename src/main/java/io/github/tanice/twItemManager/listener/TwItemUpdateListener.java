@@ -67,6 +67,9 @@ public class TwItemUpdateListener implements Listener {
     private void checkAndUpdateItem(Player player, ItemStack @NotNull ... itemStacks) {
         for (ItemStack item : itemStacks) {
             if (item == null || item.getType().equals(Material.AIR)) continue;
+            Long c = PDCAPI.getUpdateCode(item);
+            if (c == null) continue;
+            if (c == TwItemManager.getUpdateCode()) continue;
             updateItem(player, item);
             player.updateInventory();
         }
@@ -77,7 +80,7 @@ public class TwItemUpdateListener implements Listener {
      */
     public void updateItem(@NotNull Player player, @NotNull ItemStack item) {
         List<String> externalGems = TwItemManager.getItemManager().updateItem(player, item);
-        StringBuilder s = new StringBuilder("§a装备更新, 返还多余宝石(");
+        StringBuilder s = new StringBuilder("§a装备底层更新, 返还多余宝石(");
         ItemStack g;
         for (String gn : externalGems) {
             g = TwItemManager.getItemManager().generateGemItem(gn);

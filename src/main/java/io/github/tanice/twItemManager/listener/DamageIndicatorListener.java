@@ -50,8 +50,8 @@ public class DamageIndicatorListener implements Listener {
 
         externalHeight = random.nextDouble() * 0.2;
 
-        defaultPrefix = Config.defaultPrefix == null ? "§6" : Config.defaultPrefix;
-        criticalPrefix = Config.criticalPrefix == null ? "§4" : Config.criticalPrefix;
+        defaultPrefix = Config.defaultPrefix;
+        criticalPrefix = Config.criticalPrefix;
 
         criticalLargeScale = (float) Config.criticalLargeScale;
         viewRange = (float) Config.viewRange;
@@ -71,16 +71,14 @@ public class DamageIndicatorListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if(!enabled) return;
-        if (event.getFinalDamage() <= 0) return;
 
-        boolean f = event.getDamager() instanceof Player;
-        // 判断是否为投掷物
-        if (!f || event.getDamager() instanceof Projectile) {
-            ProjectileSource source = ((Projectile)event.getDamager()).getShooter();
-            if (source instanceof Player) f = true;
+        Entity damager = event.getDamager();
+        Entity target = event.getEntity();
+        if (damager instanceof Projectile projectile) {
+            ProjectileSource source = projectile.getShooter();
+            if (source instanceof Entity sourceEntity) damager = sourceEntity;
         }
-
-        if (f) generateIndicator(event.getEntity(),event.isCritical(),event.getFinalDamage());
+        if (damager instanceof Player || target instanceof Player) generateIndicator(event.getEntity(),event.isCritical(),event.getFinalDamage());
     }
 
     public void reload(){

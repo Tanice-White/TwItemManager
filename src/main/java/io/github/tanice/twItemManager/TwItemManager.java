@@ -15,7 +15,7 @@ public final class TwItemManager extends JavaPlugin {
     @Getter
     public static TwItemManager instance;
     @Getter
-    private static Double updateCode = 0.0;
+    private static long updateCode;
 
     /** 管理器 */
     @Getter
@@ -41,8 +41,10 @@ public final class TwItemManager extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        updateCode = System.currentTimeMillis();
         instance = this;
 
+        /* Config 必须最先初始化 */
         Config.save(this);   // 根据情况生成默认配置文件
         Config.onEnable(this);  // 读取全局配置文件
 
@@ -75,6 +77,6 @@ public final class TwItemManager extends JavaPlugin {
     }
 
     public void onReload() {
-        updateCode += 1.0;
+        updateCode = System.currentTimeMillis();
     }
 }

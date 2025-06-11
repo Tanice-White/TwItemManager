@@ -208,7 +208,6 @@ public class ItemManager implements Manager {
         int l = getLevel(item);
         LevelTemplate lt = getLevelTemplate(it.getLevelTemplateName());
         if (lt != null) {
-            logWarning("物品: " + innerName + "初始等级不合理，已重置");
             if (l < lt.getBegin()) l = lt.getBegin();
             if (l > lt.getMax()) l = lt.getMax();
         }
@@ -344,7 +343,8 @@ public class ItemManager implements Manager {
             return;
         }
         if (level < lt.getBegin() || level > lt.getMax()) {
-            player.sendMessage("§e非法等级: " + level + " in: " + getInnerName(item) + ". Player: " + player.getName());
+            player.sendMessage("§e非法等级");
+            logWarning("§e非法等级: " + level + " in: " + getInnerName(item) + ". Player: " + player.getName());
             return;
         }
         PDCAPI.setLevel(item, level);
@@ -425,7 +425,7 @@ public class ItemManager implements Manager {
             /* 获取底层抽象 */
             ItemPDC newPDC = (ItemPDC) PDCAPI.getItemCalculablePDC(it.getItem());
             if (newPDC == null) {
-                logWarning("物品更新后找不到对应的底层抽象: " + inn);
+                logWarning("物品更新后找不到对应的底层: " + inn);
                 return new ArrayList<>(0);
             }
             List<String> externalGems = newPDC.extendFrom(iPDC);
@@ -433,6 +433,9 @@ public class ItemManager implements Manager {
             TwItemUpdateEvent event = new TwItemUpdateEvent (plugin, player, iPDC, newPDC);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) return new ArrayList<>(0);
+            /* 原版属性操作 */
+            iPDC.removeOriAttrsFrom(item);
+            newPDC.attachOriAttrsTo(item);
             PDCAPI.setItemCalculablePDC(item, newPDC);
             /* 多余的宝石给予玩家 */
             return externalGems;

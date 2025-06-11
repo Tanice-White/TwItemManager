@@ -13,6 +13,5 @@
   # 计算方式BASE表示是在白值计算
   # 其余的方式单独乘算，且计算完成后的值作为武器的白值
   calculate_type: BASE  # 默认为BASE
-
   attrs:
     attack_damage: 1

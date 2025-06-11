@@ -5,12 +5,9 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import lombok.Getter;
 import org.bukkit.entity.Entity;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;
-
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
-import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 @Getter
 public class CombatEntityCalculator extends Calculator {
@@ -23,7 +20,7 @@ public class CombatEntityCalculator extends Calculator {
         super(null);
     }
 
-    public CombatEntityCalculator(@Nullable Entity entity) {
+    public CombatEntityCalculator(@NotNull Entity entity) {
         super(entity);
     }
 
@@ -32,20 +29,26 @@ public class CombatEntityCalculator extends Calculator {
         CalculablePDC pdc;
         EnumMap<AttributeType, Double> res = new EnumMap<>(AttributeType.class);
         Double result = null;
+
         for (AttributeType attrType : AttributeType.values()) {
             pdc = resultMap.get(AttributeCalculateSection.BASE);
             if (pdc != null) result = pdc.getVMap().get(attrType);
             if (result == null) result = 0D;
             if (result != 0D){
-                for (AttributeCalculateSection section : AttributeCalculateSection.values()) {
-                    if (section == AttributeCalculateSection.BASE) continue;
-                    pdc = resultMap.get(section);
-                    if (pdc == null) continue;
+                /* 计算顺序：BASE * ADD * MULTIPLY * FIX */
+                pdc = resultMap.get(AttributeCalculateSection.ADD);
+                if (pdc != null) {
                     Double value = pdc.getVMap().get(attrType);
-                    // 攻击力根据不同的section乘算
-                    // if (attrType == AttributeType.DAMAGE) result *= (1 + value);
-                    // 其余的都是加算
-                    // else result += value;
+                    result *= (1 + value);
+                }
+                pdc = resultMap.get(AttributeCalculateSection.MULTIPLY);
+                if (pdc != null) {
+                    Double value = pdc.getVMap().get(attrType);
+                    result *= (1 + value);
+                }
+                pdc = resultMap.get(AttributeCalculateSection.FIX);
+                if (pdc != null) {
+                    Double value = pdc.getVMap().get(attrType);
                     result *= (1 + value);
                 }
             }

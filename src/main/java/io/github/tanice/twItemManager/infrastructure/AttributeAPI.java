@@ -69,7 +69,6 @@ public class AttributeAPI {
      * @param attrKey Attribute的TwItems的内部关键词
      * @return List<AttributeModifier>
      */
-    @Deprecated
     public static @Nullable Collection<AttributeModifier> getAttrModifiers(@NotNull ItemMeta meta, @NotNull String attrKey) {
         Attribute a = ATTRIBUTE_MAP.get(attrKey);
         if (a == null) return null;
@@ -83,14 +82,13 @@ public class AttributeAPI {
      * @param attrKey Attribute的TwItems的内部关键词
      * @return 数值和生效槽位的Tuple
      */
-    @Deprecated
-    public static @Nullable AttributeModifier getCustomSetAttr(@NotNull ItemMeta meta, @NotNull String attrKey) {
+    public static @Nullable AttributeModifier getCustomSetAttr(@NotNull ItemMeta meta, @NotNull String namespaceKey, @NotNull String attrKey) {
         Attribute a = ATTRIBUTE_MAP.get(attrKey);
         if (a == null) return null;
         Collection<AttributeModifier> attributeModifiers = meta.getAttributeModifiers(a);
         if (attributeModifiers == null || attributeModifiers.isEmpty()) return null;
         for (AttributeModifier am : attributeModifiers) {
-            if (am.getKey().getNamespace().equals(SET_NAMESPACE_SUFFIX)) return am;
+            if (am.getKey().getNamespace().equals(namespaceKey + SET_NAMESPACE_SUFFIX)) return am;
         }
         return null;
     }
@@ -106,24 +104,24 @@ public class AttributeAPI {
      * @param slot   生效槽位, 默认为主手
      */
     @Deprecated
-    public static void addAttr(@NotNull String from, @NotNull ItemMeta meta, @NotNull String attrKey, @NotNull DamageType act, double v, @NotNull EquipmentSlotGroup slot) {
-//        Attribute a = ATTRIBUTE_MAP.get(attrKey);
-//        if (a == null) return;
-//        if (act == DamageType.ADD) {
-//            meta.addAttributeModifier(a, new AttributeModifier(
-//                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
-//                    v,
-//                    AttributeModifier.Operation.ADD_NUMBER,
-//                    slot
-//            ));
-//        } else {
-//            meta.addAttributeModifier(a, new AttributeModifier(
-//                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
-//                    v,
-//                    AttributeModifier.Operation.ADD_SCALAR,
-//                    slot
-//            ));
-//        }
+    public static void addAttr(@NotNull String from, @NotNull ItemMeta meta, @NotNull String attrKey, @NotNull String act, double v, @NotNull EquipmentSlotGroup slot) {
+        Attribute a = ATTRIBUTE_MAP.get(attrKey);
+        if (a == null) return;
+        if (act.equals("+")) {
+            meta.addAttributeModifier(a, new AttributeModifier(
+                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
+                    v,
+                    AttributeModifier.Operation.ADD_NUMBER,
+                    slot
+            ));
+        } else {
+            meta.addAttributeModifier(a, new AttributeModifier(
+                    new NamespacedKey(from + ADD_NAMESPACE_SUFFIX, attrKey),
+                    v,
+                    AttributeModifier.Operation.ADD_SCALAR,
+                    slot
+            ));
+        }
     }
 
     /**

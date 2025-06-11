@@ -120,7 +120,6 @@ public class Item extends BaseItem {
         setSlot(meta ,config.getString(SLOT,"ANY"));
         /* 灵魂绑定的玩家名(暂时不使用UUID) */
         setOwner(meta, "");
-        // TODO 使用更好的方式，比如哈希值
         setUpdateCode(meta, TwItemManager.getUpdateCode());
     }
 

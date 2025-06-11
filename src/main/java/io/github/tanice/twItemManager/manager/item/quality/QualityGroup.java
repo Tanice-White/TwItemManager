@@ -77,15 +77,13 @@ public class QualityGroup {
         len = 0;
         double tt = 0;
         ConfigurationSection sc;
-        String inner;
         for (String key : cfg.getKeys(false)) {
             sc = cfg.getConfigurationSection(key);
             if (!isValid(sc)) continue;
-            inner = MiniMessageUtil.stripAllTags(key);
-            tt += sc.getDouble("weight", 0);
+            tt += sc.getDouble("weight", 1);
             this.prefixWeights.add(tt);
             this.qualities.add(new AttributePDC(key , AttributeCalculateSection.valueOf(cfg.getString(ACS, "BASE").toUpperCase()), sc));
-            this.qualityNames.add(inner);
+            this.qualityNames.add(key);
             len++;
         }
         this.totalW = tt;

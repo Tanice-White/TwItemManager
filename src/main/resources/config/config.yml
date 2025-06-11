@@ -6,10 +6,17 @@ cancel_generic_particles: true  # false
 
 # 是否生成伤害文本显示
 generate_damage_indicator: true  # false
-damage_indicator:
-  default_prefix: "§6"  # 非暴击指示器颜色
-  critical_prefix: "§4" # 暴击指示器颜色
-  critical_large_scale: 2 # 所有指示器默认放大1.5倍
-  view_range: 20.0  # 可见范围
+# generate_damage_indicator 为 true 才生效
+default_prefix: "§6"  # 非暴击指示器颜色
+critical_prefix: "§4" # 暴击指示器颜色
+critical_large_scale: 2 # 所有指示器默认放大1.5倍
+view_range: 20.0  # 可见范围
+
+# 防御伤害抵消乘数
+world_k: 1  # 1点防御抵消 k点伤害
+
+# 是否进行伤害浮动
+damage_float: false # false
+damage_float_range: 0.08 # 浮动范围(默认0)
 
 # 其他的

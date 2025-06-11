@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,14 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BuffListener implements Listener {
+    private final JavaPlugin plugin;
 
     private final List<Player> checkPlayers = new ArrayList<>();
 
     /**
      * 创建holdBuff检测，防止刷出无限buff
      */
-    public BuffListener() {
-
+    public BuffListener(@NotNull JavaPlugin plugin) {
+        this.plugin = plugin;
     }
 
     @EventHandler

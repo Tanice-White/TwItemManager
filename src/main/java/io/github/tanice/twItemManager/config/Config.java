@@ -38,22 +38,33 @@ public class Config {
     public static double criticalLargeScale;
     public static double viewRange;
 
+    /* 防御伤害抵消乘数 */
+    public static double worldK;
+
+    /* 伤害浮动机制 */
+    public static boolean damageFloat;
+    public static double damageFloatRange;
+
     /** 激活时 加载全局配置文件 */
     public static void onEnable(@NotNull JavaPlugin plugin) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
-        ConfigurationSection sec;
+
         generateExamples = cfg.getBoolean("generate_examples", true);
         cancelGenericParticles = cfg.getBoolean("cancel_generic_particles", false);
+
+        /* 使用伤害指示器 */
         generateDamageIndicator = cfg.getBoolean("generate_damage_indicator", false);
-        if (generateDamageIndicator) {
-            sec = cfg.getConfigurationSection("damage_indicator");
-            if (sec != null) {
-                defaultPrefix = sec.getString("default_prefix");
-                criticalPrefix = sec.getString("critical_prefix");
-                criticalLargeScale = sec.getDouble("critical_large_scale", 1D);
-                viewRange = sec.getDouble("view_range", 20D);
-            }
-        }
+        defaultPrefix = cfg.getString("default_prefix", "§6");
+        criticalPrefix = cfg.getString("critical_prefix", "§4");
+        criticalLargeScale = cfg.getDouble("critical_large_scale", 1D);
+        viewRange = cfg.getDouble("view_range", 20D);
+
+        /* 防御伤害抵消乘数 */
+        worldK = cfg.getDouble("world_k", 1D);
+
+        /* 伤害浮动机制 */
+        damageFloat = cfg.getBoolean("damage_float", false);
+        damageFloatRange = cfg.getDouble("damage_float_range", 0D);
     }
 
     /** 插件重载时 重载对应配置文件 */

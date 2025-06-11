@@ -150,28 +150,28 @@ public class PDCAPI {
     /**
      * 获取物品的更新code
      */
-    public static @Nullable Double getUpdateCode(@NotNull ItemStack item) {
+    public static @Nullable Long getUpdateCode(@NotNull ItemStack item) {
         return getUpdateCode(item.getItemMeta());
     }
 
-    public static @Nullable Double getUpdateCode(@NotNull ItemMeta meta) {
+    public static @Nullable Long getUpdateCode(@NotNull ItemMeta meta) {
         return meta.getPersistentDataContainer().get(
                 new NamespacedKey(PDC_NAMESPACE, UPDATE_CODE_KEY),
-                PersistentDataType.DOUBLE
+                PersistentDataType.LONG
         );
     }
 
-    public static void setUpdateCode(@NotNull ItemStack item, double code) {
+    public static void setUpdateCode(@NotNull ItemStack item, long code) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return;
         setUpdateCode(meta, code);
         item.setItemMeta(meta);
     }
 
-    public static void setUpdateCode(@NotNull ItemMeta meta, double code) {
+    public static void setUpdateCode(@NotNull ItemMeta meta, long code) {
         meta.getPersistentDataContainer().set(
                 new NamespacedKey(PDC_NAMESPACE, UPDATE_CODE_KEY),
-                PersistentDataType.DOUBLE,
+                PersistentDataType.LONG,
                 code
         );
     }

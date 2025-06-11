@@ -7,9 +7,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
@@ -23,7 +21,7 @@ public class EntityPDC extends CalculablePDC {
     private static final long serialVersionUID = 1L;
 
     /* 影响属性的值 */
-    private Map<String, BuffPDC> buffs;
+    private final Map<String, BuffPDC> buffs = new HashMap<>();
 
     public EntityPDC(){
         super();
@@ -72,12 +70,12 @@ public class EntityPDC extends CalculablePDC {
      * 删除buff
      */
     public void removeBuff(String innerName){
-        buffs.remove(innerName);
+        buffs.put(innerName, null);
     }
     /**
      * 删除buff
      */
     public void removeBuff(@NotNull BuffPDC bPDC){
-        buffs.remove(bPDC.getInnerName());
+        buffs.put(bPDC.getInnerName(), null);
     }
 }

@@ -76,33 +76,9 @@ public class TwItemListener implements Listener {
     }
 
     /**
-     * 禁止铁砧修复
-     */
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onPrepareAnvil(@NotNull PrepareAnvilEvent event) {
-        ItemStack fi = event.getInventory().getFirstItem();
-        ItemStack si = event.getInventory().getSecondItem();
-        if (fi == null || si == null) return;
-        if ((si.getType() == si.getType()) && (isTwItem(fi) || isTwItem(si))) {
-            event.setResult(null);
-        }
-    }
-
-    /**
-     * 禁止砂轮修复/合成
-     */
-    @EventHandler
-    public void onPrepareGrindstone(@NotNull PrepareGrindstoneEvent event) {
-        ItemStack fi = event.getInventory().getItem(0);
-        ItemStack si = event.getInventory().getItem(1);
-        // 两个都是才能修复
-        if (isTwItem(fi) && isTwItem(si)) event.setResult(null);
-    }
-
-    /**
      * 禁止在工作台中 “合成” 原版物品
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    // @EventHandler(priority = EventPriority.LOWEST)
     public void onPrepareCraft(@NotNull PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
         if (recipe == null) return;

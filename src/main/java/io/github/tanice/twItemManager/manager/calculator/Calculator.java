@@ -34,7 +34,7 @@ public abstract class Calculator {
     protected final List<BuffPDC> betweenList = new ArrayList<>();
     protected final List<BuffPDC> afterList = new ArrayList<>();
 
-    public Calculator(@Nullable Entity e) {
+    public Calculator(@NotNull Entity e) {
         if (!(e instanceof LivingEntity living)) return;
         List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(living);
         PDCs.addAll(getEffectiveAccessory(living));

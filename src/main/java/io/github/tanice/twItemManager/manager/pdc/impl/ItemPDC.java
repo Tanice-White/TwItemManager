@@ -253,20 +253,10 @@ public class ItemPDC extends CalculablePDC {
     public void attachOriAttrsTo(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         EquipmentSlotGroup es = slotJudge(getSlot(item));
-        boolean f = false;
         for (String k : oriAttrs.keySet()) {
-            if (oriAttrs.get(k)[0] != 0){
-                setAttr(getOriAttrNamespaceKey(), meta, k, "+", oriAttrs.get(k)[0], es);
-                f = true;
-            }
-            if (oriAttrs.get(k)[1] != 0) {
-                setAttr(getOriAttrNamespaceKey(), meta, k, "*", oriAttrs.get(k)[1], es);
-                f = true;
-            }
+            if (oriAttrs.get(k)[0] != 0) setAttr(getOriAttrNamespaceKey(), meta, k, "+", oriAttrs.get(k)[0], es);
+            if (oriAttrs.get(k)[1] != 0) setAttr(getOriAttrNamespaceKey(), meta, k, "*", oriAttrs.get(k)[1], es);
         }
-        /* 没有原版属性--强制增加一个，确保伤害为1 */
-        if (!f) setAttr("force-add", meta, "luck", "+", 0, es);
-
         item.setItemMeta(meta);
     }
 
@@ -324,10 +314,10 @@ public class ItemPDC extends CalculablePDC {
         if (aPDC == null) return;
         for (AttributeType type : AttributeType.values()) {
             if (aPDC.getAttributeCalculateSection() == AttributeCalculateSection.BASE) vMap.put(type, vMap.getOrDefault(type, 0D) + aPDC.getVMap().getOrDefault(type, 0D) * k);
-            else vMap.put(type, vMap.getOrDefault(type, 0D) *(1 + aPDC.getVMap().getOrDefault(type, 0D) * k));
+            else vMap.put(type, vMap.getOrDefault(type, 0D) * (1 + aPDC.getVMap().getOrDefault(type, 0D) * k));
         }
         for (DamageType type : DamageType.values()) {
-            tMap.put(type, tMap.getOrDefault(type, 0D) + aPDC.getTMap().getOrDefault(type, 0D));
+            tMap.put(type, tMap.getOrDefault(type, 0D) + aPDC.getTMap().getOrDefault(type, 0D) * k);
         }
     }
 }
