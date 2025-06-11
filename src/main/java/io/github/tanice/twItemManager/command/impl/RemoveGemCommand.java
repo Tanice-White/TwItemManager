@@ -7,15 +7,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class RecastCommand extends SubCommand {
+public class RemoveGemCommand extends SubCommand {
     @Override
     public String getName() {
-        return "recast";
-    }
-
-    @Override
-    public String getDescription() {
-        return "将玩家主手中的TwItems重铸";
+        return "remove";
     }
 
     @Override
@@ -29,9 +24,8 @@ public class RecastCommand extends SubCommand {
             sender.sendMessage("§c请手持TwItem执行此命令");
             return true;
         }
-        boolean ok = TwItemManager.getItemManager().recast(item);
-        if (ok) sender.sendMessage("§a重铸成功");
-        else sender.sendMessage("§c重铸失败");
+        ItemStack gem = TwItemManager.getItemManager().removeGem(player,item);
+        player.getInventory().addItem(gem);
         return true;
     }
 }

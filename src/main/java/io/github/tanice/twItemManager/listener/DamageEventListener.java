@@ -15,8 +15,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -26,8 +28,6 @@ import java.util.Random;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 import static io.github.tanice.twItemManager.util.ReflectUtil.setCriticalFalse;
 import static io.github.tanice.twItemManager.util.ReflectUtil.setCriticalTrue;
-import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
-import static io.github.tanice.twItemManager.util.Tool.getMax;
 
 public class DamageEventListener implements Listener {
 
@@ -46,23 +46,35 @@ public class DamageEventListener implements Listener {
      */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onEntityDamageByEntityEvent(@NotNull EntityDamageByEntityEvent event) {
+
         Entity a = event.getDamager(), b = event.getEntity();
         CombatEntityCalculator ac = new CombatEntityCalculator(a), bc = new CombatEntityCalculator(b);
         if (!(a instanceof LivingEntity) && !(b instanceof LivingEntity)) return;
 
-        double finalDamage;
-        /* 计算玩家生效属性 */
-        DamageType weaponDamageType = DamageType.OTHER;
-        if (a instanceof Player p) {
-            Item i = TwItemManager.getItemManager().getItem(p.getInventory().getItemInMainHand());
-            if (i != null) weaponDamageType = i.getDamageType();
-            else weaponDamageType = getMax(ac.getDamageTypeMap());
-        }
         EnumMap<AttributeType, Double> aAttrMap = ac.getAttrsValue();
         EnumMap<AttributeType, Double> bAttrMap = bc.getAttrsValue();
 
-        // TODO 带更多的计算属性，比如 aAttrMap 和 bAttrMap
-        TwDamageEvent twDamageEvent = new TwDamageEvent(a, b, 0, new Double[]{0D, 0D, 0D}, weaponDamageType);
+        /* 计算玩家生效属性 */
+        /* 非法属性都在OTHER中 */
+        DamageType weaponDamageType = DamageType.OTHER;
+        ItemStack itemStack = null;
+        if (a instanceof Player p) {
+            itemStack = p.getInventory().getItemInMainHand();
+            Item i = TwItemManager.getItemManager().getItemByItemStack(itemStack);
+            if (i != null) weaponDamageType = i.getDamageType();
+            /* 否则武器类型保持OTHER不变 */
+        }
+
+        /* 武器的对外白值（品质+宝石+白值） */
+        double finalDamage = aAttrMap.get(AttributeType.DAMAGE);
+        /* 只要是twItemManager的物品，伤害一定是1，否则一定大于1 */
+        /* 不是插件物品 - 不受属性增伤的影响 */
+        if (TwItemManager.getItemManager().isNotTwItem(itemStack)) finalDamage = event.getDamage();
+        else finalDamage *= event.getDamage();
+
+        finalDamage *=  (1 + ac.getDamageTypeMap().getOrDefault(weaponDamageType, 0D));
+
+        TwDamageEvent twDamageEvent = new TwDamageEvent(a, b, 0, aAttrMap, bAttrMap, weaponDamageType);
         /* BEFORE_DAMAGE 事件计算 */
         List<BuffPDC> bd = ac.getBeforeList();
         bd.addAll(bc.getBeforeList());
@@ -77,14 +89,6 @@ public class DamageEventListener implements Listener {
             }
         }
 
-        finalDamage = aAttrMap.get(AttributeType.DAMAGE);
-        twDamageEvent.setDamage(finalDamage);
-        twDamageEvent.setDefenceAttributeList(new Double[]{
-                bAttrMap.get(AttributeType.PRE_ARMOR_REDUCTION),
-                bAttrMap.get(AttributeType.ARMOR),
-                // bAttrMap.get(AttributeType.ARMOR_TOUGHNESS),  // 护甲韧性暂时不参与计算
-                bAttrMap.get(AttributeType.AFTER_ARMOR_REDUCTION),
-        });
 
         /* 暴击事件 + 修正 */
         if (random.nextDouble() < aAttrMap.get(AttributeType.CRITICAL_STRIKE_CHANCE)){
@@ -92,6 +96,11 @@ public class DamageEventListener implements Listener {
             setCriticalTrue(event);
         }
         else setCriticalFalse(event);
+
+        /* 伤害浮动 */
+        // finalDamage *= random.nextDouble(0.9, 1.1);
+
+        twDamageEvent.setDamage(finalDamage);
 
         /* 中间属性生效 */
         List<BuffPDC> be = ac.getBeforeList();
@@ -111,9 +120,10 @@ public class DamageEventListener implements Listener {
         finalDamage *= (1 - bAttrMap.get(AttributeType.PRE_ARMOR_REDUCTION));
         finalDamage -= bAttrMap.get(AttributeType.ARMOR) * k;
         finalDamage *= (1 - bAttrMap.get(AttributeType.AFTER_ARMOR_REDUCTION));
-        twDamageEvent.setDamage(finalDamage);
 
         /* AFTER_DAMAGE 事件计算 */
+        twDamageEvent.setDamage(finalDamage);
+
         List<BuffPDC> ad = ac.getAfterList();
         ad.addAll(bc.getAfterList());
         Collections.sort(ad);
@@ -130,6 +140,15 @@ public class DamageEventListener implements Listener {
         /* a 给 b 增加 buff */
 
         /* TIMER 不处理，而是在增加buff的时候处理 */
-        event.setDamage(finalDamage < 1 ? 1 : finalDamage);
+        if (finalDamage < 0.01) event.setCancelled(true);
+        event.setDamage(finalDamage);
+    }
+
+    /**
+     * 检查物品耐久等方面确保可使用
+     */
+    public boolean isValidItem(@Nullable ItemStack itemStack) {
+        if (itemStack == null) return false;
+        return true;
     }
 }

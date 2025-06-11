@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
+import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 /**
  * 实体持有的属性
+ * 计算区域无效
  */
 @Getter
 public class EntityPDC extends CalculablePDC {
@@ -27,16 +29,12 @@ public class EntityPDC extends CalculablePDC {
         super();
     }
 
-    public EntityPDC(AttributeCalculateSection s){
-        super(s);
-    }
-
     public EntityPDC(@NotNull String innerName) {
         super(innerName, AttributeCalculateSection.OTHER, null);
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "CalculablePDC{" +
                 "priority=" + priority + ", " +
                 "itemInnerName=" + innerName + ", " +
@@ -45,6 +43,11 @@ public class EntityPDC extends CalculablePDC {
                 "attribute-addition=" + enumMapToString(vMap) +
                 "type-addition=" + enumMapToString(tMap) +
                 "}";
+    }
+
+    @Override
+    public @NotNull Map<AttributeKey, String> toLoreMap() {
+        return Map.of();
     }
 
     /**
@@ -56,5 +59,25 @@ public class EntityPDC extends CalculablePDC {
             if (bPDC != null && bPDC.getEndTimeStamp() < currentTime) res.add(bPDC);
         }
         return res;
+    }
+
+    /**
+     * 覆盖式增加 buff
+     */
+    public void addBuff(BuffPDC bPDC){
+        buffs.put(bPDC.getInnerName(), bPDC);
+    }
+
+    /**
+     * 删除buff
+     */
+    public void removeBuff(String innerName){
+        buffs.remove(innerName);
+    }
+    /**
+     * 删除buff
+     */
+    public void removeBuff(@NotNull BuffPDC bPDC){
+        buffs.remove(bPDC.getInnerName());
     }
 }

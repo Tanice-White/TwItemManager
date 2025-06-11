@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
+import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
@@ -57,7 +59,7 @@ public class BuffPDC extends CalculablePDC {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "CalculablePDC{" +
                 "priority=" + priority + ", " +
                 "jsName=" + jsName + ".js, " +
@@ -70,6 +72,11 @@ public class BuffPDC extends CalculablePDC {
                 "cd=" + cd + ", " +
                 "duration=" + duration + ", " +
                 "}";
+    }
+
+    @Override
+    public @NotNull Map<AttributeKey, String> toLoreMap() {
+        return Map.of();
     }
 
     /**

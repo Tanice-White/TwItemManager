@@ -167,7 +167,6 @@ public class AttributeAPI {
      * @param attrKey 属性名称
      * @return 是否成功(没有这个属性则返回 false )
      */
-    @Deprecated
     public static boolean removeAddAttrByKey(@NotNull String key, @NotNull ItemMeta meta, @NotNull String attrKey) {
         AttributeModifier amd = getCustomAddAttrByKey(key, meta, attrKey);
         if (amd == null) return false;

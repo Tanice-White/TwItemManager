@@ -11,8 +11,11 @@
     - UNBREAKABLE
   lore:
     - "这是一个宝石"
+  # 计算方式BASE表示是在白值计算
+  # 其余的方式单独乘算，且计算完成后的值作为武器的白值
+  calculate_type: ADD  # 默认为BASE
   attrs:
-    attack_damage: "+10"
+    attack_damage: -0.1  # 伤害减少10%
   embed_chance: 0.9  # 镶嵌成功率  默认为 1
   remove_chance: 0.9  # 拆卸成功率 默认为1
   loss_when_failed: true  # 镶嵌或者拆卸失败是否修丢失
@@ -23,5 +26,5 @@
   custom_model_data: 2001
   lore:
     - "这是一个宝石"
-  modifiers:
+  attrs:
     attack_damage: +10

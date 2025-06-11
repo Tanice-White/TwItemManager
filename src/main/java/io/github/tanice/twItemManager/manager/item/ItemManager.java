@@ -1,5 +1,7 @@
 package io.github.tanice.twItemManager.manager.item;
 
+import io.github.tanice.twItemManager.TwItemManager;
+import io.github.tanice.twItemManager.event.TwItemUpdateEvent;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
@@ -7,12 +9,10 @@ import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
 import io.github.tanice.twItemManager.manager.item.quality.QualityGroup;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,11 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static io.github.tanice.twItemManager.config.Config.loadCustomConfigs;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
@@ -35,6 +31,7 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
  * 将 base lore quality skill 集合成最终的TwItem实例
  */
 public class ItemManager implements Manager {
+    private final JavaPlugin plugin;
     /** 主目录文件 */
     private final File rootDir;
     /** key 物品内部名  value 基础物品类(包含物品的基础信息) 通过调用generate函数获取物品实例 */
@@ -45,10 +42,6 @@ public class ItemManager implements Manager {
     private final Map<String, QualityGroup> qualityGroupManagerMap;
     /** 全局可用品质(便于检索和切换) */
     private final Map<String, AttributePDC> qualityMap;
-    /** 全局可用的buff属性列表 */
-    private final EnumMap<AttributeCalculateSection, List<BuffPDC>> buffSectionMap;
-    /** 全局可用Buff(便于检索和切换) */
-    private final Map<String, BuffPDC> buffMap;
     /** 物品描述模板 */
     // private final LoreManager loreManager;
     /** key 技能名 value 技能类 */
@@ -57,13 +50,12 @@ public class ItemManager implements Manager {
     private final Map<String, LevelTemplate> levelTemplateMap;
 
     public ItemManager(@NotNull JavaPlugin plugin) {
+        this.plugin = plugin;
         rootDir = plugin.getDataFolder();
         itemMap = new HashMap<>();
         gemMap = new HashMap<>();
         qualityGroupManagerMap = new HashMap<>();
         qualityMap = new HashMap<>();
-        buffSectionMap = new EnumMap<>(AttributeCalculateSection.class);
-        buffMap = new HashMap<>();
         // skillManagerMap = new HashMap<>();
         levelTemplateMap = new HashMap<>();
         // loreManager = new LoreManager();
@@ -77,7 +69,7 @@ public class ItemManager implements Manager {
         gemMap.clear();
         qualityGroupManagerMap.clear();
         qualityMap.clear();
-        buffSectionMap.clear();
+        // buffSectionMap.clear();
         // skillManagerMap.clear();
         levelTemplateMap.clear();
         // loreManager 在 loadConfigs 中初始化
@@ -89,9 +81,15 @@ public class ItemManager implements Manager {
     /**
      * 根据物品 item 获取内部的持久类
      */
-    public @Nullable Item getItem(@NotNull ItemStack item){
+    public @Nullable Item getItemByItemStack(@Nullable ItemStack item){
+        if (item == null) return null;
         return itemMap.get(getInnerName(item));
     }
+
+    public @Nullable Item getItemByInnerName(@NotNull String innerName){
+        return itemMap.get(innerName);
+    }
+
     public Set<String> getItemNameList() {
         return itemMap.keySet();
     }
@@ -109,28 +107,20 @@ public class ItemManager implements Manager {
     public @Nullable AttributePDC getGemAttributePDC(@NotNull String gemName) {
         CalculablePDC cPDC = getItemCalculablePDC(gemMap.get(gemName).getItem());
         if (cPDC == null) return null;
-        return cPDC.toAttributePDC();
+        return (AttributePDC) cPDC;
     }
 
     /**
      * 获取全局宝石名称列表
-     * @return
      */
     public Set<String> getGemNameList() {
         return gemMap.keySet();
     }
 
     /**
-     * 获取全局buff列表的具体属性
-     */
-    public @Nullable BuffPDC getBuffPDC(@NotNull String buffName) {
-        return buffMap.get(buffName);
-    }
-
-    /**
      * 获取全局品质列表的具体属性
      */
-    public AttributePDC getQualityPDC(@NotNull String qualityName) {
+    public @Nullable AttributePDC getQualityPDC(@NotNull String qualityName) {
         return qualityMap.get(qualityName);
     }
 
@@ -139,30 +129,57 @@ public class ItemManager implements Manager {
      * 传入 level 便于扩展等级属性
      * 如 不同等级不同属性，可累加，可选择等
      */
-    public AttributePDC getLevelPDC(@NotNull String levelTemplateName, int level) {
-        return levelTemplateMap.get(levelTemplateName).getAttributePDC();
+    public @Nullable AttributePDC getLevelPDC(@NotNull String levelTemplateName) {
+        LevelTemplate lt = levelTemplateMap.get(levelTemplateName);
+        if (lt == null) return null;
+        return lt.getAttributePDC();
     }
 
     /**
      * 获取等级模板属性
      * 便于判定相关属性是否合法
      */
-    public LevelTemplate getLevelTemplate(@NotNull String levelTemplateName) {
+    public @Nullable LevelTemplate getLevelTemplate(@NotNull String levelTemplateName) {
         return levelTemplateMap.get(levelTemplateName);
     }
 
+    /**
+     * 判断
+     */
     public boolean isNotTwItem(@NotNull String innerName) {
         return !itemMap.containsKey(innerName);
     }
 
-    public boolean isNotTwItem(@NotNull ItemStack item) {
+    public boolean isNotTwItem(@Nullable ItemStack item) {
         String in = getInnerName(item);
         if (in == null) return true;
-        return !itemMap.containsKey(in);
+        return isNotTwItem(in);
     }
 
-    public String getItemPDC(@NotNull ItemStack item) {
+    public boolean isNotGem(@NotNull String innerName) {
+        return !gemMap.containsKey(innerName);
+    }
+
+    public boolean isNotGem(@NotNull ItemStack item) {
+        String in = getInnerName(item);
+        if (in == null) return true;
+        return isNotGem(in);
+    }
+
+    /**
+     * 获取物品的 ItemPDC
+     */
+    public String getItemStringItemPDC(@NotNull ItemStack item) {
         ItemPDC iPDC = (ItemPDC) getItemCalculablePDC(item);
+        if (iPDC == null) return "此物品没有持久化的PDC";
+        return iPDC.toString();
+    }
+
+    /**
+     * 获取物品的AttributePDC
+     */
+    public String getItemStringAttributePDC(@NotNull ItemStack item) {
+        AttributePDC iPDC = (AttributePDC) getItemCalculablePDC(item);
         if (iPDC == null) return "此物品没有持久化的PDC";
         return iPDC.toString();
     }
@@ -170,7 +187,6 @@ public class ItemManager implements Manager {
     /**
      * 接口方法实现
      */
-
     @Override
     public ItemStack generateItem(@NotNull String innerName){
         if (!itemMap.containsKey(innerName)){
@@ -178,36 +194,57 @@ public class ItemManager implements Manager {
             return new ItemStack(Material.AIR);
         }
         /* 获取基础物品的可更改备份 */
-        Item baseItem = itemMap.get(innerName);
-        ItemStack item = baseItem.getItem();
+        Item it = itemMap.get(innerName);
+        ItemStack item = it.getItem();
         if (item.getType() == Material.AIR) return item;
 
         /* 获取随机品质 */
-        AttributePDC aPDC = randomQuality(baseItem.getQualityGroups());
-        if (aPDC != null) setQualityName(item, aPDC.getInnerName());
+        if (getQualityName(item).isEmpty()) {
+            AttributePDC aPDC = randomQuality(it.getQualityGroups());
+            if (aPDC != null) setQualityName(item, aPDC.getInnerName());
+        }
 
+        /* 等级检测 */
+        int l = getLevel(item);
+        LevelTemplate lt = getLevelTemplate(it.getLevelTemplateName());
+        if (lt != null) {
+            logWarning("物品: " + innerName + "初始等级不合理，已重置");
+            if (l < lt.getBegin()) l = lt.getBegin();
+            if (l > lt.getMax()) l = lt.getMax();
+        }
+        PDCAPI.setLevel(item, l);
         // TODO step3 绑定技能
-        updateItem(item);
+        completeItem(item);
         return item;
     }
 
     @Override
-    public void updateItem(@NotNull ItemStack item) {
-        CalculablePDC cPDC = getItemCalculablePDC(item);
-        if (cPDC == null) return;
-        /* lore 更新 */
-        /* 原版属性绑定 + 等级显示 */
-        ((ItemPDC)cPDC).attachOriAttrsTo(item);
-    }
-
-    @Override
-    public ItemStack generateGemItem(@NotNull String innerName) {
+    public @NotNull ItemStack generateGemItem(@NotNull String innerName) {
         if (!gemMap.containsKey(innerName)){
             logWarning("宝石: " + innerName + "不存在");
             return new ItemStack(Material.AIR);
         }
-        /* 获取基础物品的可更改备份 */
-        return gemMap.get(innerName).getItem();
+        Gem baseGem = gemMap.get(innerName);
+        ItemStack item = baseGem.getItem();
+        completeItem(item);
+        return item;
+    }
+
+    @Override
+    public void completeItem(@NotNull ItemStack item) {
+        CalculablePDC cPDC = getItemCalculablePDC(item);
+        if (cPDC == null) return;
+
+        /* lore 更新 */
+
+        if (cPDC instanceof ItemPDC iPDC) {
+            /* 原版属性绑定 */
+            iPDC.attachOriAttrsTo(item);
+            /* 品质显示 */
+
+            /* 等级显示 */
+
+        }
     }
 
     @Override
@@ -220,26 +257,19 @@ public class ItemManager implements Manager {
         /* 获取随机品质 */
         AttributePDC aPDC = randomQuality(itemMap.get(getInnerName(item)).getQualityGroups());
         if (aPDC != null) setQualityName(item, aPDC.getInnerName());
-        updateItem(item);
+        completeItem(item);
         return true;
     }
 
     @Override
-    public boolean levelUp(Player player, ItemStack item, ItemStack levelUpNeed, boolean check) {
+    public boolean levelUp(@NotNull Player player, @NotNull ItemStack item, @Nullable ItemStack levelUpNeed, boolean check) {
         if (isNotTwItem(item)) return false;
         String innerName = getInnerName(item);
         String lvlName = itemMap.get(innerName).getLevelTemplateName();
-        if (lvlName.isEmpty()) {
-            if (player.isOp()) logWarning("No level template for: " + innerName);
-            return false;
-        }
+        if (lvlName.isEmpty()) return false;
         LevelTemplate lt = levelTemplateMap.get(lvlName);
+        if (lt == null) return false;
 
-        if (lt == null) {
-            player.sendMessage("§e此物品无法强化");
-            logWarning("无效的升级模板名称: " + lvlName + " in: " + innerName);
-            return false;
-        }
         int lvl = getLevel(item);
         if (lvl < lt.getBegin() || lvl > lt.getMax()) {
             logWarning("非法等级: " + lvl + " in: " + getInnerName(item) + ". Player: " + player.getName());
@@ -267,7 +297,7 @@ public class ItemManager implements Manager {
     }
 
     @Override
-    public void levelDown(Player player, ItemStack item) {
+    public void levelDown(@NotNull Player player, @NotNull ItemStack item) {
         if (isNotTwItem(item)) return;
         String innerName = getInnerName(item);
         String lvlName = itemMap.get(innerName).getLevelTemplateName();
@@ -296,6 +326,119 @@ public class ItemManager implements Manager {
         player.sendMessage("§a降级成功!");
     }
 
+    @Override
+    public void levelSet(@NotNull Player player, @NotNull ItemStack item, int level) {
+        if (isNotTwItem(item)) {
+            player.sendMessage("§e物品无等级");
+            return;
+        }
+        String innerName = getInnerName(item);
+        String lvlName = itemMap.get(innerName).getLevelTemplateName();
+        if (lvlName.isEmpty()) {
+            player.sendMessage("§e物品无等级");
+            return;
+        }
+        LevelTemplate lt = levelTemplateMap.get(lvlName);
+        if (lt == null) {
+            player.sendMessage("§e物品等级模板不存在");
+            return;
+        }
+        if (level < lt.getBegin() || level > lt.getMax()) {
+            player.sendMessage("§e非法等级: " + level + " in: " + getInnerName(item) + ". Player: " + player.getName());
+            return;
+        }
+        PDCAPI.setLevel(item, level);
+        player.sendMessage("§a等级设置成功");
+    }
+
+    @Override
+    public boolean insertGem(Player player, ItemStack item, ItemStack gem) {
+        if (isNotTwItem(item) || isNotGem(gem)) return false;
+
+        ItemPDC iPDC = (ItemPDC) getItemCalculablePDC(item);
+        Gem g = getGem(gem);
+        if (iPDC == null || g == null) return false;
+
+        boolean f = iPDC.hasEmptyGemSlot();
+        if (!f) {
+            player.sendMessage("§e槽位已满");
+            return false;
+        }
+
+        if (Math.random() < g.getChance()){
+            f = iPDC.addGem(getInnerName(gem));
+            if (f) {
+                player.sendMessage("§a宝石镶嵌成功!");
+                setItemCalculablePDC(item, iPDC);
+                return true;
+            } else {
+                player.sendMessage("§e宝石有问题，请询问管理员");
+                logWarning("玩家: " + player.getName() + "的宝石: " + getInnerName(gem) + "有问题，应该镶嵌成功但是失败了，宝石未消失");
+                return false;
+            }
+        }
+        String s = "§c镶嵌失败";
+        if (g.isLossWhenFailed()) {
+            s += " 宝石消失";
+            player.sendMessage(s);
+            return true;
+        }
+        player.sendMessage(s);
+        return false;
+    }
+
+    @Override
+    public ItemStack removeGem(Player player, ItemStack item) {
+        ItemStack gem = new ItemStack(Material.AIR);
+        if (isNotTwItem(item)) return gem;
+
+        ItemPDC iPDC = (ItemPDC) getItemCalculablePDC(item);
+        if (iPDC == null) {
+            player.sendMessage("§e获取物品出错");
+            return gem;
+        }
+
+        String gn = iPDC.removeRandomGem();
+        if (gn.isEmpty()) {
+            player.sendMessage("§e此物品没有宝石");
+            return gem;
+        }
+        player.sendMessage("§a宝石拆卸成功!");
+        setItemCalculablePDC(item, iPDC);
+
+        gem = generateGemItem(gn);
+        if (gem.getType().isAir()) {
+            player.sendMessage("§e此宝石已经不存在，无法获取");
+            logWarning("玩家: " + player.getName() + "所拆卸下的宝石: " + gn +"不存在");
+        }
+        return gem;
+    }
+
+    @Override
+    public List<String> updateItem(@NotNull Player player, @NotNull ItemStack item){
+        String inn = PDCAPI.getInnerName(item);
+        if (inn == null) return new ArrayList<>(0);
+
+        CalculablePDC prePDC = PDCAPI.getItemCalculablePDC(item);
+        Item it = TwItemManager.getItemManager().getItemByItemStack(item);
+        if (prePDC instanceof ItemPDC iPDC && it != null) {
+            /* 获取底层抽象 */
+            ItemPDC newPDC = (ItemPDC) PDCAPI.getItemCalculablePDC(it.getItem());
+            if (newPDC == null) {
+                logWarning("物品更新后找不到对应的底层抽象: " + inn);
+                return new ArrayList<>(0);
+            }
+            List<String> externalGems = newPDC.extendFrom(iPDC);
+
+            TwItemUpdateEvent event = new TwItemUpdateEvent (plugin, player, iPDC, newPDC);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return new ArrayList<>(0);
+            PDCAPI.setItemCalculablePDC(item, newPDC);
+            /* 多余的宝石给予玩家 */
+            return externalGems;
+        }
+        return new ArrayList<>(0);
+    }
 
     /** 加载所有客制化物品 */
     private void loadConfigs() {
@@ -309,7 +452,6 @@ public class ItemManager implements Manager {
         this.loadQualityFiles();
         this.loadItemFiles();
         this.loadSkillFiles();
-        this.loadBuffFilesAndBuffMap();
     }
 
     /**
@@ -338,7 +480,7 @@ public class ItemManager implements Manager {
      */
     private void toPaleItem(@NotNull ItemStack item) {
         setQualityName(item, "");
-        updateItem(item);
+        completeItem(item);
     }
 
     private void loadQualityMap() {
@@ -435,42 +577,5 @@ public class ItemManager implements Manager {
 
     private void loadLoreTemplateFiles() {
         // Map<String, ConfigurationSection> cfg = loadSubFiles("lore");
-    }
-
-    private void loadBuffFilesAndBuffMap(){
-        Path buffDir = rootDir.toPath().resolve("buff"); ;
-        if (!Files.exists(buffDir) || !Files.isDirectory(buffDir)) return;
-        try (Stream<Path> files = Files.list(buffDir)) {
-            files.forEach(file -> {
-                String fileName = file.getFileName().toString();
-                String name = fileName.substring(0, fileName.lastIndexOf('.'));
-                BuffPDC bPDC;
-                List<BuffPDC> bPDCList = new ArrayList<>();
-                ConfigurationSection subsection;
-                if (fileName.endsWith(".yml")) {
-                    ConfigurationSection section = YamlConfiguration.loadConfiguration(file.toFile());
-                    for (String k : section.getKeys(false)) {
-                        subsection = section.getConfigurationSection(k);
-                        if (subsection == null) continue;
-                        bPDC = new BuffPDC(k, section);
-                        bPDCList = buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>());
-                        bPDCList.add(bPDC);
-                        buffSectionMap.put(bPDC.getAttributeCalculateSection(), bPDCList);
-                        buffMap.put(k, bPDC);
-                    }
-                }
-                else if (fileName.endsWith(".js")) {
-                    bPDC = new BuffPDC(name, file);
-                    bPDCList = buffSectionMap.getOrDefault(bPDC.getAttributeCalculateSection(), new ArrayList<>());
-                    bPDCList.add(bPDC);
-                    buffSectionMap.put(bPDC.getAttributeCalculateSection(), bPDCList);
-                    buffMap.put(bPDC.getInnerName(), bPDC);
-                }
-                else logWarning("未知的文件格式: " + fileName);
-            });
-        } catch (IOException e) {
-            logWarning("加载BUFF文件错误");
-            logWarning(e.toString());
-        }
     }
 }

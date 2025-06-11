@@ -6,19 +6,24 @@ import io.github.tanice.twItemManager.command.MainCommand;
 import io.github.tanice.twItemManager.command.impl.*;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.listener.*;
+import io.github.tanice.twItemManager.manager.buff.BuffManager;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.awt.event.ItemListener;
 
 public final class TwItemManager extends JavaPlugin {
     @Getter
     public static TwItemManager instance;
     @Getter
     private static Double updateCode = 0.0;
+
+    /** 管理器 */
     @Getter
     private static ItemManager itemManager;
+    @Getter
+    private static BuffManager buffManager;
+
+    /** 监听器 */
     @Getter
     private static TwItemListener twItemListener;
     @Getter
@@ -29,6 +34,8 @@ public final class TwItemManager extends JavaPlugin {
     private static DamageIndicatorListener damageIndicatorListener;
     @Getter
     private static DamageEventListener damageEventListener;
+
+    /** 指令 */
     @Getter
     private static MainCommand mainCommand;
 
@@ -40,7 +47,7 @@ public final class TwItemManager extends JavaPlugin {
         Config.onEnable(this);  // 读取全局配置文件
 
         itemManager = new ItemManager(this);
-//        gemManager = new GemManager(this);
+        buffManager = new BuffManager(this);
 
         // 监听器直接从 ConfigUtil 获取变量 不需要显示 reload
         twItemListener = new TwItemListener(this);
@@ -49,13 +56,15 @@ public final class TwItemManager extends JavaPlugin {
         particleListener = new GenericParticleListener();
         PacketEvents.getAPI().getEventManager().registerListener(particleListener, PacketListenerPriority.NORMAL);
         damageEventListener = new DamageEventListener(this);
+
         // 指令不需要reload
         mainCommand = new MainCommand(this);
-        mainCommand.register(new GiveCommand());
+        mainCommand.register(new GetCommand());
         mainCommand.register(new ReloadCommand());
         mainCommand.register(new RecastCommand());
         mainCommand.register(new LevelCommand());
         mainCommand.register(new CheckCommand());
+        mainCommand.register(new RemoveGemCommand());
         mainCommand.onEnable();
 
         this.getLogger().info("TwItems Plugin Enabled");

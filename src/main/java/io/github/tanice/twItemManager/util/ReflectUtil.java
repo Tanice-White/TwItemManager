@@ -1,8 +1,10 @@
 package io.github.tanice.twItemManager.util;
 
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 

@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc;
 
+import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
@@ -35,6 +36,8 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     protected int priority;
     /* 所属计算区 */
     protected AttributeCalculateSection attributeCalculateSection;
+    /* 是否是需要计算的BASE ADD MULTIPLY FIX */
+    protected boolean needCalculation;
 
     /* 属性结束时间(负数则永续) */
     protected long endTimeStamp;
@@ -66,6 +69,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         innerName = "default";
         priority = Integer.MAX_VALUE;
         this.attributeCalculateSection = attributeCalculateSection;
+        initNeedCalculation();
         endTimeStamp = -1;
         chance = 1;
         duration = -1;
@@ -83,6 +87,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         this.innerName = innerName;
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = acs;
+        initNeedCalculation();
         endTimeStamp = -1;
         chance = 1D;
         duration = -1;
@@ -131,17 +136,27 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     }
 
     /**
-     * 显示形式
+     * 根据乘数整合值
      */
-    public abstract String toString();
+    public void merge(@Nullable CalculablePDC cPDC, int k) {
+        if (cPDC == null || attributeCalculateSection != cPDC.attributeCalculateSection) return;
+        for (AttributeType type : AttributeType.values()) {
+            vMap.put(type, vMap.getOrDefault(type, 0D) + cPDC.vMap.getOrDefault(type, 0D) * k);
+        }
+        for (DamageType type : DamageType.values()) {
+            tMap.put(type, tMap.getOrDefault(type, 0D) + cPDC.tMap.getOrDefault(type, 0D) * k);
+        }
+    }
 
     /**
-     * 返回自身属于的类型
-     * @return 数据来源类型
+     * 显示形式
      */
-    public AttributeCalculateSection fromType(){
-        return attributeCalculateSection;
-    }
+    public abstract @NotNull String toString();
+
+    /**
+     * 将属性输出成LoreMap
+     */
+    public abstract @NotNull Map<AttributeKey, String> toLoreMap();
 
     /**
      * 将类转为普通的数值计算基类
@@ -149,7 +164,8 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     public @NotNull AttributePDC toAttributePDC() {
         AttributePDC pdc = new AttributePDC();
         pdc.attributeCalculateSection = attributeCalculateSection;
-        pdc.merge(this);
+        pdc.initNeedCalculation();
+        pdc.merge(this, 1);
         return pdc;
     }
 
@@ -157,5 +173,16 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     public int compareTo(@NotNull CalculablePDC other) {
         // 按优先级升序排序
         return Integer.compare(this.priority, other.priority);
+    }
+
+    protected void initNeedCalculation() {
+        needCalculation = attributeCalculateSection == AttributeCalculateSection.BASE ||
+                attributeCalculateSection == AttributeCalculateSection.ADD ||
+                attributeCalculateSection == AttributeCalculateSection.MULTIPLY ||
+                attributeCalculateSection == AttributeCalculateSection.FIX;
+    }
+
+    protected void setNeedCalculation(boolean needCalculation) {
+        this.needCalculation = needCalculation;
     }
 }

@@ -7,15 +7,14 @@
   custom_model_data: 1000  # 物品自定义模型或贴图
   amount: 1  # 每次给与(制作)的数量  默认为1
   max_stack: 1  # 最大堆叠数量(不设置默认1) [可堆叠则一定不可破坏]
-  max_durability: 5  # 最大耐久度 不要设置成0  (负数则不可破坏)
   loss_when_break: false  # 耐久消耗完成后是否丢失物品(默认为true)
   slot: MainHand  # (所有配置的属性，包含技能等)生效位置 默认为原版物品生效位置
   cancel_damage: false  # 是否取消所有伤害(包括技能伤害)
   damage_type: MELEE  # 战士类
   attrs:
-    attack_damage: 10  # 武器面板伤害
-    entity_interaction_range: 0  # 实体交互触发距离 当值小于_3时可以取消近战伤害(玩家的实体交互距离时3)____法书可以使用
-    attack_speed: 2  # 武器_每秒可攻击次数近似
+    attack_damage: 45  # 武器面板伤害
+    entity_interaction_range: 1  # 实体交互触发距离 当值小于_3时可以取消近战伤害(玩家的实体交互距离时3)____法书可以使用
+    attack_speed: -2  # 武器_每秒可攻击次数近似
     # [https://bukkit.windit.net/javadoc/org/bukkit/attribute/Attribute.html] 基本能增加
     critical_strike_chance: 0.2  # 设置物品技能暴击和武器本体攻击暴击概率(0_1), 此时暴击率为20%, 默认为 0
     critical_strike_damage: 1.2  # 设置物品技能和攻击的暴击伤害加成(此时暴击造成面板伤害的120%) 默认为 0 即暴击0伤害
@@ -36,39 +35,87 @@
   gem_stack: 3  # 宝石槽位数量(所有宝石通用) 默认为0
   # 增加
   hold_buff:
-    - "buff名"
+    - 增益名  # 默认给自己
   attack_buff:
-    - "攻击附带buff"
+    - 攻击附带buff  # 默认给受击方（js可自定义属性给予方）
+  defence_buff:
+    - 受击后给与攻击方的buff  # 默认给攻击方（js自定义属性给予方）
   # quality 预设 (不在qualities内则会置空)
-  quality: 伤害测试
+  quality:
   # level 预设 (不符合升级模板内则会置为模板中的最低等级)
-  level: 9999
-  # 不支持自定义NBT
+  level: 0
+  # 填入MM物品内部名以使用对应技能
 
-盔甲内部名:
-  id: leather_helmet  # 自定义物品
-  display_name: <gradient:#fcd228:#ffffff>护甲显示名</gradient>  # 武器在游戏内呈现的名称
+盔甲内部名_头:
+  id: leather_helmet
+  display_name: <gradient:#fcd228:#ffffff>盔甲内部名_头</gradient>  # 武器在游戏内呈现的名称
   custom_model_data: 1001  # 物品自定义模型或贴图
   attrs:
     armor: 10  # 护甲值
-    armor_toughness: 10  # 护甲韧性
+    critical_strike_chance: 100
     knockback_resistance: 0.1  # 抗击退效果
   color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
-  slot: Head  # (所有配置的属性，包含技能等)生效位置 默认为ANY
+  slot: head  # (所有配置的属性，包含技能等)生效位置 默认为ANY
   lore_template: default
   lore:
     - <gradient:#fcd228:#fc4828>盔甲描述测试</gradient>
-  hide_flags: # 隐藏原版属性 [参考 https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemFlag.html]
-#    - ATTRIBUTES  # 不需要写前面的 "HIDE_"
-#    - UNBREAKABLE
-#    - DYE
-  skills: # 将 <技能名1>... 附加在武器上
-    - 技能名1
-    - 技能名2
   qualities: # 将 在quality文件夹下  <品质组1>...  的所有品质按照权重随机添加到本武器上  不配置则默认没有
     - 品质组名
     - 品质组名1
   soul_bind: true  # 灵魂绑定 如果绑定则无法丢出(能放到容器中) 默认false
+
+盔甲内部名_胸甲:
+  id: leather_chestplate
+  display_name: <gradient:#fcd228:#ffffff>盔甲内部名_胸甲</gradient>  # 武器在游戏内呈现的名称
+  custom_model_data: 1001  # 物品自定义模型或贴图
+  attrs:
+    armor: 10  # 护甲值
+    critical_strike_chance: 10
+    critical_strike_damage: 1.8
+  color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
+  slot: chest  # (所有配置的属性，包含技能等)生效位置 默认为ANY
+  lore_template: default
+  lore:
+    - <gradient:#fcd228:#fc4828>盔甲描述测试</gradient>
+
+盔甲内部名_裤子:
+  id: leather_leggings
+  display_name: <gradient:#fcd228:#ffffff>盔甲内部名_裤子</gradient>  # 武器在游戏内呈现的名称
+  custom_model_data: 1001  # 物品自定义模型或贴图
+  attrs:
+    armor: 10  # 护甲值
+    attack_damage: 10
+  color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
+  slot: leggings  # (所有配置的属性，包含技能等)生效位置 默认为ANY
+  lore_template: default
+  lore:
+    - <gradient:#fcd228:#fc4828>盔甲描述测试</gradient>
+
+盔甲内部名_鞋子:
+  id: leather_boots
+  display_name: <gradient:#fcd228:#ffffff>盔甲内部名_鞋子</gradient>  # 武器在游戏内呈现的名称
+  custom_model_data: 1001  # 物品自定义模型或贴图
+  attrs:
+    armor: 10  # 护甲值
+    pre_armor_reduction: 0.5
+  color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
+  slot: boots  # (所有配置的属性，包含技能等)生效位置 默认为ANY
+  lore_template: default
+  lore:
+    - <gradient:#fcd228:#fc4828>盔甲描述测试</gradient>
+
+测试防御后减伤_苹果:
+  id: apple
+  display_name: <gradient:#fcd228:#ffffff>测试防御后减伤_苹果</gradient>  # 武器在游戏内呈现的名称
+  custom_model_data: 1001  # 物品自定义模型或贴图
+  attrs:
+    after_armor_reduction: 0.5
+  color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
+  slot: offhand  # (所有配置的属性，包含技能等)生效位置 默认为ANY
+  lore_template: default
+  lore:
+    - <gradient:#fcd228:#fc4828>测试防御后减伤_苹果测试</gradient>
+
 
 可食用物内部名:
   id: stone_sword  # 自定义任意物品

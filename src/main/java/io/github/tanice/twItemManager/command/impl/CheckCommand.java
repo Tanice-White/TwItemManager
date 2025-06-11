@@ -2,6 +2,7 @@ package io.github.tanice.twItemManager.command.impl;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.command.SubCommand;
+import io.github.tanice.twItemManager.manager.item.ItemManager;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,11 +25,10 @@ public class CheckCommand extends SubCommand {
             return true;
         }
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR || TwItemManager.getItemManager().isNotTwItem(item)) {
-            sender.sendMessage("§c请手持TwItem执行此命令");
-            return true;
-        }
-        player.sendMessage("§a[物品itemPDC]" + "\n" + TwItemManager.getItemManager().getItemPDC(item));
+        ItemManager im = TwItemManager.getItemManager();
+        if (!im.isNotTwItem(item)) player.sendMessage("§a\n[物品itemPDC]" + "\n" + im.getItemStringItemPDC(item));
+        else if (!im.isNotGem(item)) player.sendMessage("§a\n[物品AttributePDC]" + "\n" + im.getItemStringAttributePDC(item));
+        else sender.sendMessage("§c请手持TwItem执行此命令");
         return true;
     }
 }

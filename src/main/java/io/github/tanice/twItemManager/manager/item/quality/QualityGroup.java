@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.tanice.twItemManager.constance.key.ConfigKey.ACS;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**
@@ -72,18 +73,18 @@ public class QualityGroup {
         return qualities.get(index);
     }
 
-    private void loadAll(@NotNull ConfigurationSection config) {
+    private void loadAll(@NotNull ConfigurationSection cfg) {
         len = 0;
         double tt = 0;
         ConfigurationSection sc;
         String inner;
-        for (String key : config.getKeys(false)) {
-            sc = config.getConfigurationSection(key);
+        for (String key : cfg.getKeys(false)) {
+            sc = cfg.getConfigurationSection(key);
             if (!isValid(sc)) continue;
             inner = MiniMessageUtil.stripAllTags(key);
-            tt += sc.getDouble("weight");
+            tt += sc.getDouble("weight", 0);
             this.prefixWeights.add(tt);
-            this.qualities.add(new AttributePDC(key , AttributeCalculateSection.BASE, sc));
+            this.qualities.add(new AttributePDC(key , AttributeCalculateSection.valueOf(cfg.getString(ACS, "BASE").toUpperCase()), sc));
             this.qualityNames.add(inner);
             len++;
         }

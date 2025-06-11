@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
+import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
@@ -7,8 +8,10 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.util.HashMap;
+import java.util.Map;
 
-import static io.github.tanice.twItemManager.util.MiniMessageUtil.stripAllTags;
+import static io.github.tanice.twItemManager.constance.key.ConfigKey.DISPLAY_NAME;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 /**
@@ -30,13 +33,13 @@ public class AttributePDC extends CalculablePDC {
         super(s);
     }
 
-    public AttributePDC(@NotNull String displayName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
-        super(stripAllTags(displayName), acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
-        this.displayName = displayName;
+    public AttributePDC(@NotNull String innerName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
+        super(innerName, acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
+        this.displayName = cfg.getString(DISPLAY_NAME, innerName);
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "CalculablePDC{" +
                 "priority=" + priority + ", " +
                 "displayName='" + displayName + ", " +
@@ -45,5 +48,10 @@ public class AttributePDC extends CalculablePDC {
                 "attribute-addition=" + enumMapToString(vMap) +
                 "type-addition=" + enumMapToString(tMap) +
                 "}";
+    }
+
+    @Override
+    public @NotNull Map<AttributeKey, String> toLoreMap() {
+        return Map.of();
     }
 }

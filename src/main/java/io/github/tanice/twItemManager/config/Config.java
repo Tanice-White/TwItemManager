@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.config;
 
+import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,31 +16,44 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
  * 插件配置管理类
  * 管理全局配置，同时提供读取文件夹内所有yml文件的方法
  */
+@Getter
 public class Config {
 
+    /* 生成示例文件 */
     public static boolean generateExamples;
+
+    /* 阻止原版的心形粒子和灰尘粒子 */
     public static boolean cancelGenericParticles;
+
+    /* 使用伤害指示器 */
     public static boolean generateDamageIndicator;
-    public static boolean anvilRepairable;
-    public static boolean grindstoneRepairable;
-    public static boolean canEnchant;
+    public static String defaultPrefix;
+    public static String criticalPrefix;
+    public static double criticalLargeScale;
+    public static double viewRange;
 
     /** 激活时 加载全局配置文件 */
     public static void onEnable(@NotNull JavaPlugin plugin) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
+        ConfigurationSection sec;
         generateExamples = cfg.getBoolean("generate_examples", true);
         cancelGenericParticles = cfg.getBoolean("cancel_generic_particles", false);
         generateDamageIndicator = cfg.getBoolean("generate_damage_indicator", false);
-        anvilRepairable = cfg.getBoolean("anvil_repairable", true);
-        grindstoneRepairable = cfg.getBoolean("grindstone_repairable", true);
-        canEnchant = cfg.getBoolean("can_enchant", true);
+        if (generateDamageIndicator) {
+            sec = cfg.getConfigurationSection("damage_indicator");
+            if (sec != null) {
+                defaultPrefix = sec.getString("default_prefix");
+                criticalPrefix = sec.getString("critical_prefix");
+                criticalLargeScale = sec.getDouble("critical_large_scale", 1D);
+                viewRange = sec.getDouble("view_range", 20D);
+            }
+        }
     }
 
     /** 插件重载时 重载对应配置文件 */

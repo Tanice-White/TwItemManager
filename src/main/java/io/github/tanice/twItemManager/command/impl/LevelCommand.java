@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +25,7 @@ public class LevelCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "<up|down>";
+        return "<up|down|set [等级]>";
     }
 
     @Override
@@ -43,7 +42,7 @@ public class LevelCommand extends SubCommand {
         }
 
         if (args.length == 0) {
-            sender.sendMessage("§c用法: /twitems " + getName() + " " + getUsage());
+            sender.sendMessage("§c用法: /twi" + getName() + " " + getUsage());
             return true;
         }
 
@@ -55,8 +54,16 @@ public class LevelCommand extends SubCommand {
             case "down":
                 TwItemManager.getItemManager().levelDown(player, item);
                 break;
+            case "set":
+                String l = args[1];
+                if (l == null || l.isEmpty()) {
+                    player.sendMessage("§c 请在后方输入具体等级");
+                    return true;
+                }
+                TwItemManager.getItemManager().levelSet(player, item, Integer.parseInt(args[1]));
+                break;
             default:
-                sender.sendMessage("§c无效操作，请使用 up 或 down");
+                sender.sendMessage("§c无效操作，请使用:" + getUsage());
                 break;
         }
         return true;
@@ -65,13 +72,8 @@ public class LevelCommand extends SubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String @NotNull [] args) {
         if (args.length == 1) {
-            List<String> operations = new ArrayList<>();
-            operations.add("up");
-            operations.add("down");
-
-            return operations.stream()
-                    .filter(op -> op.startsWith(args[0].toLowerCase()))
-                    .collect(Collectors.toList());
+            List<String> operations = List.of("up", "down", "set");
+            return operations.stream().filter(op -> op.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }

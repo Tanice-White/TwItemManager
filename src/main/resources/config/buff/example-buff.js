@@ -1,7 +1,7 @@
 var inner_name = "测试增益";
 var chance = 0.75;
 var cd = 10;
-var priority= 0;
+var priority= 0;  // 必写
 var calculate_type = "ADD"; // 必写
 var damage= 0;
 var armor= 0;

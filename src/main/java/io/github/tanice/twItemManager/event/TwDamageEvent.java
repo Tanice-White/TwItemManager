@@ -1,14 +1,16 @@
 package io.github.tanice.twItemManager.event;
 
+import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.EnumMap;
 
 public class TwDamageEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
@@ -26,20 +28,24 @@ public class TwDamageEvent extends Event implements Cancellable {
     @Getter
     @Setter
     private double damage;
-    /** 防御方的综合防御值 */
+    /** 双方属性 */
     @Getter
     @Setter
-    private Double[] defenceAttributeList;
+    private EnumMap<AttributeType, Double> attackerAttributes;
+    @Getter
+    @Setter
+    private EnumMap<AttributeType, Double> defenderAttributes;
     /** 攻击来源类型 */
     @Getter
     @Setter
     private DamageType damageType;
 
-    public TwDamageEvent(Entity attacker, Entity defender, double damage, Double[] defenceAttributeList, DamageType damageType) {
+    public TwDamageEvent(Entity attacker, Entity defender, double damage, EnumMap<AttributeType, Double> attackerAttributes, EnumMap<AttributeType, Double> defenderAttributes, DamageType damageType) {
         this.attacker = attacker;
         this.defender = defender;
         this.damage = damage;
-        this.defenceAttributeList = defenceAttributeList;
+        this.attackerAttributes = attackerAttributes;
+        this.defenderAttributes = defenderAttributes;
         this.damageType = damageType;
     }
 

@@ -6,6 +6,8 @@ import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
+import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
+
 @Getter
 public class LevelTemplate {
     private final String innerName;
@@ -19,12 +21,12 @@ public class LevelTemplate {
 
     public LevelTemplate(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
         this.innerName = innerName;
-        begin = cfg.getInt("begin", 0);
-        max = cfg.getInt("max", 100);
-        chance = cfg.getDouble("chance", 1);
+        begin = cfg.getInt(BEGIN, 0);
+        max = cfg.getInt(MAX, 100);
+        chance = cfg.getDouble(CHANCE, 1);
         /* items inner name */
-        levelUpNeed = cfg.getString("level-up-need");
-        levelDownWhenFailed = cfg.getBoolean("level-down-when-failed", false);
-        attributePDC = new AttributePDC(innerName, AttributeCalculateSection.BASE, cfg);
+        levelUpNeed = cfg.getString(LEVEL_UP_NEED, "");
+        levelDownWhenFailed = cfg.getBoolean(LEVEL_DOWN_WHEN_FAILED, false);
+        attributePDC = new AttributePDC(innerName, AttributeCalculateSection.valueOf(cfg.getString(ACS, "BASE").toUpperCase()), cfg);
     }
 }

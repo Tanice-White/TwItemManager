@@ -11,27 +11,30 @@
   <red>品质1</red>:
     slot: any  # MC支持的物品佩戴位置  # 默认为ANY
     weight: 1  # 品质的权重用于随机选择 必写
+    # 计算方式BASE表示是在白值计算
+    # 其余的方式单独乘算，且计算完成后的值作为武器的白值
+    calculate_type: BASE  # 默认为BASE
     attrs:
       # key不能相同
       # 表示在数值上使用乘算
-      attack_damage: "-10%"
+      attack_damage: -0.1
 
   # 品质显示的名称为(蓝色的）品质2
   <blue>品质2</blue>:
     weight: 1
     attrs:
-      critical_strike_chance: "-0.1"
-      critical_strike_damage: "-0.1"
+      critical_strike_chance: -0.1
+      critical_strike_damage: -0.1
   品质3:
     weight: 1
     attrs:
-      skill_cooldown: "-10%"  # 技能冷却 (所有)
-      skill_mana_cost: "-10%"  # 技能蓝耗 (所有)
+      skill_cooldown: -0.1  # 技能冷却 (所有)
+      skill_mana_cost: -0.1  # 技能蓝耗 (所有)
   品质4:
     weight: 1
     attrs:
-      armor: "+5"
-      armor_toughness: "+5"
+      armor: 5
+      armor_toughness: 5
   品质5:
     weight: 1.2
 
@@ -39,4 +42,4 @@
   <#123456>伤害测试:
     weight: 2
     attrs:
-      attack_damage: "+5"
+      attack_damage: 5

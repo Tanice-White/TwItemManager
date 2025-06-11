@@ -6,12 +6,10 @@ cancel_generic_particles: true  # false
 
 # 是否生成伤害文本显示
 generate_damage_indicator: true  # false
-
-# 武器耐久是否可通过铁砧修复(是否禁止进入铁砧, 能修复则会变成原版物品)
-anvil_repairable: false  # true
-# 武器可否通过砂轮修复(若能修复的话, 会变成对应的原版物品)
-grindstone_repairable: false  # true
-# 是否能使用附魔台附魔   注意,能附魔的话则可以附魔出经验修补
-can_enchant: false  # true
+damage_indicator:
+  default_prefix: "§6"  # 非暴击指示器颜色
+  critical_prefix: "§4" # 暴击指示器颜色
+  critical_large_scale: 2 # 所有指示器默认放大1.5倍
+  view_range: 20.0  # 可见范围
 
 # 其他的

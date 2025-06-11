@@ -31,7 +31,7 @@ public class Item extends BaseItem {
     private List<String> qualityGroups;
     /** 模板名 */
     @Getter
-    private String levelTemplateName;  //TODO 冗余，PDC中也有levelTemplateName，需要删除PDC中的
+    private String levelTemplateName;
     /** 是否取消伤害 */
     @Getter
     private boolean cancelDamage;
@@ -55,9 +55,12 @@ public class Item extends BaseItem {
     /** 持有自带buff */
     @Getter
     private List<String> holdBuffs;
-    /** 攻击挂载buff */
+    /** 攻击生效buff */
     @Getter
     private List<String> attackBuffs;
+    /** 受击生效buff */
+    @Getter
+    private List<String> defenseBuffs;
 
     /**
      * 依据内部名称和对应的config文件创建mc基础物品
@@ -68,6 +71,7 @@ public class Item extends BaseItem {
         this.qualityGroups = new ArrayList<>();
         this.holdBuffs = new ArrayList<>();
         this.attackBuffs = new ArrayList<>();
+        this.defenseBuffs = new ArrayList<>();
         generate(config);
     }
 
@@ -84,6 +88,7 @@ public class Item extends BaseItem {
         damageType = DamageType.valueOf(config.getString(DAMAGE_TYPE, "OTHER").toUpperCase());
         holdBuffs = config.getStringList(HOLD_BUFF);
         attackBuffs = config.getStringList(ATTACK_BUFF);
+        defenseBuffs = config.getStringList(DEFENCE_BUFF);
     }
 
     /**

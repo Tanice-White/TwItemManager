@@ -1,6 +1,5 @@
 package io.github.tanice.twItemManager.manager.item.base;
 
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -34,37 +33,37 @@ public abstract class BaseItem {
     /**
      * 依据内部名称和对应的config文件创建物品
      * @param innerName 客制化物品内部名称
-     * @param config 对应的配置文件部分
+     * @param cfg 对应的配置文件部分
      */
-    public BaseItem(@NotNull String innerName, @NotNull ConfigurationSection config) {
+    public BaseItem(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
         this.innerName = innerName;
-        lore = config.getStringList(LORE);
-        loreTemplateName = config.getString(LORE_TEMPLATE,"");
-        generate(config);
+        lore = cfg.getStringList(LORE);
+        loreTemplateName = cfg.getString(LORE_TEMPLATE,"");
+        generate(cfg);
     }
 
-    protected void generate(@NotNull ConfigurationSection config) {
-        Material material = loadMaterial(config);
+    protected void generate(@NotNull ConfigurationSection cfg) {
+        Material material = loadMaterial(cfg);
         if (material == null) return;
         /* 子类方法1 加载自身类中的属性*/
-        loadUnchangeableVar(config);
-        item = new ItemStack(material, config.getInt(AMOUNT, 1));
+        loadUnchangeableVar(cfg);
+        item = new ItemStack(material, cfg.getInt(AMOUNT, 1));
         ItemMeta meta = item.getItemMeta();
         setInnerName(meta, innerName);
         /* 加载物品基础信息 */
-        loadBase(meta, config);
+        loadBase(meta, cfg);
         /* 加载PDC属性 */
-        loadPDCs(meta, config);
+        loadPDCs(meta, cfg);
         item.setItemMeta(meta);
     }
 
     /**
      * 根据配置文件识别原版物品id
-     * @param config 配置文件示例
+     * @param cfg 配置文件示例
      * @return 合法原版物品
      */
-    protected @Nullable Material loadMaterial(@NotNull ConfigurationSection config) {
-        String id = config.getString(ORI_MATERIAL);
+    protected @Nullable Material loadMaterial(@NotNull ConfigurationSection cfg) {
+        String id = cfg.getString(ORI_MATERIAL);
         if (id == null || id.isEmpty()) {
             logWarning("id 不允许为空! ");
             return null;
@@ -80,15 +79,15 @@ public abstract class BaseItem {
     /**
      * 读取子类自身的不可变数据--需要储存在运行类中
      */
-    protected abstract void loadUnchangeableVar(@NotNull ConfigurationSection config);
+    protected abstract void loadUnchangeableVar(@NotNull ConfigurationSection cfg);
     /**
      * 读取物品基础信息(原版)
      */
-    protected abstract void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection config);
+    protected abstract void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection cfg);
     /**
      * 读取物品属性内容(CalculablePDC)
      */
-    protected abstract void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection config);
+    protected abstract void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection cfg);
 
     /**
      * 获取物品实例
@@ -96,7 +95,7 @@ public abstract class BaseItem {
      */
     public @NotNull ItemStack getItem() {
         /* 重新生成时间戳 */
-        if (item.getType() != Material.AIR) setTimeStamp(item);;
+        if (item.getType() != Material.AIR) setTimeStamp(item);
         return item.clone();
     }
 

@@ -10,11 +10,9 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
-import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 @Getter
 public abstract class Calculator {
@@ -41,6 +38,7 @@ public abstract class Calculator {
         if (!(e instanceof LivingEntity living)) return;
         List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(living);
         PDCs.addAll(getEffectiveAccessory(living));
+        /* buff计算 */
         PDCs.addAll(getEntityCalculablePDC(living));
 
         AttributeCalculateSection acs;
@@ -50,11 +48,11 @@ public abstract class Calculator {
             if (acs == AttributeCalculateSection.OTHER) continue;
             /* 具体 */
             if (acs == AttributeCalculateSection.BEFORE_DAMAGE) beforeList.add((BuffPDC) pdc);
-            else if (acs == AttributeCalculateSection.AFTER_DAMAGE) beforeList.add((BuffPDC) pdc);
             else if (acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) betweenList.add((BuffPDC) pdc);
+            else if (acs == AttributeCalculateSection.AFTER_DAMAGE) afterList.add((BuffPDC) pdc);
             else {
                 aPDC = resultMap.getOrDefault(acs, new AttributePDC(acs));
-                aPDC.merge(pdc);
+                aPDC.merge(pdc, 1);
                 resultMap.put(acs, aPDC);
             }
         }
@@ -72,45 +70,77 @@ public abstract class Calculator {
         CalculablePDC cp;
         String slot;
         ItemStack it;
+        // TODO 物品的attack buff和 hold buff
+        // 放到 类中的各个list中
+        // Timer，Other
         it = equip.getItemInMainHand();
         slot = getSlot(it);
-        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("mainHand"))) {
+        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("mainHand"))) {
             cp = getItemCalculablePDC(it);
-            if (cp != null) res.add(cp);
+            if (cp != null) {
+                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                res.add(cp);
+            }
         }
 
-        equip.getItemInOffHand();
+        it = equip.getItemInOffHand();
         slot = getSlot(it);
-        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("offHand"))) {
+        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("offHand"))) {
             cp = getItemCalculablePDC(it);
-            if (cp != null) res.add(cp);
+            if (cp != null) {
+                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                res.add(cp);
+            }
         }
 
-        equip.getHelmet();
-        slot = getSlot(it);
-        if (slot != null && (slot.equalsIgnoreCase("head") || slot.equalsIgnoreCase("helmet"))) {
-            cp = getItemCalculablePDC(it);
-            if (cp != null) res.add(cp);
+        it = equip.getHelmet();
+        if (it != null) {
+            slot = getSlot(it);
+            if (slot != null && (slot.equalsIgnoreCase("head") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("helmet"))) {
+                cp = getItemCalculablePDC(it);
+                if (cp != null) {
+                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                    res.add(cp);
+                }
+            }
         }
 
-        equip.getChestplate();
-        slot = getSlot(it);
-        if (slot != null && (slot.equalsIgnoreCase("chest") || slot.equalsIgnoreCase("chestPlate"))) {
-            cp = getItemCalculablePDC(it);
-            if (cp != null) res.add(cp);
+        it = equip.getChestplate();
+        if (it != null) {
+            slot = getSlot(it);
+            if (slot != null && (slot.equalsIgnoreCase("chest") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("chestPlate"))) {
+                cp = getItemCalculablePDC(it);
+                if (cp != null) {
+                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                    res.add(cp);
+                }
+            }
         }
 
-        equip.getLeggings();
-        if (slot != null && (slot.equalsIgnoreCase("legs") || slot.equalsIgnoreCase("leggings"))) {
-            cp = getItemCalculablePDC(it);
-            if (cp != null) res.add(cp);
+        it = equip.getLeggings();
+        if (it != null) {
+            slot = getSlot(it);
+            if (slot != null && (slot.equalsIgnoreCase("legs") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("leggings"))) {
+                cp = getItemCalculablePDC(it);
+                if (cp != null) {
+                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                    res.add(cp);
+                }
+            }
         }
 
-        equip.getBoots();
-        if (slot != null && (slot.equalsIgnoreCase("boots") || slot.equalsIgnoreCase("feet"))) {
-            cp = getItemCalculablePDC(it);
-            if (cp != null) res.add(cp);
+        it = equip.getBoots();
+        if (it != null) {
+            slot = getSlot(it);
+            if (slot != null && (slot.equalsIgnoreCase("boots") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("feet"))) {
+                cp = getItemCalculablePDC(it);
+                if (cp != null) {
+                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                    res.add(cp);
+                }
+            }
         }
+
         return res;
     }
 
@@ -147,7 +177,7 @@ public abstract class Calculator {
         EnumMap<DamageType, Double> ctMap;
         for (AttributeCalculateSection acs : resultMap.keySet()) {
             /* 排除 */
-            if (acs == AttributeCalculateSection.BEFORE_DAMAGE || acs == AttributeCalculateSection.AFTER_DAMAGE || acs == AttributeCalculateSection.OTHER) continue;
+            if (acs == AttributeCalculateSection.BEFORE_DAMAGE || acs == AttributeCalculateSection.AFTER_DAMAGE || acs == AttributeCalculateSection.OTHER || acs == AttributeCalculateSection.TIMER || acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) continue;
             /* 数值整合计算 */
             cPDC = resultMap.get(acs);
             ctMap = cPDC.getTMap();

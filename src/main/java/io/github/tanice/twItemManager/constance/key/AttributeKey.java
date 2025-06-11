@@ -22,7 +22,7 @@ public final class AttributeKey {
     public static final String MINING_EFFICIENCY = "mining_efficiency";
     // 用处很少，用于特殊标记等方式
     public static final String BURNING_TIME = "burning_time";
-    public static final String EXPLOSION_KNOCKBACK_RESISTANCE = "explosive_knockback_resistance";
+    public static final String EXPLOSION_KNOCKBACK_RESISTANCE = "explosion_knockback_resistance";
     public static final String FALL_DAMAGE_MULTIPLIER = "fall_damage_multiplier";
     public static final String FLYING_SPEED = "flying_speed";
     public static final String GRAVITY = "gravity";

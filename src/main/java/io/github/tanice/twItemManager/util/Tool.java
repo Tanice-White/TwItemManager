@@ -23,7 +23,7 @@ public class Tool {
         boolean first = true;
         for (Map.Entry<K, V> entry : map.entrySet()) {
             if (!first) sb.append(", ");
-            sb.append(entry.getKey()).append("=").append(entry.getValue());
+            sb.append(entry.getKey().toString().toLowerCase()).append("=").append(entry.getValue());
             first = false;
         }
         sb.append("}");

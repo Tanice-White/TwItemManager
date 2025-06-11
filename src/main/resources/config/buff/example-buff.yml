@@ -1,6 +1,8 @@
 增益名:
   # 具体属性
   priority: 0
+  # BASE ADD MULTIPLY FIX 用于计算
+  # 其余的只有run函数有用，其他属性无效
   calculate_type: ADD # 必写（基础属性，不能自定义行为，只能在伤害计算中被动使用）
   damage: 0
   armor: 0
@@ -9,8 +11,8 @@
   armor_toughness: 0
   pre_armor_reduction: 0
   after_armor_reduction: 0
-  mana_cost: _0.1
-  skill_cooldown: _0.1
+  mana_cost: -0.1
+  skill_cooldown: -0.1
   # 玩家伤害属性增加
   melee: 0.1  # 战士伤害
   magic: 0.1  # 法师伤害
@@ -18,3 +20,19 @@
   rouge: 0.1  # 盗贼伤害
   summon: 0.1 # 召唤伤害
   other: 0.01 # 其他
+
+测试增益_1_damage_add:
+  priority: 0
+  calculate_type: ADD
+  damage: 0.5
+
+测试增益_2_damage_mul:
+  priority: 0
+  calculate_type: MULTIPLY
+  damage: 0.5
+
+测试增益_3_damage_fix:
+  priority: 0
+  calculate_type: FIX
+  damage: 0.5
+
