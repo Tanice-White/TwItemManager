@@ -27,9 +27,9 @@ public class ReloadCommand extends SubCommand {
         TwItemManager.getInstance().onReload();
 
         Bukkit.getPluginManager().callEvent(new PluginReloadEvent());
+        TwItemManager.getInstance().onReload();
         TwItemManager.getInstance().getLogger().info("[TwItems]重载成功");
         sender.sendMessage("§a[TwItems]重载成功");
-        // Bukkit.getOnlinePlayers().forEach(player -> SXItem.getItemManager().checkUpdateItem(player, player.getInventory().getContents()));
         return true;
     }
 }

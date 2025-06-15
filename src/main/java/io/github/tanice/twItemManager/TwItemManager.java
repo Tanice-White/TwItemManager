@@ -24,19 +24,12 @@ public final class TwItemManager extends JavaPlugin {
     private static BuffManager buffManager;
 
     /** 监听器 */
-    @Getter
     private static TwItemListener twItemListener;
-    @Getter
     private static WorkbenchListener workbenchListener;
-    @Getter
     private static GenericParticleListener particleListener;
-    @Getter
-    private static DamageIndicatorListener damageIndicatorListener;
-    @Getter
     private static DamageEventListener damageEventListener;
 
     /** 指令 */
-    @Getter
     private static MainCommand mainCommand;
 
     @Override
@@ -51,11 +44,10 @@ public final class TwItemManager extends JavaPlugin {
         itemManager = new ItemManager(this);
         buffManager = new BuffManager(this);
 
-        // 监听器直接从 ConfigUtil 获取变量 不需要显示 reload
+        // 监听器直接从 ConfigUtil 获取变量 需要显示 reload
         twItemListener = new TwItemListener(this);
-        damageIndicatorListener = new DamageIndicatorListener(this);
         workbenchListener = new WorkbenchListener(this);
-        particleListener = new GenericParticleListener();
+        particleListener = new GenericParticleListener(this);
         PacketEvents.getAPI().getEventManager().registerListener(particleListener, PacketListenerPriority.NORMAL);
         damageEventListener = new DamageEventListener(this);
 
@@ -74,9 +66,18 @@ public final class TwItemManager extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        mainCommand.onDisable();
     }
 
     public void onReload() {
         updateCode = System.currentTimeMillis();
+        Config.onReload(this);
+        itemManager.onReload();
+        buffManager.onReload();
+        twItemListener.onReload();
+        workbenchListener.onReload();
+        particleListener.onReload();
+        damageEventListener.onReload();
+        mainCommand.onReload();
     }
 }

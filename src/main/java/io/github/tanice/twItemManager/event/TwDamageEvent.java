@@ -5,6 +5,7 @@ import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
@@ -40,7 +41,7 @@ public class TwDamageEvent extends Event implements Cancellable {
     @Setter
     private DamageType damageType;
 
-    public TwDamageEvent(Entity attacker, Entity defender, double damage, EnumMap<AttributeType, Double> attackerAttributes, EnumMap<AttributeType, Double> defenderAttributes, DamageType damageType) {
+    public TwDamageEvent(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, double damage, @NotNull EnumMap<AttributeType, Double> attackerAttributes, @NotNull EnumMap<AttributeType, Double> defenderAttributes, @NotNull DamageType damageType) {
         this.attacker = attacker;
         this.defender = defender;
         this.damage = damage;

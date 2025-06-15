@@ -12,7 +12,7 @@
   cancel_damage: false  # 是否取消所有伤害(包括技能伤害)
   damage_type: MELEE  # 战士类
   attrs:
-    attack_damage: 45  # 武器面板伤害
+    attack_damage: 10  # 武器面板伤害
     entity_interaction_range: 1  # 实体交互触发距离 当值小于_3时可以取消近战伤害(玩家的实体交互距离时3)____法书可以使用
     attack_speed: -2  # 武器_每秒可攻击次数近似
     # [https://bukkit.windit.net/javadoc/org/bukkit/attribute/Attribute.html] 基本能增加

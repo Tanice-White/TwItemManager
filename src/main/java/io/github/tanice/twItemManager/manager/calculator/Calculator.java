@@ -34,12 +34,11 @@ public abstract class Calculator {
     protected final List<BuffPDC> betweenList = new ArrayList<>();
     protected final List<BuffPDC> afterList = new ArrayList<>();
 
-    public Calculator(@NotNull Entity e) {
-        if (!(e instanceof LivingEntity living)) return;
-        List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(living);
-        PDCs.addAll(getEffectiveAccessory(living));
+    public Calculator(@NotNull LivingEntity e) {
+        List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(e);
+        PDCs.addAll(getEffectiveAccessory(e));
         /* buff计算 */
-        PDCs.addAll(getEntityCalculablePDC(living));
+        PDCs.addAll(getEntityCalculablePDC(e));
 
         AttributeCalculateSection acs;
         CalculablePDC aPDC;

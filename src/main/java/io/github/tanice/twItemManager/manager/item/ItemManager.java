@@ -64,7 +64,7 @@ public class ItemManager implements Manager {
         this.loadQualityMap();
     }
 
-    public void reload() {
+    public void onReload() {
         itemMap.clear();
         gemMap.clear();
         qualityGroupManagerMap.clear();

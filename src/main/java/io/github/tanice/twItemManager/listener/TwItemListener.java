@@ -48,6 +48,10 @@ public class TwItemListener implements Listener {
         plugin.getLogger().info("TwItemListener loaded");
     }
 
+    public void onReload() {
+        plugin.getLogger().info("TwItemListener reloaded");
+    }
+
     /**
      * 第一获取者默认为 owner
      * TODO 测试用，预计使用释放技能或者别的触发方式时绑定

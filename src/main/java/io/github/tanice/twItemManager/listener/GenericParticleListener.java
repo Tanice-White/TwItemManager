@@ -6,17 +6,28 @@ import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
 import io.github.tanice.twItemManager.config.Config;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
 
 public class GenericParticleListener implements PacketListener {
+    private final JavaPlugin plugin;
 
-    public GenericParticleListener() {
+    private boolean cancelGenericParticles;
+
+    public GenericParticleListener(JavaPlugin plugin) {
+        this.plugin = plugin;
+        cancelGenericParticles = Config.cancelGenericParticles;
         logInfo("GenericParticleListener loaded");
     }
 
+    public void onReload() {
+        cancelGenericParticles = Config.cancelGenericParticles;
+        plugin.getLogger().info("GenericParticleListener reloaded");
+    }
+
     public void onPacketSend(PacketSendEvent event){
-        if(!Config.cancelGenericParticles) return;
+        if(!cancelGenericParticles) return;
         if(event.getPacketType()==PacketType.Play.Server.PARTICLE){
             WrapperPlayServerParticle packet = new WrapperPlayServerParticle(event);
             if (packet.getParticle().getType() == ParticleTypes.DAMAGE_INDICATOR) event.setCancelled(true);

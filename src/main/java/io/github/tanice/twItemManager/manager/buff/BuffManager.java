@@ -35,7 +35,7 @@ public class BuffManager {
         this.loadBuffFilesAndBuffMap();
     }
 
-    public void reload() {
+    public void onReload() {
         buffMap.clear();
         this.loadBuffFilesAndBuffMap();
     }

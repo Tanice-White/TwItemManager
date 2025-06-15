@@ -26,7 +26,13 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         plugin.getLogger().info("Load " + subCommands.size() + " Commands");
     }
 
-    public void onDisable() {subCommands.values().forEach(SubCommand::onDisable);}
+    public void onReload() {
+        subCommands.values().forEach(SubCommand::onReload);
+    }
+
+    public void onDisable() {
+        subCommands.values().forEach(SubCommand::onDisable);
+    }
 
     public void register(SubCommand command) {
         subCommands.put(command.getName().toLowerCase(), command);

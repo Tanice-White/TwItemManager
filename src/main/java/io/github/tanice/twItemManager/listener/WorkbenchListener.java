@@ -19,10 +19,16 @@ import org.jetbrains.annotations.NotNull;
  * 处理强化和宝石镶嵌
  */
 public class WorkbenchListener implements Listener {
+    private final JavaPlugin plugin;
 
     public WorkbenchListener(JavaPlugin plugin) {
+        this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
         plugin.getLogger().info("WorkbenchListener Registered");
+    }
+
+    public void onReload() {
+        plugin.getLogger().info("WorkbenchListener reloaded");
     }
 
     /**

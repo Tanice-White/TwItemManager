@@ -5,6 +5,7 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import lombok.Getter;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;
@@ -20,7 +21,7 @@ public class CombatEntityCalculator extends Calculator {
         super(null);
     }
 
-    public CombatEntityCalculator(@NotNull Entity entity) {
+    public CombatEntityCalculator(@NotNull LivingEntity entity) {
         super(entity);
     }
 
