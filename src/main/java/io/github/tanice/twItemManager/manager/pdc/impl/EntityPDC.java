@@ -1,22 +1,19 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
-import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
-
-import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 /**
  * 实体持有的属性
  * 计算区域无效
  */
 @Getter
-public class EntityPDC extends CalculablePDC {
+public class EntityPDC implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -24,28 +21,20 @@ public class EntityPDC extends CalculablePDC {
     private final Map<String, BuffPDC> buffs = new HashMap<>();
 
     public EntityPDC(){
-        super();
-    }
-
-    public EntityPDC(@NotNull String innerName) {
-        super(innerName, AttributeCalculateSection.OTHER, null);
     }
 
     @Override
     public @NotNull String toString() {
-        return "CalculablePDC{" +
-                "priority=" + priority + ", " +
-                "itemInnerName=" + innerName + ", " +
-                "buffName={" + buffs.keySet() + "}, " +
-                "attributeCalculateSection=" + attributeCalculateSection + ", " +
-                "attribute-addition=" + enumMapToString(vMap) +
-                "type-addition=" + enumMapToString(tMap) +
-                "}";
-    }
-
-    @Override
-    public @NotNull Map<AttributeKey, String> toLoreMap() {
-        return Map.of();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        boolean first = true;
+        for (Map.Entry<String, BuffPDC> entry : buffs.entrySet()) {
+            if (!first) sb.append(", ");
+            sb.append(entry.getKey()).append('=').append(entry.getValue());
+            first = false;
+        }
+        sb.append("}");
+        return sb.toString();
     }
 
     /**
@@ -77,5 +66,12 @@ public class EntityPDC extends CalculablePDC {
      */
     public void removeBuff(@NotNull BuffPDC bPDC){
         buffs.put(bPDC.getInnerName(), null);
+    }
+
+    /**
+     * 清空buff
+     */
+    public void removeAllBuffs(){
+        buffs.clear();
     }
 }

@@ -15,7 +15,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.checkerframework.checker.units.qual.N;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +25,7 @@ import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.infrastructure.AttributeAPI.*;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getSlot;
-import static io.github.tanice.twItemManager.util.EquipmentSlotGroupUtil.slotJudge;
+import static io.github.tanice.twItemManager.util.SlotUtil.slotJudge;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 import static io.github.tanice.twItemManager.util.Tool.*;
 

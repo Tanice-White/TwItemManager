@@ -1,6 +1,5 @@
 package io.github.tanice.twItemManager.manager.item.base.impl;
 
-import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
@@ -120,7 +119,7 @@ public class Item extends BaseItem {
         setSlot(meta ,config.getString(SLOT,"ANY"));
         /* 灵魂绑定的玩家名(暂时不使用UUID) */
         setOwner(meta, "");
-        setUpdateCode(meta, TwItemManager.getUpdateCode());
+        updateUpdateCode(meta);
     }
 
     public @NotNull List<String> getSkills() {return new ArrayList<>(skills);}

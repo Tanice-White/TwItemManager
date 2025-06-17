@@ -35,7 +35,7 @@
   gem_stack: 3  # 宝石槽位数量(所有宝石通用) 默认为0
   # 增加
   hold_buff:
-    - 自增益名  # 默认给自己
+    - 全面增益测试  # 默认给自己
   attack_buff:
     - 攻击附带buff  # 默认给受击方（js可自定义属性给予方）
   defence_buff:

@@ -118,5 +118,11 @@
             <artifactId>js-scriptengine</artifactId>
             <version>22.3.1</version>
         </dependency>
+        <!-- 字节编辑器 更改finalDamage -->
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.23.1-GA</version>
+        </dependency>
     </dependencies>
 </project>

@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.calculator;
 
+import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
@@ -9,17 +10,17 @@ import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.util.SlotUtil;
 import lombok.Getter;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
+import static io.github.tanice.twItemManager.util.Logger.logInfo;
 
 @Getter
 public abstract class Calculator {
@@ -34,11 +35,22 @@ public abstract class Calculator {
     protected final List<BuffPDC> betweenList = new ArrayList<>();
     protected final List<BuffPDC> afterList = new ArrayList<>();
 
+    /* 给序列机使用 */
+    public Calculator() {
+
+    }
+
     public Calculator(@NotNull LivingEntity e) {
         List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(e);
         PDCs.addAll(getEffectiveAccessory(e));
         /* buff计算 */
         PDCs.addAll(getEntityCalculablePDC(e));
+
+        if (Config.debug) {
+            StringBuilder s = new StringBuilder("debug: [Calculator] PDCs in " + e.getName() + ": ");
+            for (CalculablePDC pdc : PDCs) s.append(pdc.getInnerName()).append(" ");
+            logInfo(s.toString());
+        }
 
         AttributeCalculateSection acs;
         CalculablePDC aPDC;
@@ -67,14 +79,10 @@ public abstract class Calculator {
 
         List<CalculablePDC> res = new ArrayList<>();
         CalculablePDC cp;
-        String slot;
         ItemStack it;
-        // TODO 物品的attack buff和 hold buff
-        // 放到 类中的各个list中
-        // Timer，Other
+
         it = equip.getItemInMainHand();
-        slot = getSlot(it);
-        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("mainHand"))) {
+        if (SlotUtil.mainHandJudge(getSlot(it))) {
             cp = getItemCalculablePDC(it);
             if (cp != null) {
                 if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
@@ -83,8 +91,7 @@ public abstract class Calculator {
         }
 
         it = equip.getItemInOffHand();
-        slot = getSlot(it);
-        if (slot != null && (slot.equalsIgnoreCase("hand") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("offHand"))) {
+        if (SlotUtil.offHandJudge(getSlot(it))) {
             cp = getItemCalculablePDC(it);
             if (cp != null) {
                 if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
@@ -94,8 +101,7 @@ public abstract class Calculator {
 
         it = equip.getHelmet();
         if (it != null) {
-            slot = getSlot(it);
-            if (slot != null && (slot.equalsIgnoreCase("head") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("helmet"))) {
+            if (SlotUtil.helmetJudge(getSlot(it))) {
                 cp = getItemCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
@@ -106,8 +112,7 @@ public abstract class Calculator {
 
         it = equip.getChestplate();
         if (it != null) {
-            slot = getSlot(it);
-            if (slot != null && (slot.equalsIgnoreCase("chest") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("chestPlate"))) {
+            if (SlotUtil.chestJudge(getSlot(it))) {
                 cp = getItemCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
@@ -118,8 +123,7 @@ public abstract class Calculator {
 
         it = equip.getLeggings();
         if (it != null) {
-            slot = getSlot(it);
-            if (slot != null && (slot.equalsIgnoreCase("legs") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("leggings"))) {
+            if (SlotUtil.legsJudge(getSlot(it))) {
                 cp = getItemCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
@@ -130,8 +134,7 @@ public abstract class Calculator {
 
         it = equip.getBoots();
         if (it != null) {
-            slot = getSlot(it);
-            if (slot != null && (slot.equalsIgnoreCase("boots") || slot.equalsIgnoreCase("any") || slot.equalsIgnoreCase("feet"))) {
+            if (SlotUtil.bootsJudge(getSlot(it))) {
                 cp = getItemCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
@@ -146,10 +149,9 @@ public abstract class Calculator {
     /**
      * 获取目标生效的buff
      */
-    protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity entity) {
-        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(entity);
+    protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity e) {
+        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(e);
         if (ePDC == null) return new ArrayList<>();
-
         long ct = System.currentTimeMillis();
         return ePDC.getBuffPDCs(ct);
     }

@@ -1,12 +1,8 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.event.TwItemUpdateEvent;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
-import io.github.tanice.twItemManager.manager.item.base.impl.Item;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,8 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
-
 public class TwItemUpdateListener implements Listener {
     private final JavaPlugin plugin;
     private final List<Player> checkPlayers = new ArrayList<>();
@@ -32,6 +26,8 @@ public class TwItemUpdateListener implements Listener {
 
     public TwItemUpdateListener(JavaPlugin plugin) {
         this.plugin = plugin;
+
+        Bukkit.getPluginManager().registerEvents(this, plugin);
 
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (checkPlayers.isEmpty()) return;
@@ -41,6 +37,10 @@ public class TwItemUpdateListener implements Listener {
                 if (player != null) checkAndUpdateItem(player, player.getInventory().getContents());
             }
         }, 20, 20);
+    }
+
+    public void onReload() {
+        plugin.getLogger().info("TwItemUpdateListener reloaded");
     }
 
     @EventHandler
@@ -80,7 +80,7 @@ public class TwItemUpdateListener implements Listener {
      */
     public void updateItem(@NotNull Player player, @NotNull ItemStack item) {
         List<String> externalGems = TwItemManager.getItemManager().updateItem(player, item);
-        StringBuilder s = new StringBuilder("§a装备底层更新, 返还多余宝石(");
+        StringBuilder s = new StringBuilder("§a装备更新, 返还多余宝石(");
         ItemStack g;
         for (String gn : externalGems) {
             g = TwItemManager.getItemManager().generateGemItem(gn);
@@ -89,5 +89,6 @@ public class TwItemUpdateListener implements Listener {
         }
         s.append(")");
         player.sendMessage(s.toString());
+        PDCAPI.updateUpdateCode(item);
     }
 }

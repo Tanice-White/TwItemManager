@@ -30,6 +30,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Random;
 
+import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
@@ -134,9 +135,10 @@ public class DamageEventListener implements Listener {
         EnumMap<AttributeType, Double> aAttrMap = ac.getAttrsValue();
         EnumMap<AttributeType, Double> bAttrMap = bc.getAttrsValue();
 
-        logWarning("attack at: " + enumMapToString(aAttrMap));
-        logWarning("attack dt: " + enumMapToString(ac.getDamageTypeMap()));
-
+        if (Config.debug) {
+            logInfo("[EntityDamageByEntityEvent] attacker attribute map: " + enumMapToString(aAttrMap));
+            logInfo("[EntityDamageByEntityEvent] attacker damage type map: " + enumMapToString(ac.getDamageTypeMap()));
+        }
         /* 计算玩家生效属性 */
         /* 非法属性都在OTHER中 */
         DamageType weaponDamageType = DamageType.OTHER;
@@ -173,6 +175,7 @@ public class DamageEventListener implements Listener {
         /* 武器的对外白值（品质+宝石+白值） */
         finalDamage = aAttrMap.get(AttributeType.DAMAGE);
         /* 只要是twItemManager的物品，伤害一定是1，否则一定大于1 */
+        /* 不影响原版武器伤害的任何计算 */
         /* 不是插件物品 */
         /* 原版弓箭伤害就是会飘 */
         if (TwItemManager.getItemManager().isNotTwItem(itemStack)) finalDamage += eventOriDamage;
@@ -187,7 +190,6 @@ public class DamageEventListener implements Listener {
 
         finalDamage *=  (1 + ac.getDamageTypeMap().getOrDefault(weaponDamageType, 0D));
 
-
         /* 暴击事件 + 修正 */
         if (random.nextDouble() < aAttrMap.get(AttributeType.CRITICAL_STRIKE_CHANCE)){
             finalDamage *= aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE) < 1 ? 1: aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE);
@@ -200,8 +202,8 @@ public class DamageEventListener implements Listener {
         twDamageEvent.setDamage(finalDamage);
 
         /* 中间属性生效 */
-        List<BuffPDC> be = ac.getBeforeList();
-        be.addAll(bc.getBeforeList());
+        List<BuffPDC> be = ac.getBetweenList();
+        be.addAll(bc.getBetweenList());
         Collections.sort(be);
         for (BuffPDC pdc : be) {
             Object answer = pdc.execute(twDamageEvent);
@@ -268,7 +270,7 @@ public class DamageEventListener implements Listener {
             e.setSeeThrough(true);
             e.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
             e.setShadowed(false);
-            e.setViewRange((float) viewRange);
+            e.setViewRange(viewRange);
             // 暴击时设置更大的字体
             Matrix4f matrix = new Matrix4f();
             if (isCritical) matrix.scale(criticalLargeScale, criticalLargeScale, 1.5f);

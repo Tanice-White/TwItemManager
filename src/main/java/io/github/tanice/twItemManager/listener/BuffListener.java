@@ -1,41 +1,55 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.manager.item.base.impl.Item;
+import io.github.tanice.twItemManager.config.Config;
+import io.github.tanice.twItemManager.infrastructure.PDCAPI;
+import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.tanice.twItemManager.util.Logger.logInfo;
+
 public class BuffListener implements Listener {
     private final JavaPlugin plugin;
+    private final List<Player> checkPlayers;
 
-    private final List<Player> checkPlayers = new ArrayList<>();
-
-    /**
-     * 创建holdBuff检测，防止刷出无限buff
-     */
     public BuffListener(@NotNull JavaPlugin plugin) {
         this.plugin = plugin;
+        checkPlayers = new ArrayList<>();
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        logInfo("BuffListener loaded");
+    }
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {}
-        };
+    public void onReload() {
+        plugin.getLogger().info("BuffListener reloaded");
+    }
+
+    @EventHandler
+    public void onDie (@NotNull PlayerDeathEvent e) {
+        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(e.getEntity());
+        if (ePDC != null) {
+            /* 若直接 new 可能会频繁扩容，增加 GC 的压力 */
+            ePDC.removeAllBuffs();
+            PDCAPI.setEntityCalculablePDC(e.getEntity(), ePDC);
+        }
     }
 
     @EventHandler
@@ -43,16 +57,24 @@ public class BuffListener implements Listener {
         checkPlayers.add(event.getPlayer());
     }
 
+    @EventHandler
+    void onPlayerQuit(@NotNull PlayerQuitEvent event) {
+        checkPlayers.remove(event.getPlayer());
+        TwItemManager.getBuffManager().onPlayerQuit(event.getPlayer().getUniqueId());
+    }
+
     /**
      * 手持 buff 生效
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler
     public void onItemHeld(@NotNull PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
         ItemStack previousItem = player.getInventory().getItem(event.getPreviousSlot());
         ItemStack newItem = player.getInventory().getItem(event.getNewSlot());
+
         /* 让buff生效 */
-        changeBuff(player, previousItem, newItem);
+        if (TwItemManager.getItemManager().isNotTwItem(previousItem) && TwItemManager.getItemManager().isNotTwItem(newItem)) return;
+        changeBuff(player);
     }
 
     /**
@@ -61,13 +83,11 @@ public class BuffListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(@NotNull InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getWhoClicked() instanceof Player p)) return;
         /* 点击装备栏 */
         if (event.getClickedInventory() instanceof PlayerInventory) {
             int slot = event.getSlot();
-            if (isArmorSlot(slot) || isHandSlot(slot)) {
-                // 更新buff
-            }
+            if (isArmorSlot(slot) || isHandSlot(slot)) changeBuff(p);
         }
     }
 
@@ -77,9 +97,10 @@ public class BuffListener implements Listener {
      */
     @EventHandler
     public void onItemPickup(@NotNull EntityPickupItemEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof Player p)) return;
         ItemStack item = event.getItem().getItemStack();
         // 更新buff
+        if (!TwItemManager.getItemManager().isNotTwItem(item) && isValidItem(item)) changeBuff(p);
     }
 
     /**
@@ -88,21 +109,18 @@ public class BuffListener implements Listener {
      */
     @EventHandler
     public void onItemDrop(@NotNull PlayerDropItemEvent event) {
-        Player player = event.getPlayer();
+        Player p = event.getPlayer();
         ItemStack item = event.getItemDrop().getItemStack();
-
         // 更新buff
+        if (!TwItemManager.getItemManager().isNotTwItem(item) && isValidItem(item)) changeBuff(p);
     }
 
     /**
      * 玩家物品的 HoldBuff 生效
      */
-    private void changeBuff(@NotNull Player p, @Nullable ItemStack pre, @Nullable ItemStack current) {
-        Item i = TwItemManager.getItemManager().getItemByItemStack(pre);
-        if (i != null && isValidItem(pre)) TwItemManager.getBuffManager().deactivateBuff(p, i.getHoldBuffs());
-
-        i = TwItemManager.getItemManager().getItemByItemStack(current);
-        if (i != null && isValidItem(current)) TwItemManager.getBuffManager().activeBuff(p, i.getHoldBuffs());
+    private void changeBuff(@NotNull LivingEntity e) {
+        if (Config.debug) logInfo(e.getName() + ": buff updated");
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(e), 1L);
     }
 
     /**

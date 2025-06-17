@@ -23,5 +23,5 @@ var other= 0; // 其他
 
 function run() {
     // 函数逻辑
-    return false;  // 返回否表示“不禁止后续属性计算”
+    return false;  // 返回否表示“禁止后续属性计算”
 }

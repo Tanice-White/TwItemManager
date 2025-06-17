@@ -46,4 +46,8 @@ public final class ConfigKey {
 
     /* 宝石配置关键词 */
     public static final String LOSS_WHEN_FAILED = "loss_when_failed";
+
+    /* 全局配置文件 */
+    /* 防御计算配置 */
+    public static final String USE_DAMAGE_REDUCTION_BALANCE_FOR_PLAYER = "use_damage_reduction_balance_for_player";
 }

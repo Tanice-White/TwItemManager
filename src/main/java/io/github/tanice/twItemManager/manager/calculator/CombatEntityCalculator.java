@@ -1,10 +1,10 @@
 package io.github.tanice.twItemManager.manager.calculator;
 
+import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import lombok.Getter;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,14 +15,18 @@ public class CombatEntityCalculator extends Calculator {
     /**
      * 是否使用 玩家减伤 的平衡计算方法
      */
-    private boolean useDamageReductionBalance = false;
+    private boolean useDamageReductionBalance;
 
+    /**
+     * 仅在序列化使用
+     */
     public CombatEntityCalculator() {
-        super(null);
+        super();
     }
 
     public CombatEntityCalculator(@NotNull LivingEntity entity) {
         super(entity);
+        useDamageReductionBalance = Config.useDamageReductionBalanceForPlayer;
     }
 
     @Override

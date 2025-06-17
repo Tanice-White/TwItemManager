@@ -6,6 +6,7 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
+import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -36,6 +37,11 @@ public class BuffPDC extends CalculablePDC {
     private transient Context jsContext;
     private String jsContent;
 
+    /* 额外添加 */
+    private String particle;
+    private Color particleColor;
+    private int particleNum;
+
     public BuffPDC() {
         super();
     }
@@ -45,7 +51,7 @@ public class BuffPDC extends CalculablePDC {
     }
 
     public BuffPDC(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
-        super(innerName, AttributeCalculateSection.valueOf(cfg.getString(ACS, "OTHER").toUpperCase()), cfg.getConfigurationSection(ATTR_SECTION_KEY));
+        super(innerName, AttributeCalculateSection.valueOf(cfg.getString(ACS, "OTHER").toUpperCase()), cfg);
         jsName = "default";
         jsPath = null;
         cd = cfg.getInt("cd", -1);
@@ -80,7 +86,7 @@ public class BuffPDC extends CalculablePDC {
     }
 
     /**
-     * 传入的参数为: attacker(LivingEntity攻击方) defender(LivingEntity被攻击方) damage(伤害值) List(3)[防御前减伤, 护甲值, 防御后减伤]
+     * 传入的参数为: TwDamageEvent 类, 含 attacker(LivingEntity攻击方) defender(LivingEntity被攻击方) damage(伤害值) List(3)[防御前减伤, 护甲值, 防御后减伤]
      * 如果类型是 OTHER，除了EntityPDC之外一般为bug
      * 类型 TIMER 会根据 cd 和 duration 持续伤害或标记
      * BEFORE_DAMAGE 会在伤害计算前执行 此时 damage List 无意义

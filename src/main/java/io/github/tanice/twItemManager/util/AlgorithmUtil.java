@@ -1,12 +1,13 @@
 package io.github.tanice.twItemManager.util;
 
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class AlgorithmUtil {
     @Contract(pure = true)
-    public static int findMaxLessThanOrEqualIndex(List<Double> list, double target) {
+    public static int findMaxLessThanOrEqualIndex(@NotNull List<Double> list, double target) {
         int left = 0;
         int right = list.size() - 1;
         int resultIndex = -1;

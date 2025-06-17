@@ -161,18 +161,18 @@ public class PDCAPI {
         );
     }
 
-    public static void setUpdateCode(@NotNull ItemStack item, long code) {
+    public static void updateUpdateCode(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return;
-        setUpdateCode(meta, code);
+        updateUpdateCode(meta);
         item.setItemMeta(meta);
     }
 
-    public static void setUpdateCode(@NotNull ItemMeta meta, long code) {
+    public static void updateUpdateCode(@NotNull ItemMeta meta) {
         meta.getPersistentDataContainer().set(
                 new NamespacedKey(PDC_NAMESPACE, UPDATE_CODE_KEY),
                 PersistentDataType.LONG,
-                code
+                TwItemManager.getUpdateCode()
         );
     }
 

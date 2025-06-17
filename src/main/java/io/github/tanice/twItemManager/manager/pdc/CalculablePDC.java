@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc;
 
+import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
@@ -7,6 +8,7 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +20,8 @@ import java.util.*;
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.CHANCE;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.DURATION;
+import static io.github.tanice.twItemManager.util.Logger.logInfo;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**
  * 属性抽象
@@ -89,8 +93,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         attributeCalculateSection = acs;
         initNeedCalculation();
         endTimeStamp = -1;
-        chance = 1D;
-        duration = -1;
 
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
@@ -125,7 +127,10 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
      */
     public void merge(CalculablePDC @NotNull ... o) {
         for (CalculablePDC cPDC : o) {
-            if (cPDC == null || attributeCalculateSection != cPDC.attributeCalculateSection) continue;
+            if (cPDC == null || attributeCalculateSection != cPDC.attributeCalculateSection) {
+                if (Config.debug) logWarning("PDC合并失败");
+                continue;
+            }
             for (AttributeType type : AttributeType.values()) {
                 vMap.put(type, vMap.getOrDefault(type, 0D) + cPDC.vMap.getOrDefault(type, 0D));
             }
@@ -139,7 +144,10 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
      * 根据乘数整合值
      */
     public void merge(@Nullable CalculablePDC cPDC, int k) {
-        if (cPDC == null || attributeCalculateSection != cPDC.attributeCalculateSection) return;
+        if (cPDC == null || attributeCalculateSection != cPDC.attributeCalculateSection) {
+            if (Config.debug) logWarning("PDC合并失败");
+            return;
+        }
         for (AttributeType type : AttributeType.values()) {
             vMap.put(type, vMap.getOrDefault(type, 0D) + cPDC.vMap.getOrDefault(type, 0D) * k);
         }
