@@ -49,6 +49,9 @@ public class Config {
     /* 玩家减伤平衡算法 */
     public static boolean useDamageReductionBalanceForPlayer;
 
+    /* 跳劈伤害加成 */
+    public static double originalCriticalStrikeAddition;
+
     /** 激活时 加载全局配置文件 */
     public static void onEnable(@NotNull JavaPlugin plugin) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
@@ -73,6 +76,8 @@ public class Config {
         damageFloatRange = cfg.getDouble("damage_float_range", 0D);
 
         useDamageReductionBalanceForPlayer = cfg.getBoolean("use_damage_reduction_balance_for_player", false);
+
+        originalCriticalStrikeAddition = cfg.getDouble("original_critical_strike_addition", 0.2D);
     }
 
     /** 插件重载时 重载对应配置文件 */

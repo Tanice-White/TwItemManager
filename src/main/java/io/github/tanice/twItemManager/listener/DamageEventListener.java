@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Random;
 
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 public class DamageEventListener implements Listener {
@@ -48,7 +47,7 @@ public class DamageEventListener implements Listener {
     private final Random random = new Random();
 
     /* 指示器配置 */
-    private boolean enabled;
+    private boolean damageIndicatorEnabled;
 
     private double radiusX, radiusY, radiusZ;
     private double externalHeight;
@@ -71,7 +70,7 @@ public class DamageEventListener implements Listener {
         floatRange = Config.damageFloatRange;
 
         /* 指示器配置 */
-        enabled = Config.generateDamageIndicator;
+        damageIndicatorEnabled = Config.generateDamageIndicator;
 
         radiusX = 0.4;
         radiusY = 0.3;
@@ -97,7 +96,7 @@ public class DamageEventListener implements Listener {
         floatRange = Config.damageFloatRange;
 
         /* 指示器配置 */
-        enabled = Config.generateDamageIndicator;
+        damageIndicatorEnabled = Config.generateDamageIndicator;
 
         radiusX = 0.4;
         radiusY = 0.3;
@@ -120,12 +119,14 @@ public class DamageEventListener implements Listener {
     /**
      * 实体受伤检测
      */
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamage(@NotNull EntityDamageEvent event) {
-        if (event instanceof EntityDamageByEntityEvent && event.getDamageSource().getDamageType() != org.bukkit.damage.DamageType.THORNS) return;
-        if (event.getEntity() instanceof LivingEntity) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> doDamage(event, false, event.getDamage()), 1L);
-        }
+        if (!(event.getEntity() instanceof LivingEntity living)) return;
+        boolean c = false;
+        if (event instanceof EntityDamageByEntityEvent oe) c = oe.isCritical();
+
+        boolean isC = c;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> generateIndicator(living, isC, event.getFinalDamage()), 1L);
     }
 
     /**
@@ -169,7 +170,6 @@ public class DamageEventListener implements Listener {
         }
 
         double finalDamage = 0;
-        boolean isCritical = false;
 
         TwDamageEvent twDamageEvent = new TwDamageEvent(livingD, livingT, 0, aAttrMap, bAttrMap, weaponDamageType);
         /* BEFORE_DAMAGE 事件计算 */
@@ -181,7 +181,8 @@ public class DamageEventListener implements Listener {
             /* 可能被更改 */
             finalDamage = twDamageEvent.getDamage();
             if (answer.equals(false)) {
-                doDamage(event, isCritical, finalDamage);
+                // doDamage(event, isCritical, finalDamage);
+                event.setDamage(finalDamage);
                 return;
             }
         }
@@ -197,15 +198,15 @@ public class DamageEventListener implements Listener {
             /* 所以玩家才计算比例 */
         else if (damager instanceof Player p) {
             // TODO 不确定玩家的cooldown会不会受到武器影响，应该要受到武器的影响
-            finalDamage *= 0.2 + p.getAttackCooldown() * 0.8;
+            finalDamage *= 0.15 + p.getAttackCooldown() * 0.85;
         }
 
         finalDamage *=  (1 + ac.getDamageTypeMap().getOrDefault(weaponDamageType, 0D));
+        if (event.isCritical()) finalDamage *= 1 + Config.originalCriticalStrikeAddition;
 
         /* 暴击事件 + 修正 */
         if (random.nextDouble() < aAttrMap.get(AttributeType.CRITICAL_STRIKE_CHANCE)){
             finalDamage *= aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE) < 1 ? 1: aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE);
-            isCritical = true;
         }
 
         /* 伤害浮动 */
@@ -222,7 +223,8 @@ public class DamageEventListener implements Listener {
             /* 可能被更改 */
             finalDamage = twDamageEvent.getDamage();
             if (answer.equals(false)) {
-                doDamage(event, isCritical, finalDamage);
+                // doDamage(event, isCritical, finalDamage);
+                event.setDamage(finalDamage);
                 return;
             }
         }
@@ -245,7 +247,8 @@ public class DamageEventListener implements Listener {
             /* 可能被更改 */
             finalDamage = twDamageEvent.getDamage();
             if (answer.equals(false)) {
-                doDamage(event, isCritical, finalDamage);
+                // doDamage(event, isCritical, finalDamage);
+                event.setDamage(finalDamage);
                 return;
             }
         }
@@ -256,12 +259,14 @@ public class DamageEventListener implements Listener {
         TwItemManager.getBuffManager().doDefenceBuffs(livingD, livingT);
 
         /* TIMER 不处理，而是在增加buff的时候处理 */
-        doDamage(event, isCritical, finalDamage);
+        // doDamage(event, isCritical, finalDamage);
+        event.setDamage(finalDamage);
     }
 
     /**
      * 对target造成真实伤害
      */
+    @Deprecated
     private void doDamage(@NotNull EntityDamageEvent event, boolean isCritical, double damage) {
         if (damage <= 0) {
             event.setDamage(0);
@@ -280,7 +285,7 @@ public class DamageEventListener implements Listener {
             le.setHealth(health - Math.min(dd, deltaDamage)); /* 补充伤害 */
         }
 
-        generateIndicator(event.getEntity(), isCritical, damage);
+        if (damageIndicatorEnabled) generateIndicator(event.getEntity(), isCritical, damage);
     }
 
     /**

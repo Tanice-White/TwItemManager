@@ -68,6 +68,11 @@
             <id>codemc-snapshots</id>
             <url>https://repo.codemc.io/repository/maven-snapshots/</url>
         </repository>
+        <repository>
+            <id>nexus</id>
+            <name>Lumine Releases</name>
+            <url>https://mvn.lumine.io/repository/maven-public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -117,6 +122,19 @@
             <groupId>org.graalvm.js</groupId>
             <artifactId>js-scriptengine</artifactId>
             <version>22.3.1</version>
+        </dependency>
+        <!-- 更改getFinalDamage() -->
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.8</version>
+        </dependency>
+        <!-- mythicMobs api -->
+        <dependency>
+            <groupId>io.lumine</groupId>
+            <artifactId>Mythic-Dist</artifactId>
+            <version>5.9.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

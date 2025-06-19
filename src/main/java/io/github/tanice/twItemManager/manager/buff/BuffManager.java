@@ -2,6 +2,7 @@ package io.github.tanice.twItemManager.manager.buff;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
+import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
@@ -97,26 +98,16 @@ public class BuffManager {
     /**
      * 遍历所有 hold_buff 并更新
      */
-    public void updateHoldBuffs(@NotNull LivingEntity e, @Nullable ItemStack pre) {
-        /* 清空 buff */
-        EntityPDC ePDC = getEntityCalculablePDC(e);
-        if (ePDC == null) ePDC = new EntityPDC();
-        ePDC.removeHoldBuffs();  // else ePDC.removeBuff(bn); 一样
-        /* TIMER 类永续buff移除 */
-        Item preI = TwItemManager.getItemManager().getItemByItemStack(pre);
-        if (preI != null) {
-            BuffPDC bPDC;
-            for (String bn : preI.getHoldBuffs()) {
-                bPDC = getBuffPDC(bn);
-                if (bPDC == null) continue;
-                if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
-                    cancelTimerBuffTask(e, bn);
-                }
-                // else ePDC.removeBuff(bn);
+    public void updateHoldBuffs(@NotNull LivingEntity e, ItemStack @Nullable... preItems) {
+        /* buff移除 */
+        Item preI;
+        if (preItems != null) {
+            for (ItemStack item : preItems) {
+                if (item == null) continue;
+                preI = TwItemManager.getItemManager().getItemByItemStack(item);
+                if (preI != null) deactivateBuff(e, preI.getHoldBuffs());
             }
         }
-
-        setEntityCalculablePDC(e, ePDC);
 
         EntityEquipment equip = e.getEquipment();
         if (equip == null) return;
@@ -124,37 +115,37 @@ public class BuffManager {
         ItemStack it;
         Item i;
         it = equip.getItemInMainHand();
-        if (SlotUtil.mainHandJudge(getSlot(it))) {
+        if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getItemInOffHand();
-        if (SlotUtil.offHandJudge(getSlot(it))) {
+        if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getHelmet();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getChestplate();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getLeggings();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getBoots();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
@@ -172,37 +163,37 @@ public class BuffManager {
         ItemStack it;
         Item i;
         it = equip.getItemInMainHand();
-        if (SlotUtil.mainHandJudge(getSlot(it))) {
+        if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
-        if (SlotUtil.offHandJudge(getSlot(it))) {
+        if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getHelmet();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getChestplate();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getLeggings();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getBoots();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
@@ -220,37 +211,37 @@ public class BuffManager {
         ItemStack it;
         Item i;
         it = equip.getItemInMainHand();
-        if (SlotUtil.mainHandJudge(getSlot(it))) {
+        if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
-        if (SlotUtil.offHandJudge(getSlot(it))) {
+        if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getHelmet();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getChestplate();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getLeggings();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getBoots();
-        if (it != null) {
+        if (isValid(it)) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
             if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
@@ -294,7 +285,9 @@ public class BuffManager {
     /**
      * 属性 buff 失效
      */
-    public void deactivateBuff(@NotNull LivingEntity e, @NotNull List<String> buffNames) {
+    public void deactivateBuff(@NotNull LivingEntity e, @Nullable List<String> buffNames) {
+        if (buffNames == null) return;
+
         BuffPDC bPDC;
         EntityPDC ePDC = getEntityCalculablePDC(e);
         if (ePDC == null) ePDC = new EntityPDC();
@@ -305,10 +298,16 @@ public class BuffManager {
             /* TIMER */
             if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
                 cancelTimerBuffTask(e, bPDC.getInnerName());
-            }
-            ePDC.removeBuff(bPDC);
+            } else ePDC.removeBuff(bPDC);
         }
         setEntityCalculablePDC(e, ePDC);
+    }
+
+    /**
+     * TODO 判断耐久度
+     */
+    private boolean isValid(@Nullable ItemStack item) {
+        return item != null;
     }
 
     /**
@@ -348,7 +347,7 @@ public class BuffManager {
 
     private void loadBuffFilesAndBuffMap(){
         AtomicInteger total = new AtomicInteger();
-        Path buffDir = plugin.getDataFolder().toPath().resolve("buff"); ;
+        Path buffDir = plugin.getDataFolder().toPath().resolve("buff");
         if (!Files.exists(buffDir) || !Files.isDirectory(buffDir)) return;
         try (Stream<Path> files = Files.list(buffDir)) {
             files.forEach(file -> {
