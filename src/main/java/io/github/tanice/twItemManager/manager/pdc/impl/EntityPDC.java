@@ -9,8 +9,7 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * 实体持有的属性
- * 计算区域无效
+ * 实体持有的 buff属性
  */
 @Getter
 public class EntityPDC implements Serializable {
@@ -18,17 +17,24 @@ public class EntityPDC implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /* 影响属性的值 */
-    private final Map<String, BuffPDC> buffs = new HashMap<>();
+    /* 构造函数内初始化会触发序列化的问题 */
+    private final Map<String, BuffPDC> holdBuffs;
+    private final Map<String, BuffPDC> otherBuffs;
 
     public EntityPDC(){
+        holdBuffs = new HashMap<>();
+        otherBuffs = new HashMap<>();
     }
 
     @Override
     public @NotNull String toString() {
+        Set<Map.Entry<String, BuffPDC>> allEntries = holdBuffs.entrySet();
+        allEntries.addAll(otherBuffs.entrySet());
+
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         boolean first = true;
-        for (Map.Entry<String, BuffPDC> entry : buffs.entrySet()) {
+        for (Map.Entry<String, BuffPDC> entry : allEntries) {
             if (!first) sb.append(", ");
             sb.append(entry.getKey()).append('=').append(entry.getValue());
             first = false;
@@ -42,36 +48,55 @@ public class EntityPDC implements Serializable {
      */
     public List<CalculablePDC> getBuffPDCs(long currentTime){
         List<CalculablePDC> res = new ArrayList<>();
-        for (BuffPDC bPDC : buffs.values()) {
+        for (BuffPDC bPDC : otherBuffs.values()) {
             if (bPDC != null && bPDC.getEndTimeStamp() < currentTime) res.add(bPDC);
         }
+        res.addAll(holdBuffs.values());
         return res;
     }
 
     /**
      * 覆盖式增加 buff
      */
-    public void addBuff(BuffPDC bPDC){
-        buffs.put(bPDC.getInnerName(), bPDC);
+    public void addBuff(BuffPDC bPDC, boolean isHoldBuff){
+        if (isHoldBuff) holdBuffs.put(bPDC.getInnerName(), bPDC);
+        else otherBuffs.put(bPDC.getInnerName(), bPDC);
     }
 
     /**
      * 删除buff
      */
     public void removeBuff(String innerName){
-        buffs.put(innerName, null);
+        holdBuffs.remove(innerName);
+        otherBuffs.remove(innerName);
     }
     /**
      * 删除buff
      */
     public void removeBuff(@NotNull BuffPDC bPDC){
-        buffs.put(bPDC.getInnerName(), null);
+        holdBuffs.remove(bPDC.getInnerName());
+        otherBuffs.remove(bPDC.getInnerName());
     }
 
     /**
-     * 清空buff
+     * 清空 holdBuff
+     */
+    public void removeHoldBuffs(){
+        holdBuffs.clear();
+    }
+
+    /**
+     * 清空 otherBuff
+     */
+    public void removeOtherBuffs(){
+        otherBuffs.clear();
+    }
+
+    /**
+     * 清空 buff
      */
     public void removeAllBuffs(){
-        buffs.clear();
+        holdBuffs.clear();
+        otherBuffs.clear();
     }
 }

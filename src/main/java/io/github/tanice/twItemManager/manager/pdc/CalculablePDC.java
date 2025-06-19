@@ -43,11 +43,11 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     /* 是否是需要计算的BASE ADD MULTIPLY FIX */
     protected boolean needCalculation;
 
-    /* 属性结束时间(负数则永续) */
+    /* 属性结束时间(负数则永续) - 非js使用 */
     protected long endTimeStamp;
     /* 激活几率 */
     protected double chance;
-    /* 持续时间 */
+    /* 持续时间 - 均使用 */
     protected int duration;
 
     /* 属性具体值 */

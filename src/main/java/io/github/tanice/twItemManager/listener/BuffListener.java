@@ -11,29 +11,24 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public class BuffListener implements Listener {
     private final JavaPlugin plugin;
-    private final List<Player> checkPlayers;
 
     public BuffListener(@NotNull JavaPlugin plugin) {
         this.plugin = plugin;
-        checkPlayers = new ArrayList<>();
         Bukkit.getPluginManager().registerEvents(this, plugin);
         logInfo("BuffListener loaded");
     }
@@ -43,24 +38,37 @@ public class BuffListener implements Listener {
     }
 
     @EventHandler
-    public void onDie (@NotNull PlayerDeathEvent e) {
-        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(e.getEntity());
+    public void onPlayerDie (@NotNull PlayerDeathEvent event) {
+        Player p =event.getPlayer();
+        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(p);
         if (ePDC != null) {
             /* 若直接 new 可能会频繁扩容，增加 GC 的压力 */
-            ePDC.removeAllBuffs();
-            PDCAPI.setEntityCalculablePDC(e.getEntity(), ePDC);
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                ePDC.removeAllBuffs();
+                PDCAPI.setEntityCalculablePDC(p, ePDC);
+                TwItemManager.getBuffManager().deactivatePlayerTimerBuff(p.getUniqueId());
+            }, 1L);
         }
     }
 
     @EventHandler
-    void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        checkPlayers.add(event.getPlayer());
+    public void onPlayerRespawn(@NotNull PlayerRespawnEvent event) {
+        Player p =event.getPlayer();
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(p, null), 1L);
     }
 
     @EventHandler
-    void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        checkPlayers.remove(event.getPlayer());
-        TwItemManager.getBuffManager().onPlayerQuit(event.getPlayer().getUniqueId());
+    public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
+        Player p =event.getPlayer();
+        TwItemManager.getBuffManager().onPlayerQuit(p.getUniqueId());
+        /* 生成一个新的 EntityPDC，防止代码变动，序列化出问题 */
+        PDCAPI.setEntityCalculablePDC(p, new EntityPDC());
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().deactivatePlayerTimerBuff(p.getUniqueId()), 1L);
+    }
+
+    @EventHandler
+    public void OnPlayerJoin(@NotNull PlayerJoinEvent event) {
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(event.getPlayer(), null), 1L);
     }
 
     /**
@@ -74,7 +82,7 @@ public class BuffListener implements Listener {
 
         /* 让buff生效 */
         if (TwItemManager.getItemManager().isNotTwItem(previousItem) && TwItemManager.getItemManager().isNotTwItem(newItem)) return;
-        changeBuff(player);
+        changeBuff(player, previousItem);
     }
 
     /**
@@ -84,10 +92,14 @@ public class BuffListener implements Listener {
     @EventHandler
     public void onInventoryClick(@NotNull InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player p)) return;
-        /* 点击装备栏 */
+        /* 不特殊判断了, 全部更新 */
         if (event.getClickedInventory() instanceof PlayerInventory) {
-            int slot = event.getSlot();
-            if (isArmorSlot(slot) || isHandSlot(slot)) changeBuff(p);
+            if (TwItemManager.getItemManager().isNotTwItem(event.getCursor()) && TwItemManager.getItemManager().isNotTwItem(event.getCurrentItem())) return;
+            /* current是被替换的*/
+            ItemStack pre = event.getCurrentItem();
+            /* 解决引用的问题 */
+            if (pre == null) changeBuff(p, null);
+            else changeBuff(p, pre.clone());
         }
     }
 
@@ -97,10 +109,9 @@ public class BuffListener implements Listener {
      */
     @EventHandler
     public void onItemPickup(@NotNull EntityPickupItemEvent event) {
-        if (!(event.getEntity() instanceof Player p)) return;
         ItemStack item = event.getItem().getItemStack();
         // 更新buff
-        if (!TwItemManager.getItemManager().isNotTwItem(item) && isValidItem(item)) changeBuff(p);
+        if (!TwItemManager.getItemManager().isNotTwItem(item) && isValidItem(item)) changeBuff(event.getEntity(), null);
     }
 
     /**
@@ -112,15 +123,15 @@ public class BuffListener implements Listener {
         Player p = event.getPlayer();
         ItemStack item = event.getItemDrop().getItemStack();
         // 更新buff
-        if (!TwItemManager.getItemManager().isNotTwItem(item) && isValidItem(item)) changeBuff(p);
+        if (!TwItemManager.getItemManager().isNotTwItem(item) && isValidItem(item)) changeBuff(p, item);
     }
 
     /**
      * 玩家物品的 HoldBuff 生效
      */
-    private void changeBuff(@NotNull LivingEntity e) {
+    private void changeBuff(@NotNull LivingEntity e, ItemStack pre) {
         if (Config.debug) logInfo(e.getName() + ": buff updated");
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(e), 1L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(e, pre), 1L);
     }
 
     /**

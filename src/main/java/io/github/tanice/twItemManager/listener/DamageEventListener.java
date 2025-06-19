@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -116,6 +117,17 @@ public class DamageEventListener implements Listener {
     }
 
     /**
+     * 实体受伤检测
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onDamage(@NotNull EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent) return;
+        if (event.getEntity() instanceof LivingEntity) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> doDamage(event, false, event.getDamage()), 1L);
+        }
+    }
+
+    /**
      * 伤害计算
      * 原版的弓箭和附魔不纳入计算
      */
@@ -152,8 +164,6 @@ public class DamageEventListener implements Listener {
             /* 否则武器类型保持OTHER不变 */
         }
 
-        double eventOriDamage = event.getDamage();
-        event.setDamage(0);
         double finalDamage = 0;
         boolean isCritical = false;
 
@@ -164,10 +174,8 @@ public class DamageEventListener implements Listener {
         Collections.sort(bd);
         for (BuffPDC pdc : bd) {
             Object answer = pdc.execute(twDamageEvent);
-            if (!(answer instanceof Boolean)) logWarning(".js run 函数返回值错误, 继续执行");
-            /* false 表示后续不计算 */
-            else if (answer.equals(false)) {
-                doDamage(livingT, isCritical, finalDamage);
+            if (answer.equals(false)) {
+                doDamage(event, isCritical, finalDamage);
                 return;
             }
         }
@@ -178,14 +186,12 @@ public class DamageEventListener implements Listener {
         /* 不影响原版武器伤害的任何计算 */
         /* 不是插件物品 */
         /* 原版弓箭伤害就是会飘 */
-        if (TwItemManager.getItemManager().isNotTwItem(itemStack)) finalDamage += eventOriDamage;
+        if (TwItemManager.getItemManager().isNotTwItem(itemStack)) finalDamage += event.getDamage();
             /* 怪物拿起的武器不受这个影响，伤害是满额的 */
             /* 所以玩家才计算比例 */
-        else if (damager instanceof Player) {
-            double ck = 1;
-            /* 处理跳劈伤害 */
-            if (event.isCritical()) ck = 1.5;
-            finalDamage *= eventOriDamage / ck;
+        else if (damager instanceof Player p) {
+            // TODO 不确定玩家的cooldown会不会受到武器影响，应该要受到武器的影响
+            finalDamage *= 0.2 + p.getAttackCooldown() * 0.8;
         }
 
         finalDamage *=  (1 + ac.getDamageTypeMap().getOrDefault(weaponDamageType, 0D));
@@ -209,9 +215,8 @@ public class DamageEventListener implements Listener {
             Object answer = pdc.execute(twDamageEvent);
             /* 可能被更改 */
             finalDamage = twDamageEvent.getDamage();
-            if (!(answer instanceof Boolean)) logWarning(".js run 函数返回值错误, 继续执行");
-            else if (answer.equals(false)) {
-                doDamage(livingT, isCritical, finalDamage);
+            if (answer.equals(false)) {
+                doDamage(event, isCritical, finalDamage);
                 return;
             }
         }
@@ -233,9 +238,8 @@ public class DamageEventListener implements Listener {
             Object answer = pdc.execute(twDamageEvent);
             /* 可能被更改 */
             finalDamage = twDamageEvent.getDamage();
-            if (!(answer instanceof Boolean)) logWarning(".js run 函数返回值错误, 继续执行");
-            else if (answer.equals(false)) {
-                doDamage(livingT, isCritical, finalDamage);
+            if (answer.equals(false)) {
+                doDamage(event, isCritical, finalDamage);
                 return;
             }
         }
@@ -243,15 +247,27 @@ public class DamageEventListener implements Listener {
         /* a 给 b 增加 buff */
 
         /* TIMER 不处理，而是在增加buff的时候处理 */
-        doDamage(livingT, isCritical, finalDamage);
+        doDamage(event, isCritical, finalDamage);
     }
 
     /**
      * 对target造成真实伤害
      */
-    private void doDamage(@NotNull LivingEntity target, boolean isCritical, double damage) {
-        target.damage(damage);
-        if (damage > 0) generateIndicator(target, isCritical, damage);
+    private void doDamage(@NotNull EntityDamageEvent event, boolean isCritical, double damage) {
+        event.setDamage(damage);
+        if (damage <= 0) return;
+
+        LivingEntity le = (LivingEntity) event.getEntity();
+        double finalDamage = event.getFinalDamage();
+        double deltaDamage = damage - finalDamage;
+        generateIndicator(event.getEntity(), isCritical, damage);
+        double health = le.getHealth();
+
+        /* 原版伤害致死则不需要补充伤害 */
+        if (health > finalDamage) {
+            double dd = health - finalDamage;
+            le.setHealth(health - Math.min(dd, deltaDamage)); /* 补充伤害 */
+        }
     }
 
     /**

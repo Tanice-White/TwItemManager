@@ -13,6 +13,7 @@ import org.graalvm.polyglot.Value;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -29,6 +30,9 @@ import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
  */
 @Getter
 public class BuffPDC extends CalculablePDC {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     /* js配置文件名 */
     private String jsName;
     /* 激活间隔(s) */
@@ -69,14 +73,14 @@ public class BuffPDC extends CalculablePDC {
         return "CalculablePDC{" +
                 "priority=" + priority + ", " +
                 "jsName=" + jsName + ".js, " +
-                "itemInnerName=" + innerName + ", " +
+                "buffInnerName=" + innerName + ", " +
                 "attributeCalculateSection=" + attributeCalculateSection + ", " +
                 "attribute-addition=" + enumMapToString(vMap) +
                 "type-addition=" + enumMapToString(tMap) +
                 "endTimeStamp=" + endTimeStamp + ", " +
                 "chance=" + chance + ", " +
                 "cd=" + cd + ", " +
-                "duration=" + duration + ", " +
+                "duration=" + duration +
                 "}";
     }
 
@@ -93,16 +97,16 @@ public class BuffPDC extends CalculablePDC {
      * BETWEEN_DAMAGE_AD_DEFENCE 会在伤害计算后，防御减伤计算前执行 均有意义
      * AFTER_DAMAGE 会在伤害计算后执行 此时 damage 表示最终伤害  List 无意义
      */
-    public Object execute(Object... params) {
+    public Object execute(Object params) {
         try {
-            // 获取并执行 run 函数
             Value runFunction = jsContext.getBindings("js").getMember("run");
             if (runFunction != null && runFunction.canExecute()) {
-                return runFunction.execute(params).asHostObject();
+                return runFunction.execute(params).asBoolean();
             }
-            return null;
+            return true;
         } catch (Exception e) {
-            throw new RuntimeException("JS 执行错误: ", e);
+            logWarning("js执行错误(后续计算继续执行): " + e.getMessage());
+            return true;
         }
     }
 
@@ -110,9 +114,31 @@ public class BuffPDC extends CalculablePDC {
      * 初始化JavaScript执行环境
      */
     private void initializeJS() {
-        jsContext = Context.newBuilder("js").allowAllAccess(true).build();
+        jsContext = Context.newBuilder("js")
+                .allowAllAccess(true)
+                .option("engine.WarnInterpreterOnly", "false")
+                .hostClassLoader(getClass().getClassLoader())
+                .build();
         try {
             jsContent = Files.readString(jsPath);
+            // Bukkit 核心类
+            jsContext.eval("js",
+                    """
+                            var Random = Java.type('java.util.Random');
+                            
+                            var Player = Java.type('org.bukkit.entity.Player');
+                            var LivingEntity = Java.type('org.bukkit.entity.LivingEntity');
+                            var Entity = Java.type('org.bukkit.entity.Entity');
+                            var Particle = Java.type('org.bukkit.Particle');
+                            var Color = Java.type('org.bukkit.Color');
+                            var Location = Java.type('org.bukkit.Location');
+                            var Sound = Java.type('org.bukkit.Sound');
+                            
+                            var TwDamageEvent = Java.type('io.github.tanice.twItemManager.event.TwDamageEvent');
+                            """
+            );
+
+            jsContext.eval("js", jsContent);
         } catch (IOException e) {
             logWarning("Failed to read js file: " + jsPath.toAbsolutePath());
         }
@@ -122,12 +148,13 @@ public class BuffPDC extends CalculablePDC {
      * 从JS文件中读取变量并初始化类属性
      */
     private void readJSVariables() {
-        innerName = getScriptValue(INNER_NAME, "default");
+        innerName = getScriptValue(INNER_NAME, "未读取到变量");
         priority = getScriptValue(PRIORITY, Integer.MAX_VALUE);
         chance = getScriptValue(CHANCE, 0D);
         cd = getScriptValue(CD, 0);
         duration = getScriptValue(DURATION, 0);
-        attributeCalculateSection = getScriptValue(ACS, AttributeCalculateSection.OTHER);
+        String acs = getScriptValue(ACS, "other");
+        attributeCalculateSection = AttributeCalculateSection.valueOf(acs.toUpperCase());
         for (AttributeType at : AttributeType.values()) {
             vMap.put(at, getScriptValue(at.toString().toLowerCase(), 0D));
         }
@@ -139,11 +166,24 @@ public class BuffPDC extends CalculablePDC {
     @SuppressWarnings("unchecked")
     private <T> T getScriptValue(String variableName, T defaultValue) {
         try {
-            Object value = jsContext.getBindings("js").getMember(variableName);
-            if (value == null) return defaultValue;
-            return (T) value;
+            Value value = jsContext.getBindings("js").getMember(variableName);
+            if (value == null || value.isNull()) {
+                return defaultValue;
+            }
+            // 处理基本类型
+            if (defaultValue instanceof String) {
+                return (T) value.asString();
+            } else if (defaultValue instanceof Integer) {
+                return (T) Integer.valueOf(value.asInt());
+            } else if (defaultValue instanceof Double) {
+                return (T) Double.valueOf(value.asDouble());
+            } else if (defaultValue instanceof Boolean) {
+                return (T) Boolean.valueOf(value.asBoolean());
+            }
+            // 其他类型尝试转换
+            return (T) value.as(defaultValue.getClass());
         } catch (Exception e) {
-            logWarning("JS变量:" + variableName + "读取错误: " + e.getMessage());
+            logWarning("JS变量转换失败 [" + variableName + "]: " + e.getMessage());
             return defaultValue;
         }
     }

@@ -11,23 +11,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -36,52 +32,53 @@ import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public class BuffManager {
+    private static final int RUN_CD = 2;
     private final JavaPlugin plugin;
     /** 全局可用Buff*/
     private final Map<String, BuffPDC> buffMap;
 
-    /** 全局Buff线程池 */
-    private final ScheduledExecutorService timerBuffExecutor;
-    /** 跟踪正在运行的Timer Buff任务 */
-    private final ConcurrentHashMap<UUID, Map<String, ScheduledFuture<?>>> activeTimerBuffs;
+    /** buff记录 */
+    private final BuffRecords buffRecords;
+    /** 任务处理 */
+    private BukkitTask buffTask;
+    /** 实体状态缓存 */
+    private final Map<UUID, CachedEntity> entityCache;
 
+    private static BuffManager instance;
 
     public BuffManager(@NotNull JavaPlugin plugin) {
+        instance = this;
         this.plugin = plugin;
         buffMap = new HashMap<>();
-        activeTimerBuffs = new ConcurrentHashMap<>();
         this.loadBuffFilesAndBuffMap();
 
-        // 创建线程池 - 根据服务器情况调整核心线程数
-        int corePoolSize = Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
-        timerBuffExecutor = new ScheduledThreadPoolExecutor(
-                corePoolSize,
-                new ThreadFactory() {
-                    private final AtomicInteger threadNumber = new AtomicInteger(1);
-                    @Override
-                    public Thread newThread(@NotNull Runnable r) {
-                        Thread t = new Thread(r, "BuffTimerThread-" + threadNumber.getAndIncrement());
-                        t.setDaemon(true);
-                        t.setPriority(Thread.NORM_PRIORITY);
-                        return t;
-                    }
-                },
-                new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-        ((ScheduledThreadPoolExecutor) timerBuffExecutor).setRemoveOnCancelPolicy(true);
-        Bukkit.getPluginManager().registerEvents(new Listener() {
-            @EventHandler
-            public void onPluginDisable(PluginDisableEvent event) {
-                if (event.getPlugin() == plugin) {
-                    shutdownExecutor();
-                }
-            }
-        }, plugin);
+        buffRecords = new BuffRecords();
+        entityCache = new ConcurrentHashMap<>();
+        // 启动时间轮处理任务 (每5tick执行一次)
+        buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, RUN_CD);
+        logInfo("BuffManager loaded, Scheduler started");
     }
 
     public void onReload() {
         buffMap.clear();
         this.loadBuffFilesAndBuffMap();
+
+        // 重新启动时间轮任务
+        if (buffTask != null) buffTask.cancel();
+        buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, RUN_CD);
+    }
+
+    public void onDisable() {
+        buffMap.clear();
+
+        // 停止时间轮任务
+        if (buffTask != null) {
+            buffTask.cancel();
+            buffTask = null;
+        }
+        // 清空时间轮和缓存
+        buffRecords.records.clear();
+        entityCache.clear();
     }
 
     public @Nullable BuffPDC getBuffPDC(@Nullable String bufInnerName) {
@@ -89,14 +86,35 @@ public class BuffManager {
     }
 
     /**
+     * 玩家退出时清理所有Timer Buff任务
+     */
+    public void onPlayerQuit(@NotNull UUID playerId) {
+        buffRecords.removeAllRecordsForEntity(playerId);
+        entityCache.remove(playerId);
+    }
+
+    /**
      * 遍历所有 hold_buff 并更新
      */
-    public void updateHoldBuffs(@NotNull LivingEntity e) {
-        /* 清空buff */
-        /* TODO 不能全部清空！ */
+    public void updateHoldBuffs(@NotNull LivingEntity e, @Nullable ItemStack pre) {
+        /* 清空 buff */
         EntityPDC ePDC = getEntityCalculablePDC(e);
         if (ePDC == null) ePDC = new EntityPDC();
-        ePDC.removeAllBuffs();
+        ePDC.removeHoldBuffs();  // else ePDC.removeBuff(bn); 一样
+        /* TIMER 类永续buff移除 */
+        Item preI = TwItemManager.getItemManager().getItemByItemStack(pre);
+        if (preI != null) {
+            BuffPDC bPDC;
+            for (String bn : preI.getHoldBuffs()) {
+                bPDC = getBuffPDC(bn);
+                if (bPDC == null) continue;
+                if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
+                    cancelTimerBuffTask(e, bn);
+                }
+                // else ePDC.removeBuff(bn);
+            }
+        }
+
         setEntityCalculablePDC(e, ePDC);
 
         EntityEquipment equip = e.getEquipment();
@@ -107,37 +125,37 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it))) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(e, i.getHoldBuffs());
+            if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it))) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(e, i.getHoldBuffs());
+            if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getHelmet();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(e, i.getHoldBuffs());
+            if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getChestplate();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(e, i.getHoldBuffs());
+            if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getLeggings();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(e, i.getHoldBuffs());
+            if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getBoots();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(e, i.getHoldBuffs());
+            if (i != null) activeBuff(e, i.getHoldBuffs(), true);
         }
     }
 
@@ -155,37 +173,37 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it))) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(b, i.getAttackBuffs());
+            if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it))) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(b, i.getAttackBuffs());
+            if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getHelmet();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(b, i.getAttackBuffs());
+            if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getChestplate();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(b, i.getAttackBuffs());
+            if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getLeggings();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(b, i.getAttackBuffs());
+            if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getBoots();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(b, i.getAttackBuffs());
+            if (i != null) activeBuff(b, i.getAttackBuffs(), false);
         }
     }
 
@@ -203,60 +221,64 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it))) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(a, i.getDefenseBuffs());
+            if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it))) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(a, i.getDefenseBuffs());
+            if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getHelmet();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(a, i.getDefenseBuffs());
+            if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getChestplate();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(a, i.getDefenseBuffs());
+            if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getLeggings();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(a, i.getDefenseBuffs());
+            if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getBoots();
         if (it != null) {
             i = TwItemManager.getItemManager().getItemByItemStack(it);
-            if (i != null) activeBuff(a, i.getDefenseBuffs());
+            if (i != null) activeBuff(a, i.getDefenseBuffs(), false);
         }
     }
 
     /**
      * 让 buff 生效
      */
-    public void activeBuff(@NotNull LivingEntity e, @NotNull List<String> buffNames) {
+    public void activeBuff(@NotNull LivingEntity e, @NotNull List<String> buffNames, boolean isHoldBuff) {
         BuffPDC bPDC;
         EntityPDC ePDC = getEntityCalculablePDC(e);
         if (ePDC == null) ePDC = new EntityPDC();
 
         for (String bn : buffNames) {
             bPDC = getBuffPDC(bn);
-            if (bPDC == null) continue;
+            if (bPDC == null) {
+                logWarning("buff 名: " + bn + "不存在");
+                continue;
+            }
             /* 全局计算类属性 */
             if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
+                /* 永续 */
+                if (isHoldBuff) bPDC.setDuration(-1);
                 startTimerBuffTask(e, bPDC);
-                logWarning("执行js任务");
             /* 非Timer类的都需要计算生效时间 */
             } else {
                 /* 持续时间为负数则永续 */
-                if (bPDC.getDuration() > 0) bPDC.setEndTimeStamp(System.currentTimeMillis() + (long) 50 * bPDC.getDuration());
-                ePDC.addBuff(bPDC);
+                if (bPDC.getDuration() > 0) bPDC.setEndTimeStamp(System.currentTimeMillis() + (50L * bPDC.getDuration()));
+                ePDC.addBuff(bPDC, isHoldBuff);
             }
         }
         setEntityCalculablePDC(e, ePDC);
@@ -267,7 +289,7 @@ public class BuffManager {
     }
 
     /**
-     * buff失效
+     * 属性 buff 失效
      */
     public void deactivateBuff(@NotNull LivingEntity e, @NotNull List<String> buffNames) {
         BuffPDC bPDC;
@@ -287,66 +309,28 @@ public class BuffManager {
     }
 
     /**
-     * 玩家退出时清理所有Timer Buff任务
+     * TIMER buff 失效
      */
-    public void onPlayerQuit(UUID playerId) {
-        Map<String, ScheduledFuture<?>> entityTasks = activeTimerBuffs.remove(playerId);
-        if (entityTasks != null) {
-            for (ScheduledFuture<?> future : entityTasks.values()) {
-                future.cancel(false);
-            }
-            entityTasks.clear();
-        }
+    public void deactivatePlayerTimerBuff(@NotNull UUID playerId) {
+        buffRecords.removeAllRecordsForEntity(playerId);
+        if (!buffRecords.hasAnyBuff(playerId)) entityCache.remove(playerId);
     }
 
-    /**
-     * 关闭线程池
-     */
-    public void shutdownExecutor() {
-        timerBuffExecutor.shutdown();
-        try {
-            if (!timerBuffExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                timerBuffExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            timerBuffExecutor.shutdownNow();
-        }
-        activeTimerBuffs.clear();
+    private void processBuffs() {
+        buffRecords.process();
     }
 
     /**
      * 启动Timer类型的Buff任务
      */
     private void startTimerBuffTask(@NotNull LivingEntity entity, @NotNull BuffPDC buff) {
-        UUID entityId = entity.getUniqueId();
-        String buffName = buff.getInnerName();
-
-        // 检查是否已有相同的Timer Buff正在运行
-        Map<String, ScheduledFuture<?>> entityTasks = activeTimerBuffs.computeIfAbsent(
-                entityId,
-                k -> new ConcurrentHashMap<>()
+        // 获取或创建缓存
+        entityCache.computeIfAbsent(
+                entity.getUniqueId(),
+                k -> new CachedEntity(entity)
         );
-
-        if (entityTasks.containsKey(buffName)) {
-            return; // 已有任务在运行，跳过
-        }
-
-        long period = buff.getDuration() > 0 ? buff.getDuration() : 20; // 默认20tick(1秒)
-        ScheduledFuture<?> future = timerBuffExecutor.scheduleAtFixedRate(() -> {
-            try {
-                if (entity.isValid() && !entity.isDead()) {
-                    // 执行Buff效果
-                    buff.run(entity);
-                    if (buff.getDuration() > 0 && System.currentTimeMillis() >= buff.getEndTimeStamp())
-                        cancelTimerBuffTask(entity, buffName);
-                } else cancelTimerBuffTask(entity, buffName);
-
-            } catch (Exception ex) {
-                logWarning("执行Timer Buff任务时出错: " + ex.getMessage());
-            }
-        }, 0, period, TimeUnit.MILLISECONDS);
-
-        entityTasks.put(buffName, future);
+        // 创建Buff记录
+        buffRecords.addBuff(entity, buff);
     }
 
     /**
@@ -354,19 +338,9 @@ public class BuffManager {
      */
     private void cancelTimerBuffTask(@NotNull LivingEntity entity, String buffName) {
         UUID entityId = entity.getUniqueId();
-        Map<String, ScheduledFuture<?>> entityTasks = activeTimerBuffs.get(entityId);
-
-        if (entityTasks != null) {
-            ScheduledFuture<?> future = entityTasks.remove(buffName);
-            if (future != null) {
-                future.cancel(false);
-            }
-
-            // 如果没有任务了，移除实体的任务映射
-            if (entityTasks.isEmpty()) {
-                activeTimerBuffs.remove(entityId);
-            }
-        }
+        buffRecords.removeRecord(entityId, buffName);
+        boolean hasOtherBuffs = buffRecords.hasAnyBuff(entityId);
+        if (!hasOtherBuffs) entityCache.remove(entityId);
     }
 
     private void loadBuffFilesAndBuffMap(){
@@ -399,6 +373,98 @@ public class BuffManager {
             logInfo("[loadBuffs]: 共加载BUFF" + total.get() + "个");
         } catch (IOException e) {
             logWarning("加载BUFF文件错误: " + e);
+        }
+    }
+
+    // 时间轮记录
+    private static class BuffRecord {
+        final UUID entityId;
+        final BuffPDC buff;
+        int cooldownCounter;
+        int durationCounter;
+
+        BuffRecord(@NotNull LivingEntity entity, @NotNull BuffPDC buff) {
+            this.entityId = entity.getUniqueId();
+            this.buff = buff;
+            this.cooldownCounter = buff.getCd();
+            this.durationCounter = buff.getDuration();
+        }
+    }
+
+    // 实体状态缓存
+    private static class CachedEntity {
+        final UUID uuid;
+        LivingEntity entity;
+
+        CachedEntity(@NotNull LivingEntity entity) {
+            this.uuid = entity.getUniqueId();
+            this.entity = entity;
+        }
+    }
+
+    // 时间轮实现
+    private static class BuffRecords {
+        final Map<String, BuffRecord> records = new ConcurrentHashMap<>(100);
+
+        public void process() {
+            Iterator<Map.Entry<String, BuffRecord>> it = records.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, BuffRecord> entry = it.next();
+                BuffRecord record = entry.getValue();
+                // 检查CD
+                record.cooldownCounter -= RUN_CD;
+                if (record.cooldownCounter <= 0) {
+                    CachedEntity cached = BuffManager.instance.entityCache.get(record.entityId);
+                    if (cached == null || cached.entity == null || cached.entity.isDead()) {
+                        it.remove();
+                        continue;
+                    }
+                    record.buff.execute(cached.entity);
+                    record.cooldownCounter = Math.max(1, record.buff.getCd());
+                    // 检查持续时间
+                    /* 最开始就小于等于0则永续 */
+                    if (record.durationCounter > 0) {
+                        record.durationCounter -= RUN_CD;
+                        if (record.durationCounter <= 0) it.remove();
+                    }
+                }
+            }
+        }
+
+        // 移除指定记录
+        public void removeRecord(@NotNull UUID entityId, String buffName) {
+            String key = createKey(entityId, buffName);
+            records.remove(key);
+        }
+
+        public void removeAllRecordsForEntity(@NotNull UUID entityId) {
+            String prefix = entityId + "-";
+            records.keySet().removeIf(key -> key.startsWith(prefix));
+        }
+
+        public boolean hasAnyBuff(@NotNull UUID entityId) {
+            String prefix = entityId + "-";
+            for (String key : records.keySet()) {
+                if (key.startsWith(prefix)) return true;
+            }
+            return false;
+        }
+
+        public void addBuff(@NotNull LivingEntity entity, @NotNull BuffPDC buff) {
+            String key = createKey(entity.getUniqueId(), buff.getInnerName());
+            BuffRecord nbr = new BuffRecord(entity, buff);
+            BuffRecord br = records.get(key);
+
+            if (br != null) {
+                br.durationCounter = Math.max(br.durationCounter, nbr.durationCounter);
+                records.put(key, br);
+            } else records.put(key, nbr);
+        }
+
+        // 创建唯一键
+        @Contract(pure = true)
+        private @NotNull String createKey(@NotNull UUID entityId, String buffName) {
+            return entityId + "-" + buffName;
         }
     }
 }
