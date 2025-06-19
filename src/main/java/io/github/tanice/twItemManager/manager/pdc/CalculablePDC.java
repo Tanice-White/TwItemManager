@@ -101,6 +101,11 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         /* 覆写 */
         chance = cfg.getDouble(CHANCE, 1D);
         duration = cfg.getInt(DURATION, -1);
+        /* 非偶数duration提示 */
+        if (duration >= 0 && duration % 2 != 0) {
+            duration--;
+            logWarning("duration必须是偶数，否则该buff会永续");
+        }
         /* vMap初始化 */
         vMap.put(AttributeType.DAMAGE, cfg.getDouble(BASE_DAMAGE, 0D));
         vMap.put(AttributeType.ARMOR, cfg.getDouble(ARMOR, 0D));

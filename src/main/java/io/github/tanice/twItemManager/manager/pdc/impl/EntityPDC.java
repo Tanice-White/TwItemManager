@@ -8,6 +8,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
+
 /**
  * 实体持有的 buff属性
  */
@@ -28,7 +30,7 @@ public class EntityPDC implements Serializable {
 
     @Override
     public @NotNull String toString() {
-        Set<Map.Entry<String, BuffPDC>> allEntries = holdBuffs.entrySet();
+        Set<Map.Entry<String, BuffPDC>> allEntries = new HashSet<>(holdBuffs.entrySet());
         allEntries.addAll(otherBuffs.entrySet());
 
         StringBuilder sb = new StringBuilder();
@@ -49,7 +51,15 @@ public class EntityPDC implements Serializable {
     public List<CalculablePDC> getBuffPDCs(long currentTime){
         List<CalculablePDC> res = new ArrayList<>();
         for (BuffPDC bPDC : otherBuffs.values()) {
-            if (bPDC != null && bPDC.getEndTimeStamp() < currentTime) res.add(bPDC);
+            if (bPDC != null){
+                if (!bPDC.isEnable()) {
+                    removeBuff(bPDC);
+                    continue;
+                }
+                if (bPDC.getEndTimeStamp() < 0) res.add(bPDC);
+                else if (bPDC.getEndTimeStamp() > currentTime) res.add(bPDC);
+                else removeBuff(bPDC);
+            }
         }
         res.addAll(holdBuffs.values());
         return res;
@@ -58,9 +68,33 @@ public class EntityPDC implements Serializable {
     /**
      * 覆盖式增加 buff
      */
-    public void addBuff(BuffPDC bPDC, boolean isHoldBuff){
-        if (isHoldBuff) holdBuffs.put(bPDC.getInnerName(), bPDC);
-        else otherBuffs.put(bPDC.getInnerName(), bPDC);
+    public void addBuff(@NotNull BuffPDC bPDC, boolean isHoldBuff){
+        if (!bPDC.isEnable()) return;
+
+        BuffPDC pre;
+        String inn = bPDC.getInnerName();
+        if (isHoldBuff) {
+            pre = holdBuffs.get(inn);
+            if (pre == null) {
+                holdBuffs.put(inn, bPDC);
+                return;
+            }
+            /* 都用新的buff，只更新时间戳 */
+            /* 永续则直接覆盖 */
+            if (bPDC.getEndTimeStamp() >= 0)
+                bPDC.setEndTimeStamp(Math.max(pre.getEndTimeStamp(), bPDC.getEndTimeStamp()));
+            holdBuffs.put(inn, bPDC);
+        } else {
+            pre = otherBuffs.get(inn);
+            if (pre == null) {
+                otherBuffs.put(inn, bPDC);
+                return;
+            }
+            /* 都用新的buff，只更新时间戳 */
+            if (bPDC.getEndTimeStamp() >= 0)
+                bPDC.setEndTimeStamp(Math.max(pre.getEndTimeStamp(), bPDC.getEndTimeStamp()));
+            otherBuffs.put(inn, bPDC);
+        }
     }
 
     /**

@@ -31,12 +31,14 @@ public final class ConfigKey {
     public static final String CHANCE = "chance";
 
     /*属性关键词*/
+    public static final String ENABLE = "enable";
     public static final String ACS = "calculate_type";
     public static final String DURATION = "duration";
     public static final String CD = "cd";
     public static final String INNER_NAME = "inner_name";
     public static final String PRIORITY = "priority";
     public static final String DAMAGE_TYPE = "damage_type";
+    public static final String BUFF_ACTIVE_CONDITION = "role_condition";
 
     /* 等级配置关键词 */
     public static final String BEGIN = "begin";

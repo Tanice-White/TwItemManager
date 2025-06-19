@@ -9,6 +9,7 @@ import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
+import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import io.github.tanice.twItemManager.util.SlotUtil;
 import lombok.Getter;
@@ -18,18 +19,21 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
-@Getter
 public abstract class Calculator {
     /**
      * 根据就算区分好的属性Map
      * Timer 和 Other 不记录
      * Before_Damage 和 After_damage 单独记录
      */
+    @Getter
     protected final EnumMap<DamageType, Double> damageTypeMap = new EnumMap<>(DamageType.class);
+    @Getter
     protected final EnumMap<AttributeCalculateSection, CalculablePDC> resultMap = new EnumMap<>(AttributeCalculateSection.class);
     protected final List<BuffPDC> beforeList = new ArrayList<>();
     protected final List<BuffPDC> betweenList = new ArrayList<>();
@@ -68,6 +72,37 @@ public abstract class Calculator {
             }
         }
         initDamageMap();
+    }
+
+    /**
+     * 获取伤害前生效的 buff
+     */
+    public List<BuffPDC> getBeforeList(@NotNull BuffActiveCondition role) {
+        // 内部的 buffActiveCondition == role || buffActiveCondition == BuffActiveCondition.ALL 才返回
+        return beforeList.stream()
+                .filter(buff ->
+                        buff.isEnable() && (buff.getBuffActiveCondition() == role || buff.getBuffActiveCondition() == BuffActiveCondition.ALL)
+                ).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
+     * 获取防御计算前的生效 buff
+     */
+    public List<BuffPDC> getBetweenList(@NotNull BuffActiveCondition role) {
+        return betweenList.stream()
+                .filter(buff ->
+                        buff.isEnable() && (buff.getBuffActiveCondition() == role || buff.getBuffActiveCondition() == BuffActiveCondition.ALL)
+                ).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
+     * 获取最后生效的 buff
+     */
+    public List<BuffPDC> getAfterList(@NotNull BuffActiveCondition role) {
+        return afterList.stream()
+                .filter(buff ->
+                        buff.isEnable() && (buff.getBuffActiveCondition() == role || buff.getBuffActiveCondition() == BuffActiveCondition.ALL)
+                ).collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**

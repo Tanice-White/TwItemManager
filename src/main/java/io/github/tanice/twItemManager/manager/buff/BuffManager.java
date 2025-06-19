@@ -63,9 +63,10 @@ public class BuffManager {
         buffMap.clear();
         this.loadBuffFilesAndBuffMap();
 
-        // 重新启动时间轮任务
+        // 重新启动任务
         if (buffTask != null) buffTask.cancel();
         buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, RUN_CD);
+        logInfo("BuffManager reloaded, Scheduler restarted");
     }
 
     public void onDisable() {
@@ -269,6 +270,7 @@ public class BuffManager {
                 logWarning("buff 名: " + bn + "不存在");
                 continue;
             }
+            if (!bPDC.isEnable()) continue;
             /* 全局计算类属性 */
             if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
                 /* 永续 */
@@ -277,7 +279,8 @@ public class BuffManager {
             /* 非Timer类的都需要计算生效时间 */
             } else {
                 /* 持续时间为负数则永续 */
-                if (bPDC.getDuration() > 0) bPDC.setEndTimeStamp(System.currentTimeMillis() + (50L * bPDC.getDuration()));
+                if (bPDC.getDuration() >= 0) bPDC.setEndTimeStamp(System.currentTimeMillis() + (50L * bPDC.getDuration()));
+                else bPDC.setEndTimeStamp(-1);
                 ePDC.addBuff(bPDC, isHoldBuff);
             }
         }
@@ -421,12 +424,12 @@ public class BuffManager {
                     }
                     record.buff.execute(cached.entity);
                     record.cooldownCounter = Math.max(1, record.buff.getCd());
-                    // 检查持续时间
-                    /* 最开始就小于等于0则永续 */
-                    if (record.durationCounter > 0) {
-                        record.durationCounter -= RUN_CD;
-                        if (record.durationCounter <= 0) it.remove();
-                    }
+                }
+                // 检查持续时间
+                /* 最开始就小于0则永续 */
+                if (record.durationCounter >= 0) {
+                    record.durationCounter -= RUN_CD;
+                    if (record.durationCounter <= 0) it.remove();
                 }
             }
         }
@@ -456,7 +459,8 @@ public class BuffManager {
             BuffRecord br = records.get(key);
 
             if (br != null) {
-                br.durationCounter = Math.max(br.durationCounter, nbr.durationCounter);
+                /* 非永续 */
+                if (br.durationCounter >= 0) br.durationCounter = Math.max(br.durationCounter, nbr.durationCounter);
                 records.put(key, br);
             } else records.put(key, nbr);
         }

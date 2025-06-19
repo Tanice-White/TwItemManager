@@ -4,6 +4,7 @@ import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
+import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import org.bukkit.Color;
@@ -37,9 +38,21 @@ public class BuffPDC extends CalculablePDC {
     private String jsName;
     /* 激活间隔(s) */
     protected int cd;
-    private Path jsPath;
+    private String jsPath;
     private transient Context jsContext;
     private String jsContent;
+
+    /* buff描述(用于自动生成 lore) */
+    @Getter
+    private String lore;
+
+    /* buff生效的角色条件 */
+    @Getter
+    private BuffActiveCondition buffActiveCondition;
+
+    /* buff 是否启用 */
+    @Getter
+    private boolean enable;
 
     /* 额外添加 */
     private String particle;
@@ -58,14 +71,17 @@ public class BuffPDC extends CalculablePDC {
         super(innerName, AttributeCalculateSection.valueOf(cfg.getString(ACS, "OTHER").toUpperCase()), cfg);
         jsName = "default";
         jsPath = null;
-        cd = cfg.getInt("cd", -1);
+        enable = cfg.getBoolean(ENABLE, true);
+        cd = cfg.getInt(CD, -1);
+        lore = cfg.getString(LORE, "buff: " + innerName);
+        buffActiveCondition = BuffActiveCondition.valueOf(cfg.getString(BUFF_ACTIVE_CONDITION, "all").toUpperCase());
     }
 
     public BuffPDC(@NotNull String jsName, @NotNull Path jsPath) {
         this.jsName = jsName;
-        this.jsPath = jsPath;
-        initializeJS();
-        readJSVariables();
+        this.jsPath = jsPath.toAbsolutePath().toString();
+        this.initializeJS();
+        this.readJSVariables();
     }
 
     @Override
@@ -98,11 +114,12 @@ public class BuffPDC extends CalculablePDC {
      * AFTER_DAMAGE 会在伤害计算后执行 此时 damage 表示最终伤害  List 无意义
      */
     public Object execute(Object params) {
+        this.initializeJS();
         try {
             Value runFunction = jsContext.getBindings("js").getMember("run");
             if (runFunction != null && runFunction.canExecute()) {
                 return runFunction.execute(params).asBoolean();
-            }
+            } else logWarning("buff: " + innerName + " 的 run 函数无法执行");
             return true;
         } catch (Exception e) {
             logWarning("js执行错误(后续计算继续执行): " + e.getMessage());
@@ -120,7 +137,7 @@ public class BuffPDC extends CalculablePDC {
                 .hostClassLoader(getClass().getClassLoader())
                 .build();
         try {
-            jsContent = Files.readString(jsPath);
+            jsContent = Files.readString(Path.of(jsPath));
             // Bukkit 核心类
             jsContext.eval("js",
                     """
@@ -140,7 +157,7 @@ public class BuffPDC extends CalculablePDC {
 
             jsContext.eval("js", jsContent);
         } catch (IOException e) {
-            logWarning("Failed to read js file: " + jsPath.toAbsolutePath());
+            logWarning("Failed to read js file: " + jsPath);
         }
     }
 
@@ -149,12 +166,16 @@ public class BuffPDC extends CalculablePDC {
      */
     private void readJSVariables() {
         innerName = getScriptValue(INNER_NAME, "未读取到变量");
+        enable = getScriptValue(ENABLE, true);
         priority = getScriptValue(PRIORITY, Integer.MAX_VALUE);
         chance = getScriptValue(CHANCE, 0D);
         cd = getScriptValue(CD, 0);
         duration = getScriptValue(DURATION, 0);
         String acs = getScriptValue(ACS, "other");
         attributeCalculateSection = AttributeCalculateSection.valueOf(acs.toUpperCase());
+        lore = getScriptValue(LORE, "buff: " + innerName);
+        String bac = getScriptValue(BUFF_ACTIVE_CONDITION, "all");
+        buffActiveCondition = BuffActiveCondition.valueOf(bac.toUpperCase());
         for (AttributeType at : AttributeType.values()) {
             vMap.put(at, getScriptValue(at.toString().toLowerCase(), 0D));
         }

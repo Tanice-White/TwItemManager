@@ -14,7 +14,7 @@ public class OriSerializationUtil {
             oos.writeObject(obj); // 写入对象
             return baos.toByteArray(); // 获取字节数组
         } catch (IOException e) {
-            logWarning("PDC serialize failed");
+            logWarning("PDC serialize failed: " + e);
         }
         return new byte[0];
     }
@@ -24,7 +24,7 @@ public class OriSerializationUtil {
              ObjectInputStream ois = new ObjectInputStream(bais)) {
             return ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            logWarning("PDC deserialize failed");
+            logWarning("PDC deserialize failed: " + e);
         }
         return null;
     }

@@ -69,13 +69,12 @@ public class ItemManager implements Manager {
         gemMap.clear();
         qualityGroupManagerMap.clear();
         qualityMap.clear();
-        // buffSectionMap.clear();
         // skillManagerMap.clear();
         levelTemplateMap.clear();
         // loreManager 在 loadConfigs 中初始化
-        loadConfigs();
+        this.loadConfigs();
         /* 初始化全局qualityMap */
-        loadQualityMap();
+        this.loadQualityMap();
     }
 
     /**

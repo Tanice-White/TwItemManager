@@ -1,10 +1,15 @@
 var inner_name = "测试持续掉血";
+var enable = true;
 
+var lore = "这是这个buff的具体描述，测试持续掉血"
+var role_condition = "all"  // attacker defender all -> 决定 buff 持有者作为哪一方能够生效 必写
 var priority= 0;  // 必写
 var calculate_type = "timer"; // 必写
 var chance = 0.75;
 var cd = 20;
-var duration = 119;
+// 执行周期是每2tick，所以持续时间必须是偶数
+// 若需要执行t次，则duration可以设置为 cd * (t + 1) - 2
+var duration = 118;
 
 // Timer部分只有run函数有效，其余部分只有属性有效
 // 属性部分
@@ -27,8 +32,8 @@ var other= 0; // 其他
 
 // Timer类的参数只有目标实体
 function run(livingEntity) {
-    if (livingEntity instanceof Player) {
-        livingEntity.sendMessage("你在流血");
-    }
-    return false;  // 返回否表示“禁止后续属性计算”  // Timer类的返回值无效
+    // livingEntity.setHealth(livingEntity.getHealth() - Math.min(livingEntity.getHealth(), 1.5));
+    livingEntity.damage(1.5);
+    livingEntity.setNoDamageTicks(0);
+    return false;  // 返回否表示“禁止后续属性计算”  Timer类的返回值无效
 }

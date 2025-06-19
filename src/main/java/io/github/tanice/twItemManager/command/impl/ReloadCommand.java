@@ -6,6 +6,9 @@ import io.github.tanice.twItemManager.event.PluginReloadEvent;
 import lombok.NoArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
+
+import static io.github.tanice.twItemManager.util.Logger.logInfo;
 
 /**
  * 插件重载指令
@@ -23,12 +26,11 @@ public class ReloadCommand extends SubCommand {
     }
 
     @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        TwItemManager.getInstance().onReload();
-
+    public boolean execute(@NotNull CommandSender sender, String[] args) {
         Bukkit.getPluginManager().callEvent(new PluginReloadEvent());
+
         TwItemManager.getInstance().onReload();
-        TwItemManager.getInstance().getLogger().info("[TwItems]重载成功");
+        logInfo("[TwItems]重载成功");
         sender.sendMessage("§a[TwItems]重载成功");
         return true;
     }

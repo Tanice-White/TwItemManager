@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.github.tanice.twItemManager.util.Logger.logInfo;
+
 public class MainCommand implements CommandExecutor, TabCompleter {
     private final JavaPlugin plugin;
     private final Map<String, SubCommand> subCommands = new HashMap<>();
@@ -28,6 +30,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
 
     public void onReload() {
         subCommands.values().forEach(SubCommand::onReload);
+        logInfo("Command reloaded");
     }
 
     public void onDisable() {

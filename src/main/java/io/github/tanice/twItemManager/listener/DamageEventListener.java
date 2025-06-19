@@ -7,6 +7,7 @@ import io.github.tanice.twItemManager.manager.calculator.CombatEntityCalculator;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
+import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -121,7 +122,7 @@ public class DamageEventListener implements Listener {
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onDamage(@NotNull EntityDamageEvent event) {
-        if (event instanceof EntityDamageByEntityEvent) return;
+        if (event instanceof EntityDamageByEntityEvent && event.getDamageSource().getDamageType() != org.bukkit.damage.DamageType.THORNS) return;
         if (event.getEntity() instanceof LivingEntity) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> doDamage(event, false, event.getDamage()), 1L);
         }
@@ -141,6 +142,9 @@ public class DamageEventListener implements Listener {
             if (source instanceof Entity sourceEntity) damager = sourceEntity;
         }
         if (!(damager instanceof LivingEntity livingD) || !(target instanceof LivingEntity livingT)) return;
+
+        /* 荆棘伤害取消计算 */
+        if (event.getDamageSource().getDamageType() == org.bukkit.damage.DamageType.THORNS) return;
 
         CombatEntityCalculator ac = new CombatEntityCalculator(livingD);
         CombatEntityCalculator bc = new CombatEntityCalculator(livingT);
@@ -169,11 +173,13 @@ public class DamageEventListener implements Listener {
 
         TwDamageEvent twDamageEvent = new TwDamageEvent(livingD, livingT, 0, aAttrMap, bAttrMap, weaponDamageType);
         /* BEFORE_DAMAGE 事件计算 */
-        List<BuffPDC> bd = ac.getBeforeList();
-        bd.addAll(bc.getBeforeList());
+        List<BuffPDC> bd = ac.getBeforeList(BuffActiveCondition.ATTACKER);
+        bd.addAll(bc.getBeforeList(BuffActiveCondition.DEFENDER));
         Collections.sort(bd);
         for (BuffPDC pdc : bd) {
             Object answer = pdc.execute(twDamageEvent);
+            /* 可能被更改 */
+            finalDamage = twDamageEvent.getDamage();
             if (answer.equals(false)) {
                 doDamage(event, isCritical, finalDamage);
                 return;
@@ -208,8 +214,8 @@ public class DamageEventListener implements Listener {
         twDamageEvent.setDamage(finalDamage);
 
         /* 中间属性生效 */
-        List<BuffPDC> be = ac.getBetweenList();
-        be.addAll(bc.getBetweenList());
+        List<BuffPDC> be = ac.getBetweenList(BuffActiveCondition.ATTACKER);
+        be.addAll(bc.getBetweenList(BuffActiveCondition.DEFENDER));
         Collections.sort(be);
         for (BuffPDC pdc : be) {
             Object answer = pdc.execute(twDamageEvent);
@@ -231,8 +237,8 @@ public class DamageEventListener implements Listener {
         /* AFTER_DAMAGE 事件计算 */
         twDamageEvent.setDamage(finalDamage);
 
-        List<BuffPDC> ad = ac.getAfterList();
-        ad.addAll(bc.getAfterList());
+        List<BuffPDC> ad = ac.getAfterList(BuffActiveCondition.ATTACKER);
+        ad.addAll(bc.getAfterList(BuffActiveCondition.DEFENDER));
         Collections.sort(ad);
         for (BuffPDC pdc : ad) {
             Object answer = pdc.execute(twDamageEvent);
@@ -245,6 +251,9 @@ public class DamageEventListener implements Listener {
         }
 
         /* a 给 b 增加 buff */
+        TwItemManager.getBuffManager().doAttackBuffs(livingD, livingT);
+        /* b 给 a 增加 buff */
+        TwItemManager.getBuffManager().doDefenceBuffs(livingD, livingT);
 
         /* TIMER 不处理，而是在增加buff的时候处理 */
         doDamage(event, isCritical, finalDamage);
@@ -254,13 +263,15 @@ public class DamageEventListener implements Listener {
      * 对target造成真实伤害
      */
     private void doDamage(@NotNull EntityDamageEvent event, boolean isCritical, double damage) {
-        event.setDamage(damage);
-        if (damage <= 0) return;
+        if (damage <= 0) {
+            event.setDamage(0);
+            return;
+        }
 
         LivingEntity le = (LivingEntity) event.getEntity();
         double finalDamage = event.getFinalDamage();
+        if (finalDamage > damage) finalDamage = damage;
         double deltaDamage = damage - finalDamage;
-        generateIndicator(event.getEntity(), isCritical, damage);
         double health = le.getHealth();
 
         /* 原版伤害致死则不需要补充伤害 */
@@ -268,6 +279,8 @@ public class DamageEventListener implements Listener {
             double dd = health - finalDamage;
             le.setHealth(health - Math.min(dd, deltaDamage)); /* 补充伤害 */
         }
+
+        generateIndicator(event.getEntity(), isCritical, damage);
     }
 
     /**

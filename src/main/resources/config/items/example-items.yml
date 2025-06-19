@@ -35,12 +35,12 @@
   gem_stack: 3  # 宝石槽位数量(所有宝石通用) 默认为0
   # 增加
   hold_buff:
-    - 测试持续掉血  # 默认给自己
+    # - 测试持续掉血  # 默认给自己
     - 测试吸血
   attack_buff:
-    - 攻击附带buff  # 默认给受击方（js可自定义属性给予方）
+    - 测试持续掉血  #（攻击方（自己）给受击方的buff）
   defence_buff:
-    - 受击后给与攻击方的buff  # 默认给攻击方（js自定义属性给予方）
+    - 测试吸血  #（受击方（自己）给攻击方的buff）
   # quality 预设 (不在qualities内则会置空)
   quality:
   # level 预设 (不符合升级模板内则会置为模板中的最低等级)
@@ -116,6 +116,9 @@
   lore_template: default
   lore:
     - <gradient:#fcd228:#fc4828>测试防御后减伤_苹果测试</gradient>
+    - 我可能可以帮你当一剑？
+  hold_buff:
+    - 测试闪避
 
 
 可食用物内部名:
