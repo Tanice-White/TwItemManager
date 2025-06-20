@@ -25,12 +25,12 @@ public class RecastCommand extends SubCommand {
             return true;
         }
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR || TwItemManager.getItemManager().isNotTwItem(item)) {
+        if (item.getType() == Material.AIR || TwItemManager.getItemManager().isNotItem(item)) {
             sender.sendMessage("§c请手持TwItem执行此命令");
             return true;
         }
-        boolean ok = TwItemManager.getItemManager().recast(item);
-        if (ok) sender.sendMessage("§a重铸成功");
+        String qn = TwItemManager.getItemManager().recast(player, item);
+        if (qn != null) sender.sendMessage("§a重铸成功: " + qn);
         else sender.sendMessage("§c重铸失败");
         return true;
     }

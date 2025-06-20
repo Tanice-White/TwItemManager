@@ -20,7 +20,7 @@ public class RemoveGemCommand extends SubCommand {
             return true;
         }
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR || TwItemManager.getItemManager().isNotTwItem(item)) {
+        if (item.getType() == Material.AIR || TwItemManager.getItemManager().isNotItem(item)) {
             sender.sendMessage("§c请手持TwItem执行此命令");
             return true;
         }

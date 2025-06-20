@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,14 +17,12 @@ public class TwItemUpdateEvent extends Event implements Cancellable {
 
     private final JavaPlugin plugin;
     private final Player player;
-    private final ItemPDC pre;
-    private final ItemPDC after;
+    private final ItemStack pre;
 
-    public TwItemUpdateEvent(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull ItemPDC pre, @NotNull ItemPDC after) {
+    public TwItemUpdateEvent(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull ItemStack pre) {
         this.plugin = plugin;
         this.player = player;
         this.pre = pre;
-        this.after = after;
     }
 
     public static HandlerList getHandlerList() {return handlers;}

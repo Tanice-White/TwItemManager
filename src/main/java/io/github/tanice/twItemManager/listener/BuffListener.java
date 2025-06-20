@@ -37,12 +37,12 @@ public class BuffListener implements Listener {
     @EventHandler
     public void onPlayerDie (@NotNull PlayerDeathEvent event) {
         Player p =event.getPlayer();
-        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(p);
+        EntityPDC ePDC = PDCAPI.getCalculablePDC(p);
         if (ePDC != null) {
             /* 若直接 new 可能会频繁扩容，增加 GC 的压力 */
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                ePDC.removeAllBuffs();
-                PDCAPI.setEntityCalculablePDC(p, ePDC);
+                ePDC.removeBuffs();
+                PDCAPI.setCalculablePDC(p, ePDC);
                 TwItemManager.getBuffManager().deactivatePlayerTimerBuff(p.getUniqueId());
             }, 1L);
         }
@@ -59,7 +59,7 @@ public class BuffListener implements Listener {
         Player p =event.getPlayer();
         TwItemManager.getBuffManager().onPlayerQuit(p.getUniqueId());
         /* 生成一个新的 EntityPDC，防止代码变动，序列化出问题 */
-        PDCAPI.setEntityCalculablePDC(p, new EntityPDC());
+        PDCAPI.setCalculablePDC(p, new EntityPDC());
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().deactivatePlayerTimerBuff(p.getUniqueId()), 1L);
     }
 
@@ -76,7 +76,7 @@ public class BuffListener implements Listener {
         int slot = event.getSlot();
         if (!isArmorSlot(slot) && !isHandSlot(slot)) return;
         /* 原本位置的物品是否是twItem */
-        if (TwItemManager.getItemManager().isNotTwItem(event.getOldItemStack()) && TwItemManager.getItemManager().isNotTwItem(event.getNewItemStack())) return;
+        if (TwItemManager.getItemManager().isNotItem(event.getOldItemStack()) && TwItemManager.getItemManager().isNotItem(event.getNewItemStack())) return;
         /* 这里获取的物品，延迟执行不会变化 */
         /* 考虑到主副手交换，两个全都删除 */
         changeBuff(event.getPlayer(), event.getOldItemStack(), event.getNewItemStack());
@@ -92,7 +92,7 @@ public class BuffListener implements Listener {
         ItemStack newItem = player.getInventory().getItem(event.getNewSlot());
 
         /* 原物品是插件物品则需要 */
-        if (TwItemManager.getItemManager().isNotTwItem(previousItem) &&  TwItemManager.getItemManager().isNotTwItem(newItem)) return;
+        if (TwItemManager.getItemManager().isNotItem(previousItem) &&  TwItemManager.getItemManager().isNotItem(newItem)) return;
         changeBuff(player, previousItem, newItem);
     }
 
@@ -105,7 +105,7 @@ public class BuffListener implements Listener {
         Player p = event.getPlayer();
         ItemStack item = event.getItemDrop().getItemStack();
         // 更新buff
-        if (!TwItemManager.getItemManager().isNotTwItem(item)) changeBuff(p, item);
+        if (!TwItemManager.getItemManager().isNotItem(item)) changeBuff(p, item);
     }
 
     /**
@@ -116,7 +116,7 @@ public class BuffListener implements Listener {
     public void onItemPickup(@NotNull EntityPickupItemEvent event) {
         ItemStack item = event.getItem().getItemStack();
         // 更新buff
-        if (!TwItemManager.getItemManager().isNotTwItem(item)) changeBuff(event.getEntity(), (ItemStack) null);
+        if (!TwItemManager.getItemManager().isNotItem(item)) changeBuff(event.getEntity(), (ItemStack) null);
     }
 
     /**

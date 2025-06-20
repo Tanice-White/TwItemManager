@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.item.base.impl;
 
+import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
@@ -8,6 +9,7 @@ import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +30,7 @@ public class Item extends BaseItem {
     private List<String> skills;
     /** 可选品质组组名 */
     private List<String> qualityGroups;
-    /** 模板名 */
+    /** 等级模板名 */
     @Getter
     private String levelTemplateName;
     /** 是否取消伤害 */
@@ -66,60 +68,79 @@ public class Item extends BaseItem {
      */
     public Item(@NotNull String innerName, @NotNull ConfigurationSection config) {
         super(innerName, config);
-        this.skills = new ArrayList<>();
-        this.qualityGroups = new ArrayList<>();
-        this.holdBuffs = new ArrayList<>();
-        this.attackBuffs = new ArrayList<>();
-        this.defenseBuffs = new ArrayList<>();
-        generate(config);
     }
 
     @Override
-    protected void loadUnchangeableVar(@NotNull ConfigurationSection config) {
-        skills = config.getStringList(SKILLS);
-        qualityGroups = config.getStringList(QUALITY_GROUPS);
-        cancelDamage = config.getBoolean(CANCEL_DAMAGE, false);
-        loseWhenBreak = config.getBoolean(LOSE_WHEN_BREAK, false);
-        soulBind = config.getBoolean(SOUL_BIND, false);
-        levelTemplateName = config.getString(LEVEL_TEMPLATE_NAME, "");
-        gemStackNumber = config.getInt(GEM_STACK_NUMBER, 0);
-        setName = config.getString(SET_NAME, "");
-        damageType = DamageType.valueOf(config.getString(DAMAGE_TYPE, "OTHER").toUpperCase());
-        holdBuffs = config.getStringList(HOLD_BUFF);
-        attackBuffs = config.getStringList(ATTACK_BUFF);
-        defenseBuffs = config.getStringList(DEFENCE_BUFF);
+    protected void loadClassValues() {
+        skills = cfg.getStringList(SKILLS);
+        qualityGroups = cfg.getStringList(QUALITY_GROUPS);
+        cancelDamage = cfg.getBoolean(CANCEL_DAMAGE, false);
+        loseWhenBreak = cfg.getBoolean(LOSE_WHEN_BREAK, false);
+        soulBind = cfg.getBoolean(SOUL_BIND, false);
+        levelTemplateName = cfg.getString(LEVEL_TEMPLATE_NAME, "");
+        gemStackNumber = cfg.getInt(GEM_STACK_NUMBER, 0);
+        setName = cfg.getString(SET_NAME, "");
+        damageType = DamageType.valueOf(cfg.getString(DAMAGE_TYPE, "OTHER").toUpperCase());
+        holdBuffs = cfg.getStringList(HOLD_BUFF);
+        attackBuffs = cfg.getStringList(ATTACK_BUFF);
+        defenseBuffs = cfg.getStringList(DEFENCE_BUFF);
     }
 
     /**
      * 读取物品基础信息
      */
     @Override
-    protected void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
-        meta.displayName(MiniMessageUtil.deserialize(config.getString(DISPLAY_NAME,"")));
-        meta.setMaxStackSize(config.getInt(MAX_STACK, 1));
+    protected void loadBase(@NotNull ItemMeta meta) {
+        meta.displayName(MiniMessageUtil.deserialize(cfg.getString(DISPLAY_NAME,"")));
+        meta.setMaxStackSize(cfg.getInt(MAX_STACK, 1));
         meta.setUnbreakable(true);
-        int i = config.getInt(CUSTOM_MODEL_DATA);
+        int i = cfg.getInt(CUSTOM_MODEL_DATA);
         if (i != 0) meta.setCustomModelData(i);
-        for (String flagName : config.getStringList(HIDE_FLAGS)) meta.addItemFlags(ItemFlag.valueOf("HIDE_" + flagName.toUpperCase()));
-        i = config.getInt(MAX_DURABILITY, -1);
+        for (String flagName : cfg.getStringList(HIDE_FLAGS)) meta.addItemFlags(ItemFlag.valueOf("HIDE_" + flagName.toUpperCase()));
+        i = cfg.getInt(MAX_DURABILITY, -1);
         setMaxDamage(meta, i);
         setCurrentDamage(meta, i);
-        if (config.contains(COLOR)){
-            if (meta instanceof LeatherArmorMeta) ((LeatherArmorMeta) meta).setColor(MiniMessageUtil.gethexColor(config.getString(COLOR)));
+        if (cfg.contains(COLOR)){
+            if (meta instanceof LeatherArmorMeta) ((LeatherArmorMeta) meta).setColor(MiniMessageUtil.gethexColor(cfg.getString(COLOR)));
             else logWarning(innerName + "不是皮革制品，颜色无效。");
         }
     }
 
     @Override
-    protected void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
+    protected void loadPDCs(@NotNull ItemMeta meta) {
         /* PDC默认值 */
-        if (!setItemCalculablePDC(meta, new ItemPDC(innerName, AttributeCalculateSection.BASE, config))) {
+        if (!setCalculablePDC(meta, new ItemPDC(innerName, AttributeCalculateSection.BASE, cfg))) {
             logWarning("ItemPDC 设置出错");
         }
-        setSlot(meta ,config.getString(SLOT,"ANY"));
+        setSlot(meta ,cfg.getString(SLOT,"ANY"));
         /* 灵魂绑定的玩家名(暂时不使用UUID) */
         setOwner(meta, "");
         updateUpdateCode(meta);
+    }
+
+    @Override
+    public @NotNull List<String> selfUpdate(@NotNull ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        /* 基础信息重载 */
+        loadBase(meta);
+
+        /* PDC 不能直接设置 */
+        ItemPDC prePDC = (ItemPDC) PDCAPI.getCalculablePDC(item);
+        ItemPDC newPDC = (ItemPDC) PDCAPI.getCalculablePDC(this.item);
+        if (newPDC == null) {
+            logWarning("物品更新后找不到对应的底层: " + this.innerName);
+            return List.of();
+        }
+        List<String> externalGems = newPDC.inheritanceFrom(prePDC);
+        
+        /* 原版属性操作 */
+        if (prePDC != null) prePDC.removeOriAttrsFrom(item);
+        newPDC.attachOriAttrsTo(item);
+        PDCAPI.setCalculablePDC(item, newPDC);
+
+        item.setItemMeta(meta);
+        /* 多余的宝石给予玩家 */
+        return externalGems;
     }
 
     public @NotNull List<String> getSkills() {return new ArrayList<>(skills);}

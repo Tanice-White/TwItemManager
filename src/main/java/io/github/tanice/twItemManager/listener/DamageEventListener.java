@@ -4,6 +4,7 @@ import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.event.TwDamageEvent;
 import io.github.tanice.twItemManager.manager.calculator.CombatEntityCalculator;
+import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
@@ -164,8 +165,8 @@ public class DamageEventListener implements Listener {
         EntityEquipment equipment = livingD.getEquipment();
         if (equipment != null) {
             itemStack = equipment.getItemInMainHand();  // 单独写出来用于后续判断
-            Item i = TwItemManager.getItemManager().getItemByItemStack(itemStack);
-            if (i != null) weaponDamageType = i.getDamageType();
+            BaseItem bit = TwItemManager.getItemManager().getBaseItem(itemStack);
+            if (bit instanceof Item it) weaponDamageType = it.getDamageType();
             /* 否则武器类型保持OTHER不变 */
         }
 
@@ -193,7 +194,7 @@ public class DamageEventListener implements Listener {
         /* 不影响原版武器伤害的任何计算 */
         /* 不是插件物品 */
         /* 原版弓箭伤害就是会飘 */
-        if (TwItemManager.getItemManager().isNotTwItem(itemStack)) finalDamage += event.getDamage();
+        if (TwItemManager.getItemManager().isNotItem(itemStack)) finalDamage += event.getDamage();
             /* 怪物拿起的武器不受这个影响，伤害是满额的 */
             /* 所以玩家才计算比例 */
         else if (damager instanceof Player p) {

@@ -15,6 +15,12 @@ public final class ConfigKey {
     public static final String HIDE_FLAGS = "hide_flags";
 
     /* Item类 */
+    public static final String TYPE = "type";  /* item中的哪一个子类 item ? gem ? material ? consumable */
+    public static final String TYPE_ITEM = "item";
+    public static final String TYPE_GEM = "gem";
+    public static final String TYPE_MATERIAL = "material";
+    public static final String TYPE_CONSUMABLE = "consumable";
+
     public static final String SKILLS = "skills";
     public static final String QUALITY_GROUPS = "qualities";
     public static final String CANCEL_DAMAGE = "cancel_damage";
@@ -26,6 +32,8 @@ public final class ConfigKey {
     public static final String HOLD_BUFF = "hold_buff";
     public static final String ATTACK_BUFF = "attack_buff";
     public static final String DEFENCE_BUFF = "defence_buff";
+    /* 宝石配置关键词 */
+    public static final String LOSS_WHEN_FAILED = "loss_when_failed";
 
     /* 通用关键词 */
     public static final String CHANCE = "chance";
@@ -45,9 +53,6 @@ public final class ConfigKey {
     public static final String MAX = "max";
     public static final String LEVEL_UP_NEED = "level_up_need";
     public static final String LEVEL_DOWN_WHEN_FAILED = "level_down_when_failed";
-
-    /* 宝石配置关键词 */
-    public static final String LOSS_WHEN_FAILED = "loss_when_failed";
 
     /* 全局配置文件 */
     /* 防御计算配置 */

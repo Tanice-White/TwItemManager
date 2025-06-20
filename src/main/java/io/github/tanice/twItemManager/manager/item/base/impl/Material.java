@@ -19,22 +19,22 @@ public class Material extends BaseItem {
     }
 
     @Override
-    protected void loadUnchangeableVar(@NotNull ConfigurationSection config) {
+    protected void loadClassValues() {
 
     }
 
     @Override
-    protected void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
-        meta.displayName(MiniMessageUtil.deserialize(config.getString(DISPLAY_NAME,"")));
-        meta.setMaxStackSize(config.getInt(MAX_STACK, 1));
+    protected void loadBase(@NotNull ItemMeta meta) {
+        meta.displayName(MiniMessageUtil.deserialize(cfg.getString(DISPLAY_NAME,"")));
+        meta.setMaxStackSize(cfg.getInt(MAX_STACK, 1));
         meta.setUnbreakable(true);
-        int cmd = config.getInt(CUSTOM_MODEL_DATA);
+        int cmd = cfg.getInt(CUSTOM_MODEL_DATA);
         if (cmd != 0) meta.setCustomModelData(cmd);
-        for (String flagName : config.getStringList(HIDE_FLAGS)) meta.addItemFlags(ItemFlag.valueOf("HIDE_" + flagName.toUpperCase()));
+        for (String flagName : cfg.getStringList(HIDE_FLAGS)) meta.addItemFlags(ItemFlag.valueOf("HIDE_" + flagName.toUpperCase()));
     }
 
     @Override
-    protected void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection config) {
+    protected void loadPDCs(@NotNull ItemMeta meta) {
 
     }
 

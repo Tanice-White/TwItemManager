@@ -8,7 +8,6 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +19,6 @@ import java.util.*;
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.CHANCE;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.DURATION;
-import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**

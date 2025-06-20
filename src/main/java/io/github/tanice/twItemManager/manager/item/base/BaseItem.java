@@ -30,39 +30,45 @@ public abstract class BaseItem {
     @Getter
     protected String loreTemplateName;
 
+    /** 对应的config */
+    protected final ConfigurationSection cfg;
+
     /**
      * 依据内部名称和对应的config文件创建物品
      * @param innerName 客制化物品内部名称
      * @param cfg 对应的配置文件部分
      */
     public BaseItem(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
+        this.cfg = cfg;
         this.innerName = innerName;
         lore = cfg.getStringList(LORE);
         loreTemplateName = cfg.getString(LORE_TEMPLATE,"");
-        generate(cfg);
+        generate();
     }
 
-    protected void generate(@NotNull ConfigurationSection cfg) {
-        Material material = loadMaterial(cfg);
+    /**
+     * 生成物品
+     */
+    protected void generate() {
+        Material material = loadMaterial();
         if (material == null) return;
-        /* 子类方法1 加载自身类中的属性*/
-        loadUnchangeableVar(cfg);
+        /* 加载自身类中的属性*/
+        loadClassValues();
         item = new ItemStack(material, cfg.getInt(AMOUNT, 1));
         ItemMeta meta = item.getItemMeta();
         setInnerName(meta, innerName);
         /* 加载物品基础信息 */
-        loadBase(meta, cfg);
+        loadBase(meta);
         /* 加载PDC属性 */
-        loadPDCs(meta, cfg);
+        loadPDCs(meta);
         item.setItemMeta(meta);
     }
 
     /**
      * 根据配置文件识别原版物品id
-     * @param cfg 配置文件示例
      * @return 合法原版物品
      */
-    protected @Nullable Material loadMaterial(@NotNull ConfigurationSection cfg) {
+    protected @Nullable Material loadMaterial() {
         String id = cfg.getString(ORI_MATERIAL);
         if (id == null || id.isEmpty()) {
             logWarning("id 不允许为空! ");
@@ -79,15 +85,30 @@ public abstract class BaseItem {
     /**
      * 读取子类自身的不可变数据--需要储存在运行类中
      */
-    protected abstract void loadUnchangeableVar(@NotNull ConfigurationSection cfg);
+    protected abstract void loadClassValues();
     /**
      * 读取物品基础信息(原版)
      */
-    protected abstract void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection cfg);
+    protected abstract void loadBase(@NotNull ItemMeta meta);
     /**
      * 读取物品属性内容(CalculablePDC)
      */
-    protected abstract void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection cfg);
+    protected abstract void loadPDCs(@NotNull ItemMeta meta);
+
+    /**
+     * 物品更新
+     * 使用物品内部名找到对应的底层，并将新的底层覆盖过去
+     * 即使用新的 <? extend BaseItem> 类更新 item
+     * @param item 需要被更新的物品
+     * @return 如果有多余的宝石，则卸下来并返回内部名列表
+     */
+    public @NotNull List<String> selfUpdate(@NotNull ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        loadBase(meta);
+        loadPDCs(meta);
+        item.setItemMeta(meta);
+        return List.of();
+    }
 
     /**
      * 获取物品实例

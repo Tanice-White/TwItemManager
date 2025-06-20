@@ -2,7 +2,10 @@ package io.github.tanice.twItemManager.manager.pdc.impl;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.constance.key.AttributeKey;
+import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
+import io.github.tanice.twItemManager.manager.item.base.BaseItem;
+import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
@@ -50,16 +53,11 @@ public class ItemPDC extends CalculablePDC {
     /* 0-白值增加 1-百分比增加 */
     protected Map<String, double[]> oriAttrs;
 
+    /**
+     * 序列化使用，主动调用会引发bug
+     */
     public ItemPDC() {
         super();
-        qualityName = "";
-        gems = new String[0];
-        level = 0;
-        oriAttrs = new HashMap<>();
-    }
-
-    public ItemPDC(AttributeCalculateSection s) {
-        super(s);
         qualityName = "";
         gems = new String[0];
         level = 0;
@@ -175,7 +173,7 @@ public class ItemPDC extends CalculablePDC {
 
     @Override
     public @NotNull String toString() {
-        return "CalculablePDC{" +
+        return "ItemPDC{" +
                 "priority=" + priority + ", " +
                 "itemInnerName=" + innerName + ", " +
                 "qualityName=" + qualityName + ", " +
@@ -183,7 +181,7 @@ public class ItemPDC extends CalculablePDC {
                 "gem=" + Arrays.toString(gems) + ", " +
                 "oriAttrs=" + mapToString(oriAttrs) + ", " +
                 "attributeCalculateSection=" + attributeCalculateSection + ", " +
-                "attribute-addition=" + enumMapToString(vMap) +
+                "attribute-addition=" + enumMapToString(vMap) + ", " +
                 "type-addition=" + enumMapToString(tMap) +
                 "}";
     }
@@ -198,19 +196,27 @@ public class ItemPDC extends CalculablePDC {
      */
     public void selfCalculate() {
         ItemManager im = TwItemManager.getItemManager();
+
+        BaseItem bit;
+        CalculablePDC cPDC;
+
         /* 品质 */
         /* 品质若为BASE，则是加算，否则乘算 */
         AttributePDC aPDC = im.getQualityPDC(qualityName);
         if (aPDC != null) selfMerge(aPDC, 1);
         /* 宝石 */
-        for (String gem : gems) {
-            if (gem.equals(EMPTY_GEM)) continue;
-            aPDC = im.getGemAttributePDC(gem);
-            selfMerge(aPDC, 1);
+        for (String gn : gems) {
+            if (gn.equals(EMPTY_GEM)) continue;
+            bit = im.getBaseItem(gn);
+            if (!(bit instanceof Gem gem)) continue;
+            cPDC = PDCAPI.getCalculablePDC(gem.getItem());
+            if (cPDC == null) continue;
+            selfMerge(cPDC.toAttributePDC(), 1);
         }
+
         /* 等级 */
-        Item it = im.getItemByInnerName(innerName);
-        if (it == null) {
+        bit = im.getBaseItem(innerName);
+        if (!(bit instanceof Item it)) {
             logWarning("[selfCalculate]: 物品 " + innerName + " 不存在");
             return;
         }
@@ -223,8 +229,6 @@ public class ItemPDC extends CalculablePDC {
             if (l != level) logWarning("警告: 某玩家拥有非法等级武器，属性已自动修正");
             selfMerge(im.getLevelPDC(lt.getInnerName()), l);
         }
-
-        /* 手持buff应该在hold的时候加入EntityPDC中 */
     }
 
     /**
@@ -232,7 +236,9 @@ public class ItemPDC extends CalculablePDC {
      * @param iPDC 被继承的目标
      * @return 返回多余的宝石名
      */
-    public @NotNull List<String> extendFrom(@NotNull ItemPDC iPDC) {
+    public @NotNull List<String> inheritanceFrom(@Nullable ItemPDC iPDC) {
+        if (iPDC == null) return List.of();
+
         qualityName = iPDC.getQualityName();
         level = iPDC.getLevel();
         /* 被继承的宝石 */

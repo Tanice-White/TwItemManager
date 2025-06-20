@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public abstract class Calculator {
     /**
@@ -118,7 +117,7 @@ public abstract class Calculator {
 
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it))) {
-            cp = getItemCalculablePDC(it);
+            cp = getCalculablePDC(it);
             if (cp != null) {
                 if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
                 res.add(cp);
@@ -127,7 +126,7 @@ public abstract class Calculator {
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it))) {
-            cp = getItemCalculablePDC(it);
+            cp = getCalculablePDC(it);
             if (cp != null) {
                 if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
                 res.add(cp);
@@ -137,7 +136,7 @@ public abstract class Calculator {
         it = equip.getHelmet();
         if (it != null) {
             if (SlotUtil.helmetJudge(getSlot(it))) {
-                cp = getItemCalculablePDC(it);
+                cp = getCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
                     res.add(cp);
@@ -148,7 +147,7 @@ public abstract class Calculator {
         it = equip.getChestplate();
         if (it != null) {
             if (SlotUtil.chestJudge(getSlot(it))) {
-                cp = getItemCalculablePDC(it);
+                cp = getCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
                     res.add(cp);
@@ -159,7 +158,7 @@ public abstract class Calculator {
         it = equip.getLeggings();
         if (it != null) {
             if (SlotUtil.legsJudge(getSlot(it))) {
-                cp = getItemCalculablePDC(it);
+                cp = getCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
                     res.add(cp);
@@ -170,7 +169,7 @@ public abstract class Calculator {
         it = equip.getBoots();
         if (it != null) {
             if (SlotUtil.bootsJudge(getSlot(it))) {
-                cp = getItemCalculablePDC(it);
+                cp = getCalculablePDC(it);
                 if (cp != null) {
                     if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
                     res.add(cp);
@@ -185,7 +184,7 @@ public abstract class Calculator {
      * 获取目标生效的buff
      */
     protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity e) {
-        EntityPDC ePDC = PDCAPI.getEntityCalculablePDC(e);
+        EntityPDC ePDC = PDCAPI.getCalculablePDC(e);
         if (ePDC == null) return new ArrayList<>();
         return ePDC.getBuffPDCs(System.currentTimeMillis());
     }

@@ -1,17 +1,13 @@
 package io.github.tanice.twItemManager.util;
 
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getItemCalculablePDC;
+import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getCalculablePDC;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getSlot;
 
 public class Tool {

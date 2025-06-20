@@ -40,7 +40,7 @@ public class AttributePDC extends CalculablePDC {
 
     @Override
     public @NotNull String toString() {
-        return "CalculablePDC{" +
+        return "AttributePDC{" +
                 "priority=" + priority + ", " +
                 "displayName='" + displayName + ", " +
                 "itemInnerName=" + innerName + ", " +

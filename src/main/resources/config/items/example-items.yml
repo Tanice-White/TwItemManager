@@ -2,6 +2,7 @@
 # <gradient>TEXT_TO_DISPLAY</gradient>
 # <#fffff>TEXT_TO_DISPLAY<#0fffff>TEXT_TO_DISPLAY.....
 物品内部名:
+  type: item  # 默认item  有 gem item consumable material(简化的item) 四个类型
   id: stone_sword  # 对应原版物品ID
   display_name: <gradient:#ffffff:#fc4828>我是测试，你是什么(MiniMessage)</gradient>  # 武器在游戏内呈现的名称
   custom_model_data: 1000  # 物品自定义模型或贴图
@@ -35,12 +36,12 @@
   gem_stack: 3  # 宝石槽位数量(所有宝石通用) 默认为0
   # 增加
   hold_buff:
-    # - 测试持续掉血  # 默认给自己
+    - 测试持续掉血  # 默认给自己
     - 测试吸血
   attack_buff:
     - 测试持续掉血  #（攻击方（自己）给受击方的buff）
   defence_buff:
-    - 测试吸血  #（受击方（自己）给攻击方的buff）
+    # - 测试吸血  #（受击方（自己）给攻击方的buff）
   # quality 预设 (不在qualities内则会置空)
   quality:
   # level 预设 (不符合升级模板内则会置为模板中的最低等级)
@@ -121,11 +122,45 @@
     - 测试闪避
 
 
+
 可食用物内部名:
   id: stone_sword  # 自定义任意物品
-  consumable: true  # 可食用（会自动绑定右键食用事件）同时不会储存任何其他
+  type: consumable
   food: +5 # 饱食度回复(默认正数)
   potion:
     - slow 2 10  # 表示食用后给予使用者缓慢2, 持续10个tick (1s=20tick)
     - glow 1 40  # 其余的药水效果均可
   mana: +10  # 人物蓝量 +10 (默认为正数)
+
+
+
+测试宝石1:  # 内部名
+  # 只会识别以下7个key
+  # modifiers部分同等级以及品质(无颜色代码)一样的要求
+  id: coal
+  custom_model_data: 2000
+  display_name: <yellow>力量宝石V</yellow>
+  type: gem
+  # 宝石默认无法破坏
+  hide_flags:
+    - UNBREAKABLE
+  lore:
+    - "这是一个宝石"
+  # 计算方式BASE表示是在白值计算
+  # 其余的方式单独乘算，且计算完成后的值作为武器的白值
+  calculate_type: ADD  # 默认为BASE
+  attrs:
+    attack_damage: -0.1  # 伤害减少10%
+  embed_chance: 0.9  # 镶嵌成功率  默认为 1
+  remove_chance: 0.9  # 拆卸成功率 默认为1
+  loss_when_failed: true  # 镶嵌或者拆卸失败是否修丢失
+
+
+测试宝石2:
+  id: coal
+  custom_model_data: 2001
+  type: gem
+  lore:
+    - "这是一个宝石"
+  attrs:
+    attack_damage: +10

@@ -86,7 +86,7 @@ public class BuffPDC extends CalculablePDC {
 
     @Override
     public @NotNull String toString() {
-        return "CalculablePDC{" +
+        return "BuffPDC{" +
                 "priority=" + priority + ", " +
                 "jsName=" + jsName + ".js, " +
                 "buffInnerName=" + innerName + ", " +

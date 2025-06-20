@@ -10,9 +10,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import static io.github.tanice.twItemManager.constance.key.AttributeKey.SLOT;
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
-import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setItemCalculablePDC;
+import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setCalculablePDC;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setSlot;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
@@ -32,20 +31,20 @@ public class Gem extends BaseItem {
     }
 
     @Override
-    protected void loadUnchangeableVar(@NotNull ConfigurationSection cfg) {
+    protected void loadClassValues() {
 
     }
 
     @Override
-    protected void loadBase(@NotNull ItemMeta meta, @NotNull ConfigurationSection cfg) {
+    protected void loadBase(@NotNull ItemMeta meta) {
         meta.displayName(MiniMessageUtil.deserialize(cfg.getString(DISPLAY_NAME,"")));
         meta.setMaxStackSize(cfg.getInt(MAX_STACK, 1));
         meta.setUnbreakable(true);
     }
 
     @Override
-    protected void loadPDCs(@NotNull ItemMeta meta, @NotNull ConfigurationSection cfg) {
-        if (!PDCAPI.setItemCalculablePDC(meta, new AttributePDC(innerName , AttributeCalculateSection.valueOf(cfg.getString(ACS, "BASE").toUpperCase()), cfg))) {
+    protected void loadPDCs(@NotNull ItemMeta meta) {
+        if (!PDCAPI.setCalculablePDC(meta, new AttributePDC(innerName , AttributeCalculateSection.valueOf(cfg.getString(ACS, "BASE").toUpperCase()), cfg))) {
             logWarning("GemPDC 设置出错");
         }
     }

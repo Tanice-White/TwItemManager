@@ -2,7 +2,6 @@ package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -80,14 +79,14 @@ public class TwItemUpdateListener implements Listener {
      */
     public void updateItem(@NotNull Player player, @NotNull ItemStack item) {
         List<String> externalGems = TwItemManager.getItemManager().updateItem(player, item);
-        StringBuilder s = new StringBuilder("§a装备更新, 返还多余宝石(");
+        StringBuilder s = new StringBuilder("§a装备更新");
         ItemStack g;
         for (String gn : externalGems) {
-            g = TwItemManager.getItemManager().generateGemItem(gn);
+            s.append("，返还多余宝石: ");
+            g = TwItemManager.getItemManager().generateItem(gn);
             player.getInventory().addItem(g);
-            s.append(((AttributePDC) PDCAPI.getItemCalculablePDC(g)).getDisplayName()).append(" ");
+            s.append(g.displayName()).append(" ");
         }
-        s.append(")");
         player.sendMessage(s.toString());
         PDCAPI.updateUpdateCode(item);
     }
