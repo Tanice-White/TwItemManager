@@ -3,6 +3,7 @@ package io.github.tanice.twItemManager.listener;
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
+import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import org.bukkit.Bukkit;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public class BuffListener implements Listener {
     private final JavaPlugin plugin;
@@ -57,15 +59,32 @@ public class BuffListener implements Listener {
     @EventHandler
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         Player p =event.getPlayer();
-        TwItemManager.getBuffManager().onPlayerQuit(p.getUniqueId());
-        /* 生成一个新的 EntityPDC，防止代码变动，序列化出问题 */
-        PDCAPI.setCalculablePDC(p, new EntityPDC());
+        TwItemManager.getBuffManager().onPlayerQuit(p);
+        TwItemManager.getDatabaseManager().saveEntityPDC(p.getUniqueId().toString(), PDCAPI.getCalculablePDC(p));
+
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().deactivatePlayerTimerBuff(p.getUniqueId()), 1L);
     }
 
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(event.getPlayer(), (ItemStack) null), 1L);
+        Player p =event.getPlayer();
+        // TODO 不同版本需要覆盖，否则不变
+        EntityPDC ePDC = TwItemManager.getDatabaseManager().getEntityPDC(p.getUniqueId().toString());
+        if (ePDC != null) {
+            // 内部的 endTimeStamp 需要更新
+            if (!ePDC.getBuffPDCs().isEmpty()) {
+                long curr = System.currentTimeMillis() + 100L;  // 手动延迟2tick
+                for (CalculablePDC bPDC : ePDC.getBuffPDCs()) bPDC.setEndTimeStamp(bPDC.getDeltaTime() + curr);
+            }
+
+        } else ePDC = new EntityPDC();
+
+        if (!PDCAPI.setCalculablePDC(p, ePDC)) logWarning("设置玩家PDC 失败");
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            TwItemManager.getBuffManager().updateHoldBuffs(event.getPlayer(), (ItemStack) null);
+            TwItemManager.getBuffManager().onPlayerJoin(p);
+        }, 10L);
     }
 
     /**

@@ -123,6 +123,8 @@ public class DamageEventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamage(@NotNull EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity living)) return;
+        if (event.getFinalDamage() <= 0) return;
+
         boolean c = false;
         if (event instanceof EntityDamageByEntityEvent oe) c = oe.isCritical();
 

@@ -41,11 +41,14 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     /* 是否是需要计算的BASE ADD MULTIPLY FIX */
     protected boolean needCalculation;
 
+    /* buff 还能生效的时间 - 数据库读取使用, 其他情况不允许读取 */
+    protected long deltaTime;
     /* 属性结束时间(负数则永续) - 非js使用 */
     protected long endTimeStamp;
     /* 激活几率 */
     protected double chance;
-    /* 持续时间 - 均使用 */
+
+    /* 持续时间 - 均使用(Timer类只使用这个做判断) */
     protected int duration;
 
     /* 属性具体值 */
@@ -60,6 +63,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         innerName = "default";
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = AttributeCalculateSection.OTHER;
+        deltaTime = -1;
         endTimeStamp = -1;
         chance = 1;
         duration = -1;
@@ -72,6 +76,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         priority = Integer.MAX_VALUE;
         this.attributeCalculateSection = attributeCalculateSection;
         initNeedCalculation();
+        deltaTime = -1;
         endTimeStamp = -1;
         chance = 1;
         duration = -1;
@@ -90,6 +95,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = acs;
         initNeedCalculation();
+        deltaTime = -1;
         endTimeStamp = -1;
 
         vMap = new EnumMap<>(AttributeType.class);

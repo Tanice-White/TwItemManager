@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
+import static io.github.tanice.twItemManager.infrastructure.PDCAPI.updateUpdateCode;
 
 /**
  * 普通的材料
@@ -35,7 +36,7 @@ public class Material extends BaseItem {
 
     @Override
     protected void loadPDCs(@NotNull ItemMeta meta) {
-
+        updateUpdateCode(meta);
     }
 
     /**

@@ -1,6 +1,7 @@
 package io.github.tanice.twItemManager.infrastructure;
 
 import io.github.tanice.twItemManager.TwItemManager;
+import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
@@ -77,6 +78,9 @@ public class PDCAPI {
     }
 
     public static boolean setCalculablePDC(@NotNull LivingEntity entity, @NotNull EntityPDC ePDC) {
+        if (ePDC.getVersion() != Config.version) {
+            ePDC = new EntityPDC();
+        }
         entity.getPersistentDataContainer().set(
             new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
             PersistentDataType.BYTE_ARRAY,

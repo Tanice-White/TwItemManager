@@ -186,7 +186,7 @@ public abstract class Calculator {
     protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity e) {
         EntityPDC ePDC = PDCAPI.getCalculablePDC(e);
         if (ePDC == null) return new ArrayList<>();
-        return ePDC.getBuffPDCs(System.currentTimeMillis());
+        return ePDC.getActiveBuffPDCs(System.currentTimeMillis());
     }
 
     /**

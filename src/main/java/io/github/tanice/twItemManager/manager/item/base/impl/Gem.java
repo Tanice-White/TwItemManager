@@ -11,8 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
-import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setCalculablePDC;
-import static io.github.tanice.twItemManager.infrastructure.PDCAPI.setSlot;
+import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 @Getter
@@ -47,5 +46,6 @@ public class Gem extends BaseItem {
         if (!PDCAPI.setCalculablePDC(meta, new AttributePDC(innerName , AttributeCalculateSection.valueOf(cfg.getString(ACS, "BASE").toUpperCase()), cfg))) {
             logWarning("GemPDC 设置出错");
         }
+        updateUpdateCode(meta);
     }
 }

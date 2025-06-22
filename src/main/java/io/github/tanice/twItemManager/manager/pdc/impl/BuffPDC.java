@@ -30,7 +30,7 @@ import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
  * 其余计算类都能变为 AttributePDC 中
  */
 @Getter
-public class BuffPDC extends CalculablePDC {
+public class BuffPDC extends CalculablePDC implements Cloneable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -96,7 +96,8 @@ public class BuffPDC extends CalculablePDC {
                 "endTimeStamp=" + endTimeStamp + ", " +
                 "chance=" + chance + ", " +
                 "cd=" + cd + ", " +
-                "duration=" + duration +
+                "duration=" + duration + ", " +
+                "deltaTime=" + deltaTime +
                 "}";
     }
 
@@ -206,6 +207,31 @@ public class BuffPDC extends CalculablePDC {
         } catch (Exception e) {
             logWarning("JS变量转换失败 [" + variableName + "]: " + e.getMessage());
             return defaultValue;
+        }
+    }
+
+    @Override
+    public BuffPDC clone() {
+        try {
+            BuffPDC clone = (BuffPDC) super.clone();
+            // 复制不可变字段
+            clone.jsName = this.jsName;
+            clone.cd = this.cd;
+            clone.jsPath = this.jsPath;
+            clone.jsContent = this.jsContent;
+            clone.lore = this.lore;
+            clone.buffActiveCondition = this.buffActiveCondition;
+            clone.enable = this.enable;
+            clone.particle = this.particle;
+            clone.particleNum = this.particleNum;
+            // 复制可变字段
+            clone.vMap = this.vMap.clone();
+            clone.tMap = this.tMap.clone();
+            // 重置瞬态字段
+            clone.jsContext = null;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
     }
 }

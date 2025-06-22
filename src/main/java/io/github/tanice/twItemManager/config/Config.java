@@ -18,12 +18,15 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
+
 /**
  * 插件配置管理类
  * 管理全局配置，同时提供读取文件夹内所有yml文件的方法
  */
 @Getter
 public class Config {
+    public static double version;
     public static boolean debug;
 
     /* 生成示例文件 */
@@ -52,10 +55,21 @@ public class Config {
     /* 跳劈伤害加成 */
     public static double originalCriticalStrikeAddition;
 
+    /* 数据库配置 */
+    public static boolean use_mysql;
+    public static String host;
+    public static String port;
+    public static String database_name;
+    public static String username;
+    public static String password;
+
     /** 激活时 加载全局配置文件 */
     public static void onEnable(@NotNull JavaPlugin plugin) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
+        ConfigurationSection sub;
 
+        /* 与版本号相关，如果版本号不一致则会刷新全服务器的实体的 EntityPDC */
+        version = cfg.getDouble("VERSION", -1);
         debug = cfg.getBoolean("DEBUG", false);
 
         generateExamples = cfg.getBoolean("generate_examples", true);
@@ -78,6 +92,27 @@ public class Config {
         useDamageReductionBalanceForPlayer = cfg.getBoolean("use_damage_reduction_balance_for_player", false);
 
         originalCriticalStrikeAddition = cfg.getDouble("original_critical_strike_addition", 0.2D);
+
+        /* 数据库配置 */
+        sub = cfg.getConfigurationSection("database");
+        if (sub == null) {
+            logWarning("全局配置文件错误，无法连接数据库");
+            use_mysql = false;
+            return;
+        }
+        use_mysql = sub.getBoolean("use_mysql", false);
+        sub = sub.getConfigurationSection("mysql");
+        if (sub != null) {
+            host = sub.getString("host", "localhost");
+            port = sub.getString("port", "3306");
+            database_name = sub.getString("database_name");
+            username = sub.getString("username");
+            password = sub.getString("password");
+        }
+        if (use_mysql && sub == null) {
+            logWarning("全局配置文件错误，无法连接数据库");
+            use_mysql = false;
+        }
     }
 
     /** 插件重载时 重载对应配置文件 */

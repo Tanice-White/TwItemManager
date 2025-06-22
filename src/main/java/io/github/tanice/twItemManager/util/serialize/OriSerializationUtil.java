@@ -8,7 +8,7 @@ import java.io.*;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public class OriSerializationUtil {
-    public static byte @NotNull [] serialize(Object obj){
+    public static byte @NotNull [] serialize(@NotNull Object obj){
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ObjectOutputStream oos = new ObjectOutputStream(baos)) {
             oos.writeObject(obj); // 写入对象

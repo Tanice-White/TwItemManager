@@ -1,5 +1,17 @@
+VERSION: 1.0  # 版本号，勿动
 # Debug 开关，默认false
 DEBUG: true  # false
+
+# 数据库设置
+database:
+  use_mysql: true  # 是否使用MySQL数据库
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    database_name: tw_item_manager
+    username: root
+    password: test123123
+
 
 # 是否生成示例配置文件
 generate_examples: true  # true

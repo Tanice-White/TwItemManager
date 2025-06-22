@@ -8,6 +8,7 @@ import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.helper.asm.ASMHelper;
 import io.github.tanice.twItemManager.listener.*;
 import io.github.tanice.twItemManager.manager.buff.BuffManager;
+import io.github.tanice.twItemManager.manager.database.DatabaseManager;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,6 +20,8 @@ public final class TwItemManager extends JavaPlugin {
     private static long updateCode;
 
     /** 管理器 */
+    @Getter
+    private static DatabaseManager databaseManager;
     @Getter
     private static ItemManager itemManager;
     @Getter
@@ -49,6 +52,7 @@ public final class TwItemManager extends JavaPlugin {
         Config.save(this);   // 根据情况生成默认配置文件
         Config.onEnable(this);  // 读取全局配置文件
 
+        databaseManager = new DatabaseManager();
         itemManager = new ItemManager(this);
         buffManager = new BuffManager(this);
 
@@ -74,6 +78,7 @@ public final class TwItemManager extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (databaseManager != null) databaseManager.onDisable();
         if (mainCommand != null) mainCommand.onDisable();
         if (buffManager != null) buffManager.onDisable();
     }
@@ -82,8 +87,12 @@ public final class TwItemManager extends JavaPlugin {
         updateCode = System.currentTimeMillis();
         Config.onReload(this);
 
+        /* reload 需要使用 databaseManager */
         itemManager.onReload();
+        /* reload 需要使用 databaseManager */
         buffManager.onReload();
+        databaseManager.onReload();
+
         twItemListener.onReload();
         workbenchListener.onReload();
         particleListener.onReload();

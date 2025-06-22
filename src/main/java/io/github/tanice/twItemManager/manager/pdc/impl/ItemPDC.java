@@ -127,11 +127,11 @@ public class ItemPDC extends CalculablePDC {
     }
 
     /**
-     * 获取所有宝石
+     * 获取所有镶嵌上去的宝石，为空则跳过
      * @return 宝石组
      */
-    public @NotNull List<String> getGemNames() {
-        if (gems.length == 0) return new ArrayList<>(0);
+    public @NotNull List<String> getFilledGemNames() {
+        if (gems.length == 0) return List.of();
         List<String> res = new ArrayList<>();
         for (String gem : gems) {
             if (!gem.equals(EMPTY_GEM)) res.add(gem);
@@ -242,13 +242,13 @@ public class ItemPDC extends CalculablePDC {
         qualityName = iPDC.getQualityName();
         level = iPDC.getLevel();
         /* 被继承的宝石 */
-        List<String> eg = iPDC.getGemNames();
-        if (eg.isEmpty() || gems.length == 0) return eg;
-        for (int i = 0; i < gems.length; i++) {
-            gems[i] = eg.getFirst();
-            eg.removeFirst();
+        List<String> eg = iPDC.getFilledGemNames();
+        int copyCount = Math.min(eg.size(), gems.length);
+        for (int i = 0; i < copyCount; i++) {
+            gems[i] = eg.get(i);
         }
-        return eg;
+
+        return eg.subList(copyCount, eg.size());
     }
 
     /**
