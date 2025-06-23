@@ -1,10 +1,11 @@
 package io.github.tanice.twItemManager.infrastructure;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -144,31 +145,46 @@ public class AttributeAPI {
 
     /**
      * 删除已存在的 add 属性
+     *
      * @param meta 物品 Meta 数据
-     * @param am 已存在的 add属性
+     * @param am   已存在的 add属性
      */
-    public static boolean removeAttr(@NotNull ItemMeta meta, @NotNull String attrKey , @NotNull AttributeModifier am) {
+    public static void removeAttr(@NotNull ItemMeta meta, @NotNull String attrKey , @NotNull AttributeModifier am) {
         Attribute a = ATTRIBUTE_MAP.get(attrKey);
-        if (a == null) return false;
+        if (a == null) return;
         boolean ok = meta.removeAttributeModifier(a, am);
         if (!ok) {
             TwItemManager.getInstance().getLogger().warning("Failed to remove attribute: " + attrKey + " from " + meta.displayName());
-            return false;
         }
-        return true;
     }
 
     /**
      * 根据 NamespaceKey 删除已存在的 add 属性
-     * @param key NamespaceKey
-     * @param meta 物品 Meta 数据
+     *
+     * @param key     NamespaceKey
+     * @param meta    物品 Meta 数据
      * @param attrKey 属性名称
-     * @return 是否成功(没有这个属性则返回 false )
      */
-    public static boolean removeAddAttrByKey(@NotNull String key, @NotNull ItemMeta meta, @NotNull String attrKey) {
+    public static void removeAddAttrByKey(@NotNull String key, @NotNull ItemMeta meta, @NotNull String attrKey) {
         AttributeModifier amd = getCustomAddAttrByKey(key, meta, attrKey);
-        if (amd == null) return false;
-        return removeAttr(meta, attrKey, amd);
+        if (amd == null) return;
+        removeAttr(meta, attrKey, amd);
+    }
+
+    /**
+     * 获取实体的原版属性
+     */
+    public static double getOriBaseAttr(@NotNull LivingEntity entity, @NotNull Attribute attribute) {
+        AttributeInstance attrInstance = entity.getAttribute(attribute);
+        return attrInstance != null ? attrInstance.getBaseValue() : 0.0;
+    }
+
+    /**
+     * 设置实体的原版属性
+     */
+    public static void setOriBaseAttr(@NotNull LivingEntity entity, @NotNull Attribute attribute, double baseValue) {
+        AttributeInstance attrInstance = entity.getAttribute(attribute);
+        if (attrInstance != null) attrInstance.setBaseValue(baseValue);
     }
 
     static {

@@ -13,6 +13,7 @@ public final class ConfigKey {
     public static final String MAX_STACK = "max_stack";
     public static final String CUSTOM_MODEL_DATA = "custom_model_data";
     public static final String HIDE_FLAGS = "hide_flags";
+    public static final String CUSTOM_NBT = "nbt";
 
     /* Item类 */
     public static final String TYPE = "type";  /* item中的哪一个子类 item ? gem ? material ? consumable */

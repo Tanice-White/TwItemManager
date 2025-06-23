@@ -3,6 +3,7 @@ package io.github.tanice.twItemManager.manager.database;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.buff.BuffRecord;
 import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
+import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.util.serialize.OriSerializationUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,14 +144,6 @@ public class DatabaseManager {
                     res.add(new BuffRecord(uuid, buffInnerName, cooldown, duration));
                 }
             }
-
-            if (!res.isEmpty()) { // 只有在查询到记录时才执行删除
-                String deleteSql = "DELETE FROM buff_records WHERE uuid = ?";
-                try (PreparedStatement deletePst = connection.prepareStatement(deleteSql)) {
-                    deletePst.setString(1, uuid);
-                    deletePst.executeUpdate();
-                }
-            }
         } catch (SQLException e) {
             logWarning("加载玩家 " + uuid + " 的buff出错: " + e.getMessage());
         }
@@ -205,22 +198,100 @@ public class DatabaseManager {
         return null;
     }
 
+    // ==================== PlayerData 相关操作 ====================
+    /**
+     * 保存PlayerData到数据库
+     * @param playerData PlayerData对象
+     */
+    public void savePlayerData(@NotNull PlayerData playerData) {
+        String sql = "INSERT INTO player_data (" +
+                "uuid, health, max_health, mana, max_mana, " +
+                "food, saturation, level, allow_flight) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE " +
+                "health = VALUES(health), max_health = VALUES(max_health), " +
+                "mana = VALUES(mana), max_mana = VALUES(max_mana), " +
+                "food = VALUES(food), saturation = VALUES(saturation), " +
+                "level = VALUES(level), allow_flight = VALUES(allow_flight)";
+
+        try (PreparedStatement pst = connection.prepareStatement(sql)) {
+            pst.setString(1, playerData.uuid);
+            pst.setDouble(2, playerData.health);
+            pst.setDouble(3, playerData.maxHealth);
+            pst.setDouble(4, playerData.mana);
+            pst.setDouble(5, playerData.maxMana);
+            pst.setDouble(6, playerData.food);
+            pst.setDouble(7, playerData.saturation);
+            pst.setDouble(8, playerData.level);
+            pst.setBoolean(9, playerData.allowFlight);
+
+            pst.executeUpdate();
+        } catch (SQLException e) {
+            logWarning("保存玩家数据出错: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 从数据库加载PlayerData
+     * @param uuid 玩家UUID
+     * @return PlayerData对象，不存在则返回null
+     */
+    @Nullable
+    public PlayerData loadPlayerData(@NotNull String uuid) {
+        String sql = "SELECT health, max_health, mana, max_mana, " +
+                "food, saturation, level, allow_flight " +
+                "FROM player_data WHERE uuid = ?";
+
+        try (PreparedStatement pst = connection.prepareStatement(sql)) {
+            pst.setString(1, uuid);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    double health = rs.getDouble("health");
+                    double maxHealth = rs.getDouble("max_health");
+                    double mana = rs.getDouble("mana");
+                    double maxMana = rs.getDouble("max_mana");
+                    double food = rs.getDouble("food");
+                    double saturation = rs.getDouble("saturation");
+                    double level = rs.getDouble("level");
+                    boolean allowFlight = rs.getBoolean("allow_flight");
+
+                    return new PlayerData(uuid, food, saturation, level,
+                            health, maxHealth, allowFlight, mana, maxMana);
+                }
+            }
+        } catch (SQLException e) {
+            logWarning("加载玩家 " + uuid + " 的数据出错: " + e.getMessage());
+        }
+        return null;
+    }
+
     private boolean createTables(){
-        String sql = "CREATE TABLE IF NOT EXISTS buff_records ("
+        String buffRecordsSql = "CREATE TABLE IF NOT EXISTS buff_records ("
                 + "uuid VARCHAR(50) NOT NULL, "
                 + "buff_inner_name VARCHAR(50) NOT NULL, "
                 + "cooldown_counter INT NOT NULL, "
                 + "duration_counter INT NOT NULL, "
                 + "PRIMARY KEY (uuid, buff_inner_name))";
 
-        // 创建EntityPDC序列化数据表
         String entityPdcTableSql = "CREATE TABLE IF NOT EXISTS entity_pdc_data ("
-                + "uuid CHAR(50) PRIMARY KEY, "
+                + "uuid VARCHAR(50) PRIMARY KEY, "
                 + "data LONGBLOB NOT NULL)";
 
+        String playerDataTableSql = "CREATE TABLE IF NOT EXISTS player_data ("
+                + "uuid VARCHAR(50) PRIMARY KEY, "
+                + "health DOUBLE NOT NULL, "
+                + "max_health DOUBLE NOT NULL, "
+                + "mana DOUBLE NOT NULL, "
+                + "max_mana DOUBLE NOT NULL, "
+                + "food DOUBLE NOT NULL, "
+                + "saturation DOUBLE NOT NULL, "
+                + "level DOUBLE NOT NULL, "
+                + "allow_flight BOOLEAN NOT NULL)";
+
         try (Statement stmt = connection.createStatement()) {
-            stmt.executeUpdate(sql);
+            stmt.executeUpdate(buffRecordsSql);
             stmt.executeUpdate(entityPdcTableSql);
+            stmt.executeUpdate(playerDataTableSql);
         } catch (SQLException e) {
             logWarning(e.getMessage());
             return false;

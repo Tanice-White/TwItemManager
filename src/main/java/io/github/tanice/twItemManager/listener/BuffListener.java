@@ -68,7 +68,6 @@ public class BuffListener implements Listener {
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         Player p =event.getPlayer();
-        // TODO 不同版本需要覆盖，否则不变
         EntityPDC ePDC = TwItemManager.getDatabaseManager().getEntityPDC(p.getUniqueId().toString());
         if (ePDC != null) {
             // 内部的 endTimeStamp 需要更新

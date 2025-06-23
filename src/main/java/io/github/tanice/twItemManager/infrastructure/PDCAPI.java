@@ -30,10 +30,9 @@ public class PDCAPI {
     private static final String OWNER_KEY = "owner";
     private static final String UPDATE_CODE_KEY = "update-code";
     private static final String TIME_STAMP_KEY = "time-stamp";
-    private static final String CONSUMABLE_KEY = "consumable";
     private static final String SLOT_KEY = "slot";
-    private static final String MAX_DAMAGE_KEY = "damage";
-    private static final String CURRENT_DAMAGE_KEY = "current-damage";
+    private static final String MAX_DAMAGE_KEY = "max-damage";
+    private static final String CURRENT_DAMAGE_KEY = "damage";
 
     public static @Nullable CalculablePDC getCalculablePDC(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
@@ -473,33 +472,28 @@ public class PDCAPI {
     }
 
     /**
-     * 可食用物部分
+     * 加载额外的NBT
      */
-    public static void setConsumable(@NotNull ItemStack item, boolean consumable) {
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return;
-        setConsumable(meta, consumable);
-        item.setItemMeta(meta);
-    }
+    public static boolean setCustomNBT(@NotNull ItemMeta meta, @NotNull String key, @NotNull String value) {
+        String[] var = key.split(":");
+        if (var.length != 2) return false;
 
-    public static void setConsumable(@NotNull ItemMeta meta, boolean consumable) {
         meta.getPersistentDataContainer().set(
-                new NamespacedKey(PDC_NAMESPACE, CONSUMABLE_KEY),
-                PersistentDataType.BOOLEAN,
-                consumable
+                new NamespacedKey(var[0], var[1]),
+                PersistentDataType.STRING,
+                value
         );
+        return true;
     }
 
-    public static boolean isConsumable(@NotNull ItemStack item) {
-        return isConsumable(item.getItemMeta());
-    }
-
-    public static boolean isConsumable(@NotNull ItemMeta meta) {
-        Object obj = meta.getPersistentDataContainer().get(
-                new NamespacedKey(PDC_NAMESPACE, CONSUMABLE_KEY),
-                PersistentDataType.BOOLEAN
+    /**
+     * 卸载NBT
+     */
+    public static void removeCustomNBT(@NotNull ItemMeta meta, @NotNull String key) {
+        String[] var = key.split(":");
+        if (var.length != 2) return;
+        meta.getPersistentDataContainer().remove(
+                new NamespacedKey(var[0], var[1])
         );
-        if (obj == null) return false;
-        return obj.equals(Boolean.TRUE);
     }
 }

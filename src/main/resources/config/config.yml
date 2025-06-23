@@ -10,7 +10,7 @@ database:
     port: 3306
     database_name: tw_item_manager
     username: root
-    password: test123123
+    password: TR20030831
 
 
 # 是否生成示例配置文件
@@ -40,3 +40,8 @@ use_damage_reduction_balance_for_player: false  # false
 
 # 跳劈伤害加成 (暴击前伤害 * (1 + 数值))
 original_critical_strike_addition: 0.2 # 0.2
+
+
+# 玩家数据类
+original_max_health: 20
+original_max_mana: 50

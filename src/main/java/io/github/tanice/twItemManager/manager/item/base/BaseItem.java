@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.item.base;
 
+import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -9,7 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
@@ -33,6 +36,9 @@ public abstract class BaseItem {
     /** 对应的config */
     protected final ConfigurationSection cfg;
 
+    /* 额外的nbt */
+    protected final Map<String, String> customNBT;
+
     /**
      * 依据内部名称和对应的config文件创建物品
      * @param innerName 客制化物品内部名称
@@ -43,7 +49,9 @@ public abstract class BaseItem {
         this.innerName = innerName;
         lore = cfg.getStringList(LORE);
         loreTemplateName = cfg.getString(LORE_TEMPLATE,"");
-        generate();
+        customNBT = new HashMap<>();
+        this.loadCustomNBT();
+        this.generate();
     }
 
     /**
@@ -61,6 +69,7 @@ public abstract class BaseItem {
         loadBase(meta);
         /* 加载PDC属性 */
         loadPDCs(meta);
+        attachCustomNBT(meta);
         item.setItemMeta(meta);
     }
 
@@ -96,6 +105,34 @@ public abstract class BaseItem {
     protected abstract void loadPDCs(@NotNull ItemMeta meta);
 
     /**
+     * 读取其他插件可使用的PDC
+     */
+    public void loadCustomNBT() {
+        ConfigurationSection sub = cfg.getConfigurationSection(CUSTOM_NBT);
+        if (sub == null) return;
+        String v;
+        for (String key : sub.getKeys(false)) {
+            v = sub.getString(key);
+            if (v == null) continue;
+            customNBT.put(key, v);
+        }
+    }
+
+    public void attachCustomNBT(@NotNull ItemMeta meta) {
+        for (Map.Entry<String, String> entry : customNBT.entrySet()) {
+            if (!PDCAPI.setCustomNBT(meta, entry.getKey(), entry.getValue())) logWarning("物品: " + innerName + " 的nbt[" + entry.getKey() + ":" + entry.getValue() + "]写入错误");
+        }
+    }
+
+    /**
+     * TODO 清除NBT
+     */
+    public void removeCustomNBT(@NotNull ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        item.setItemMeta(meta);
+    }
+
+    /**
      * 物品更新
      * 使用物品内部名找到对应的底层，并将新的底层覆盖过去
      * 即使用新的 <? extend BaseItem> 类更新 item
@@ -106,6 +143,7 @@ public abstract class BaseItem {
         ItemMeta meta = item.getItemMeta();
         loadBase(meta);
         loadPDCs(meta);
+        attachCustomNBT(meta);
         item.setItemMeta(meta);
         return List.of();
     }

@@ -51,8 +51,8 @@ public final class TwItemManager extends JavaPlugin {
         /* Config 必须最先初始化 */
         Config.save(this);   // 根据情况生成默认配置文件
         Config.onEnable(this);  // 读取全局配置文件
-
         databaseManager = new DatabaseManager();
+
         itemManager = new ItemManager(this);
         buffManager = new BuffManager(this);
 

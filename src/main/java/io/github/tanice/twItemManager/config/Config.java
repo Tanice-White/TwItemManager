@@ -63,6 +63,12 @@ public class Config {
     public static String username;
     public static String password;
 
+    /* 玩家信息 */
+    public static double originalMaxHealth;
+    public static double originalMaxMana;
+    public static double originalMaxStrength;
+    public static double originalMaxBurden;
+
     /** 激活时 加载全局配置文件 */
     public static void onEnable(@NotNull JavaPlugin plugin) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
@@ -113,6 +119,10 @@ public class Config {
             logWarning("全局配置文件错误，无法连接数据库");
             use_mysql = false;
         }
+
+        // 玩家默认信息读取
+        originalMaxHealth = cfg.getDouble("original_max_health", 20D);
+        originalMaxMana = cfg.getDouble("original_max_mana", 50D);
     }
 
     /** 插件重载时 重载对应配置文件 */

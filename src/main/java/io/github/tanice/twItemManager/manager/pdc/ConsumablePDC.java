@@ -17,6 +17,9 @@ public class ConsumablePDC implements Serializable {
     /* 物品内部名称 */
     @Getter
     private String innerName;
+    /* 食用cd */
+    @Getter
+    private int cd;
 
     /* TODO 食用物品可改变的：最大生命值，血量，mana，最大mana，临时buff，饱食度，指令执行 */
     /* maxHealth health mana maxMana buff food command */

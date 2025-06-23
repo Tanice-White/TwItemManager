@@ -46,7 +46,12 @@
   quality:
   # level 预设 (不符合升级模板内则会置为模板中的最低等级)
   level: 0
-  # 填入MM物品内部名以使用对应技能
+  # CustomNBT 用于插件兼容
+  nbt:
+    # namespace:key :value 的格式，具体参考目标插件NBT的写入格式 (大小写严格判定)
+    # 这里使用mm中mmc的技能嵌入格式
+    mythicmobs:type: 青风
+
 
 盔甲内部名_头:
   id: leather_helmet
