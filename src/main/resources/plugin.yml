@@ -8,8 +8,8 @@ website: 'https://github.com/Tanice-White/TwItems'
 load: STARTUP
 
 prefix: TwItemManager
-depend: [packetevents]
-softdepend: [PlaceholderAPI, MythicMobs]
+depend: [PlaceholderAPI, packetevents]
+softdepend: [MythicMobs]
 
 commands:
   twitemmanager:

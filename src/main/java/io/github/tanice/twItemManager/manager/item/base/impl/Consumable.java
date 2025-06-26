@@ -28,6 +28,7 @@ public class Consumable extends BaseItem {
 
     @Override
     protected void loadPDCs(@NotNull ItemMeta meta) {
+
         updateUpdateCode(meta);
     }
 }

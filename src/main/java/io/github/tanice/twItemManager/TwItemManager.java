@@ -11,7 +11,10 @@ import io.github.tanice.twItemManager.manager.buff.BuffManager;
 import io.github.tanice.twItemManager.manager.database.DatabaseManager;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public final class TwItemManager extends JavaPlugin {
     @Getter
@@ -30,6 +33,7 @@ public final class TwItemManager extends JavaPlugin {
     /** 监听器 */
     private static TwItemListener twItemListener;
     private static WorkbenchListener workbenchListener;
+    private static PlayerDataListener playerDataListener;
     private static GenericParticleListener particleListener;
     private static DamageEventListener damageEventListener;
     private static TwItemUpdateListener updateListener;
@@ -58,6 +62,7 @@ public final class TwItemManager extends JavaPlugin {
 
         twItemListener = new TwItemListener(this);
         workbenchListener = new WorkbenchListener(this);
+        playerDataListener = new PlayerDataListener(this);
         particleListener = new GenericParticleListener(this);
         PacketEvents.getAPI().getEventManager().registerListener(particleListener, PacketListenerPriority.NORMAL);
         damageEventListener = new DamageEventListener(this);
@@ -95,6 +100,7 @@ public final class TwItemManager extends JavaPlugin {
 
         twItemListener.onReload();
         workbenchListener.onReload();
+        playerDataListener.onReload();
         particleListener.onReload();
         damageEventListener.onReload();
         updateListener.onReload();

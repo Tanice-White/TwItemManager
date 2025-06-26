@@ -1,7 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc;
 
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
@@ -17,8 +16,6 @@ import java.io.Serializable;
 import java.util.*;
 
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
-import static io.github.tanice.twItemManager.constance.key.ConfigKey.CHANCE;
-import static io.github.tanice.twItemManager.constance.key.ConfigKey.DURATION;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**
@@ -29,8 +26,11 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
 public abstract class CalculablePDC implements Serializable, Comparable<CalculablePDC> {
     @Serial
     private static final long serialVersionUID = 1L;
+    private static final String defaultLore = "<gray>default_lore</gray>";
+
     /* 属性在具体配置中的所属路径 */
     protected static final String ATTR_SECTION_KEY = "attrs";
+    protected static final String OUTER_LORE_KEY = "outer_lore";
 
     /* 属性名称 */
     protected String innerName;
@@ -40,16 +40,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     protected AttributeCalculateSection attributeCalculateSection;
     /* 是否是需要计算的BASE ADD MULTIPLY FIX */
     protected boolean needCalculation;
-
-    /* buff 还能生效的时间 - 数据库读取使用, 其他情况不允许读取 */
-    protected long deltaTime;
-    /* 属性结束时间(负数则永续) - 非js使用 */
-    protected long endTimeStamp;
-    /* 激活几率 */
-    protected double chance;
-
-    /* 持续时间 - 均使用(Timer类只使用这个做判断) */
-    protected int duration;
 
     /* 属性具体值 */
     protected EnumMap<AttributeType, Double> vMap;
@@ -63,10 +53,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         innerName = "default";
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = AttributeCalculateSection.OTHER;
-        deltaTime = -1;
-        endTimeStamp = -1;
-        chance = 1;
-        duration = -1;
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
     }
@@ -76,10 +62,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         priority = Integer.MAX_VALUE;
         this.attributeCalculateSection = attributeCalculateSection;
         initNeedCalculation();
-        deltaTime = -1;
-        endTimeStamp = -1;
-        chance = 1;
-        duration = -1;
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
     }
@@ -95,21 +77,11 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = acs;
         initNeedCalculation();
-        deltaTime = -1;
-        endTimeStamp = -1;
 
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
 
         if (cfg == null) return;
-        /* 覆写 */
-        chance = cfg.getDouble(CHANCE, 1D);
-        duration = cfg.getInt(DURATION, -1);
-        /* 非偶数duration提示 */
-        if (duration >= 0 && duration % 2 != 0) {
-            duration--;
-            logWarning("duration必须是偶数，否则该buff会永续");
-        }
         /* vMap初始化 */
         vMap.put(AttributeType.DAMAGE, cfg.getDouble(BASE_DAMAGE, 0D));
         vMap.put(AttributeType.ARMOR, cfg.getDouble(ARMOR, 0D));
@@ -154,7 +126,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
      */
     public void merge(@Nullable CalculablePDC cPDC, int k) {
         if (cPDC == null || attributeCalculateSection != cPDC.attributeCalculateSection) {
-            if (Config.debug) logWarning("PDC合并失败");
+            if (Config.debug) logWarning("PDC[计算区]不同，无法合并");
             return;
         }
         for (AttributeType type : AttributeType.values()) {
@@ -171,11 +143,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     public abstract @NotNull String toString();
 
     /**
-     * 将属性输出成LoreMap
-     */
-    public abstract @NotNull Map<AttributeKey, String> toLoreMap();
-
-    /**
      * 将类转为普通的数值计算基类
      */
     public @NotNull AttributePDC toAttributePDC() {
@@ -186,6 +153,22 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         return pdc;
     }
 
+    /**
+     * 将属性转为 lore 显示
+     */
+    public @NotNull Map<String, Double> getAttrLore() {
+        // 使用HashMap，初始容量设置为足够大以避免扩容
+        // 数据量较小的时候串行速度比并行快
+        Map<String, Double> result = new HashMap<>((vMap.size() + tMap.size()) * 2);
+        for (Map.Entry<AttributeType, Double> entry : vMap.entrySet()) {
+            result.put(entry.getKey().name().toLowerCase(), entry.getValue());
+        }
+        for (Map.Entry<DamageType, Double> entry : tMap.entrySet()) {
+            result.put(entry.getKey().name().toLowerCase(), entry.getValue());
+        }
+        return result;
+    }
+
     @Override
     public int compareTo(@NotNull CalculablePDC other) {
         // 按优先级升序排序
@@ -193,13 +176,10 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     }
 
     protected void initNeedCalculation() {
-        needCalculation = attributeCalculateSection == AttributeCalculateSection.BASE ||
+        needCalculation =
+                attributeCalculateSection == AttributeCalculateSection.BASE ||
                 attributeCalculateSection == AttributeCalculateSection.ADD ||
                 attributeCalculateSection == AttributeCalculateSection.MULTIPLY ||
                 attributeCalculateSection == AttributeCalculateSection.FIX;
-    }
-
-    protected void setNeedCalculation(boolean needCalculation) {
-        this.needCalculation = needCalculation;
     }
 }

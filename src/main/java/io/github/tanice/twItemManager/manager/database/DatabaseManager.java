@@ -2,7 +2,7 @@ package io.github.tanice.twItemManager.manager.database;
 
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.buff.BuffRecord;
-import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.util.serialize.OriSerializationUtil;
 import org.jetbrains.annotations.NotNull;
@@ -154,13 +154,13 @@ public class DatabaseManager {
     /**
      * 保存EntityPDC到数据库（序列化为byte数组）
      * @param uuid 实体UUID
-     * @param entityPDC EntityPDC对象
+     * @param entityBuffPDC EntityPDC对象
      */
-    public void saveEntityPDC(@NotNull String uuid, @Nullable EntityPDC entityPDC) {
-        if (entityPDC == null) entityPDC = new EntityPDC();
-        entityPDC.simplify(System.currentTimeMillis());
+    public void saveEntityPDC(@NotNull String uuid, @Nullable EntityBuffPDC entityBuffPDC) {
+        if (entityBuffPDC == null) entityBuffPDC = new EntityBuffPDC();
+        entityBuffPDC.simplify(System.currentTimeMillis());
 
-        byte[] data = OriSerializationUtil.serialize(entityPDC);
+        byte[] data = OriSerializationUtil.serialize(entityBuffPDC);
 
         String sql = "INSERT INTO entity_pdc_data (uuid, data) VALUES (?, ?) "
                 + "ON DUPLICATE KEY UPDATE data = VALUES(data)";
@@ -180,7 +180,7 @@ public class DatabaseManager {
      * @return EntityPDC对象，不存在则返回null
      */
     @Nullable
-    public EntityPDC getEntityPDC(@NotNull String uuid) {
+    public EntityBuffPDC loadEntityPDC(@NotNull String uuid) {
         // 从数据库加载
         String sql = "SELECT data FROM entity_pdc_data WHERE uuid = ?";
 
@@ -189,7 +189,7 @@ public class DatabaseManager {
             try (ResultSet rs = pst.executeQuery()) {
                 if (rs.next()) {
                     byte[] data = rs.getBytes("data");
-                    return (EntityPDC) OriSerializationUtil.deserialize(data);
+                    return (EntityBuffPDC) OriSerializationUtil.deserialize(data);
                 }
             }
         } catch (SQLException e) {
@@ -215,15 +215,15 @@ public class DatabaseManager {
                 "level = VALUES(level), allow_flight = VALUES(allow_flight)";
 
         try (PreparedStatement pst = connection.prepareStatement(sql)) {
-            pst.setString(1, playerData.uuid);
-            pst.setDouble(2, playerData.health);
-            pst.setDouble(3, playerData.maxHealth);
-            pst.setDouble(4, playerData.mana);
-            pst.setDouble(5, playerData.maxMana);
-            pst.setDouble(6, playerData.food);
-            pst.setDouble(7, playerData.saturation);
-            pst.setDouble(8, playerData.level);
-            pst.setBoolean(9, playerData.allowFlight);
+            pst.setString(1, playerData.getUuid());
+            pst.setDouble(2, playerData.getHealth());
+            pst.setDouble(3, playerData.getMaxHealth());
+            pst.setDouble(4, playerData.getMana());
+            pst.setDouble(5, playerData.getMaxMana());
+            pst.setDouble(6, playerData.getFood());
+            pst.setDouble(7, playerData.getSaturation());
+            pst.setDouble(8, playerData.getLevel());
+            pst.setBoolean(9, playerData.isAllowFlight());
 
             pst.executeUpdate();
         } catch (SQLException e) {

@@ -69,6 +69,10 @@ public class Config {
     public static double originalMaxStrength;
     public static double originalMaxBurden;
 
+    /* lore 默认显示 */
+    public static String plusValuePrefix;
+    public static String minusValuePrefix;
+
     /** 激活时 加载全局配置文件 */
     public static void onEnable(@NotNull JavaPlugin plugin) {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
@@ -123,6 +127,10 @@ public class Config {
         // 玩家默认信息读取
         originalMaxHealth = cfg.getDouble("original_max_health", 20D);
         originalMaxMana = cfg.getDouble("original_max_mana", 50D);
+
+        /* 属性默认的颜色 */
+        plusValuePrefix = cfg.getString("plus_value_prefix", "#049104");
+        minusValuePrefix = cfg.getString("minus_value_prefix", "#a80000");
     }
 
     /** 插件重载时 重载对应配置文件 */

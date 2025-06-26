@@ -28,6 +28,7 @@ public abstract class BaseItem {
     @Getter
     protected final String innerName;
     /** 原始描述 */
+    /* 会被归为 loreTemplate 中的 [Item] 关键词下 */
     protected List<String> lore;
     /** 描述模板名 */
     @Getter
@@ -125,11 +126,10 @@ public abstract class BaseItem {
     }
 
     /**
-     * TODO 清除NBT
+     * 清除NBT(即PersistentDataContainer)
      */
-    public void removeCustomNBT(@NotNull ItemStack item) {
-        ItemMeta meta = item.getItemMeta();
-        item.setItemMeta(meta);
+    public void removeCustomNBT(@NotNull ItemMeta meta) {
+        PDCAPI.removeAllCustomNBT(meta);
     }
 
     /**
@@ -141,6 +141,10 @@ public abstract class BaseItem {
      */
     public @NotNull List<String> selfUpdate(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return List.of();
+
+        removeCustomNBT(meta);
+
         loadBase(meta);
         loadPDCs(meta);
         attachCustomNBT(meta);
@@ -161,5 +165,5 @@ public abstract class BaseItem {
     /**
      * 获取配置文件中原始的描述
      */
-    public @NotNull List<String> getLore() {return new ArrayList<>(lore);}
+    public @NotNull List<String> getItemLore() {return new ArrayList<>(lore);}
 }

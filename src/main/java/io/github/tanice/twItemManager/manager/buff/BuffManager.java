@@ -7,7 +7,7 @@ import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.SlotUtil;
 import lombok.Getter;
@@ -41,7 +41,6 @@ public class BuffManager {
     private final JavaPlugin plugin;
     /** 全局可用Buff*/
     private final Map<String, BuffPDC> buffMap;
-
     /** buff记录 */
     @Getter
     private final BuffRecords buffRecords;
@@ -51,12 +50,15 @@ public class BuffManager {
     private final Map<UUID, CachedEntity> entityCache;
 
     private static BuffManager instance;
+    private final Random random;
 
     public BuffManager(@NotNull JavaPlugin plugin) {
         instance = this;
         this.plugin = plugin;
         buffMap = new HashMap<>();
         this.loadBuffFilesAndBuffMap();
+
+        random = new Random();
 
         buffRecords = new BuffRecords();
         entityCache = new ConcurrentHashMap<>();
@@ -284,8 +286,8 @@ public class BuffManager {
         if (buffNames.isEmpty()) return;
 
         BuffPDC bPDC;
-        EntityPDC ePDC = PDCAPI.getCalculablePDC(e);
-        if (ePDC == null) ePDC = new EntityPDC();
+        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(e);
+        if (ePDC == null) ePDC = new EntityBuffPDC();
 
         for (String bn : buffNames) {
             bPDC = getBuffPDC(bn);
@@ -293,7 +295,7 @@ public class BuffManager {
                 logWarning("buff 名: " + bn + "不存在");
                 continue;
             }
-            if (!bPDC.isEnable()) continue;
+            if (!bPDC.isEnable() || random.nextDouble() < bPDC.getChance()) continue;
             /* 全局计算类属性 */
             if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
                 if (isHoldBuff) bPDC.setDuration(-1);
@@ -323,8 +325,8 @@ public class BuffManager {
         if (buffNames == null) return;
 
         BuffPDC bPDC;
-        EntityPDC ePDC = PDCAPI.getCalculablePDC(e);
-        if (ePDC == null) ePDC = new EntityPDC();
+        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(e);
+        if (ePDC == null) ePDC = new EntityBuffPDC();
 
         for (String bn : buffNames) {
             bPDC = getBuffPDC(bn);

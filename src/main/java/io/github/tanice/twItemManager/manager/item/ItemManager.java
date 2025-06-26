@@ -8,11 +8,13 @@ import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.item.base.impl.Material;
 import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
+import io.github.tanice.twItemManager.manager.item.lore.LoreTemplate;
 import io.github.tanice.twItemManager.manager.item.quality.QualityGroup;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +22,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.N;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,13 +46,12 @@ public class ItemManager {
     private final Map<String, BaseItem> itemMap;
 
     /** key 组名  value 品质组Map(key 品质名 value 品质类) */
-    private final Map<String, QualityGroup> qualityGroupManagerMap;
-
+    private final Map<String, QualityGroup> qualityGroupMap;
     /** 全局可用品质(便于检索和切换) */
     private final Map<String, AttributePDC> qualityMap;
 
     /** 物品描述模板 */
-    // private final LoreManager loreManager;
+    private final Map<String, LoreTemplate> loreTemplateMap;
 
     /** key 技能名 value 技能类 */
     // private final Map<String, SkillManager> skillManagerMap;
@@ -63,11 +63,11 @@ public class ItemManager {
         this.plugin = plugin;
         rootDir = plugin.getDataFolder();
         itemMap = new LinkedHashMap<>();
-        qualityGroupManagerMap = new HashMap<>();
+        qualityGroupMap = new HashMap<>();
         qualityMap = new HashMap<>();
         // skillManagerMap = new HashMap<>();
         levelTemplateMap = new HashMap<>();
-        // loreManager = new LoreManager();
+        loreTemplateMap = new HashMap<>();
         this.loadConfigs();
         /* 初始化全局qualityMap */
         this.loadQualityMap();
@@ -75,11 +75,11 @@ public class ItemManager {
 
     public void onReload() {
         itemMap.clear();
-        qualityGroupManagerMap.clear();
+        qualityGroupMap.clear();
         qualityMap.clear();
+        loreTemplateMap.clear();
         // skillManagerMap.clear();
         levelTemplateMap.clear();
-        // loreManager 在 loadConfigs 中初始化
         this.loadConfigs();
         /* 初始化全局qualityMap */
         this.loadQualityMap();
@@ -145,7 +145,7 @@ public class ItemManager {
     }
 
     public String getCalculablePDCAsString(@NotNull LivingEntity entity) {
-        EntityPDC cPDC = PDCAPI.getCalculablePDC(entity);
+        EntityBuffPDC cPDC = PDCAPI.getCalculablePDC(entity);
         if (cPDC == null) return "此物品没有持久化的PDC";
         return cPDC.toString();
     }
@@ -319,7 +319,7 @@ public class ItemManager {
         player.sendMessage("§a等级设置成功");
     }
 
-    public boolean insertGem(Player player, ItemStack item, ItemStack gem) {
+    public boolean insertGem(@NotNull Player player, @NotNull ItemStack item, @NotNull ItemStack gem) {
         CalculablePDC cPDC1 = getCalculablePDC(item);
         BaseItem bitGem = itemMap.get(PDCAPI.getInnerName(gem));
         /* 不满足条件不插入宝石 */
@@ -354,7 +354,7 @@ public class ItemManager {
     }
 
     
-    public ItemStack removeGem(Player player, ItemStack item) {
+    public ItemStack removeGem(@NotNull Player player, @NotNull ItemStack item) {
         ItemStack gem = new ItemStack(org.bukkit.Material.AIR);
 
         CalculablePDC cPDC = getCalculablePDC(item);
@@ -433,10 +433,10 @@ public class ItemManager {
             logWarning("Main directory not found. Please set generate-examples to true and reload the plugin.");
             return;
         }
-        this.loadLoreTemplateFiles();
         this.loadLevelFiles();
         this.loadQualityFiles();
         this.loadItemFiles();
+        this.loadLoreTemplateFiles();
         this.loadSkillFiles();
     }
 
@@ -450,7 +450,7 @@ public class ItemManager {
         if (qualityGroupNames == null) return null;
         QualityGroup qg;
         for (String qualityGroupName : qualityGroupNames) {
-            qg = qualityGroupManagerMap.get(qualityGroupName);
+            qg = qualityGroupMap.get(qualityGroupName);
             if (qg == null) {
                 logWarning("No quality group found with name: " + qualityGroupName);
                 continue;
@@ -461,7 +461,7 @@ public class ItemManager {
     }
 
     private void loadQualityMap() {
-        for(QualityGroup qgm: qualityGroupManagerMap.values()) {
+        for(QualityGroup qgm: qualityGroupMap.values()) {
             for(int i = 0; i < qgm.getLen(); i++) {
                 qualityMap.put(qgm.getQualityNames().get(i), qgm.getQualities().get(i));
             }
@@ -495,17 +495,13 @@ public class ItemManager {
         }
     }
 
-    private void loadSkillFiles() {
-        // Map<String, ConfigurationSection> cfg = loadSubFiles("skills");
-    }
-
     private void loadQualityFiles() {
         Map<String, ConfigurationSection> cfg = new HashMap<>();
         loadCustomConfigs(new File(rootDir, "qualities"), cfg, "");
         ConfigurationSection sec;
         for (ConfigurationSection c : cfg.values()) {
             for (String key : c.getKeys(false)) {
-                if (qualityGroupManagerMap.containsKey(key)) {
+                if (qualityGroupMap.containsKey(key)) {
                     logWarning("重复的品质名: " + key + " !");
                     continue;
                 }
@@ -514,7 +510,7 @@ public class ItemManager {
                     logWarning("QUALITY: " + key + " 的具体配置为空");
                     return;
                 }
-                qualityGroupManagerMap.put(key, new QualityGroup(key, sec));
+                qualityGroupMap.put(key, new QualityGroup(key, sec));
             }
         }
     }
@@ -540,6 +536,25 @@ public class ItemManager {
     }
 
     private void loadLoreTemplateFiles() {
-        // Map<String, ConfigurationSection> cfg = loadSubFiles("lore");
+        Map<String, ConfigurationSection> cfg = new HashMap<>();
+        loadCustomConfigs(new File(rootDir, "lore"), cfg, "");
+        for (ConfigurationSection c : cfg.values()) {
+            for (String key : c.getKeys(false)) {
+                if (loreTemplateMap.containsKey(key)) {
+                    logWarning("重复的 LORE 模板: " + key + " !");
+                    continue;
+                }
+                List<String> lt = c.getStringList(key);
+                if (lt.isEmpty()) {
+                    logWarning("LORE: " + key + " 的具体配置为空");
+                    continue;
+                }
+                loreTemplateMap.put(key, new LoreTemplate(key, lt));
+            }
+        }
+    }
+
+    private void loadSkillFiles() {
+        // Map<String, ConfigurationSection> cfg = loadSubFiles("skills");
     }
 }

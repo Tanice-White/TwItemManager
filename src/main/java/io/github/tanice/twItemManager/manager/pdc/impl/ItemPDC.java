@@ -1,7 +1,6 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
@@ -12,8 +11,10 @@ import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
@@ -186,11 +187,6 @@ public class ItemPDC extends CalculablePDC {
                 "}";
     }
 
-    @Override
-    public @NotNull Map<AttributeKey, String> toLoreMap() {
-        return Map.of();
-    }
-
     /**
      * 将影响自身属性的额外属性计算进本体属性中
      */
@@ -226,7 +222,63 @@ public class ItemPDC extends CalculablePDC {
         if (lt != null) {
             l = Math.max(level, lt.getBegin());
             l = Math.min(level, lt.getMax());
-            if (l != level) logWarning("警告: 某玩家拥有非法等级武器，属性已自动修正");
+            if (l != level) logWarning("警告: 某玩家拥有非法等级武器，属性已自动修正(等级属性不变)");
+            selfMerge(im.getLevelPDC(lt.getInnerName()), l);
+        }
+    }
+
+    /**
+     * 将quality计算进入属性
+     * 这会改变当前的相关值，计算完成后请勿写回
+     */
+    @Deprecated
+    public void selfQualityCalculate() {
+        ItemManager im = TwItemManager.getItemManager();
+        /* 品质若为BASE，则是加算，否则乘算 */
+        AttributePDC aPDC = im.getQualityPDC(qualityName);
+        if (aPDC != null) selfMerge(aPDC, 1);
+    }
+
+    /**
+     * 将宝石计算进入属性
+     * 这会改变当前的相关值，计算完成后请勿写回
+     */
+    @Deprecated
+    public void selfGemCalculate() {
+        ItemManager im = TwItemManager.getItemManager();
+        BaseItem bit;
+        CalculablePDC cPDC;
+        /* 宝石 */
+        for (String gn : gems) {
+            if (gn.equals(EMPTY_GEM)) continue;
+            bit = im.getBaseItem(gn);
+            if (!(bit instanceof Gem gem)) continue;
+            cPDC = PDCAPI.getCalculablePDC(gem.getItem());
+            if (cPDC == null) continue;
+            selfMerge(cPDC.toAttributePDC(), 1);
+        }
+    }
+    /**
+     * 将等级计算进入属性
+     * 这会改变当前的相关值，计算完成后请勿写回
+     */
+    @Deprecated
+    public void selfLevelCalculate() {
+        ItemManager im = TwItemManager.getItemManager();
+        BaseItem bit;
+        /* 等级 */
+        bit = im.getBaseItem(innerName);
+        if (!(bit instanceof Item it)) {
+            logWarning("[selfCalculate]: 物品 " + innerName + " 不存在");
+            return;
+        }
+        /* 合法检测 */
+        LevelTemplate lt = im.getLevelTemplate(it.getLevelTemplateName());
+        int l;
+        if (lt != null) {
+            l = Math.max(level, lt.getBegin());
+            l = Math.min(level, lt.getMax());
+            if (l != level) logWarning("警告: 某玩家拥有非法等级武器，属性已自动修正(等级属性不变)");
             selfMerge(im.getLevelPDC(lt.getInnerName()), l);
         }
     }

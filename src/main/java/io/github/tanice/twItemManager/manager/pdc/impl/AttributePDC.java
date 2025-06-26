@@ -1,6 +1,5 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
-import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
@@ -8,8 +7,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.util.HashMap;
-import java.util.Map;
 
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.DISPLAY_NAME;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
@@ -17,6 +14,7 @@ import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 /**
  * 单纯的某一个属性（基础属性）
  * 用于计算的基础类
+ * 实例: quality 等没有
  */
 @Getter
 public class AttributePDC extends CalculablePDC {
@@ -48,10 +46,5 @@ public class AttributePDC extends CalculablePDC {
                 "attribute-addition=" + enumMapToString(vMap) +
                 "type-addition=" + enumMapToString(tMap) +
                 "}";
-    }
-
-    @Override
-    public @NotNull Map<AttributeKey, String> toLoreMap() {
-        return Map.of();
     }
 }

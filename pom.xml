@@ -70,8 +70,11 @@
         </repository>
         <repository>
             <id>nexus</id>
-            <name>Lumine Releases</name>
             <url>https://mvn.lumine.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.helpch.at/releases</url>
         </repository>
     </repositories>
 
@@ -89,16 +92,16 @@
             <scope>provided</scope>
         </dependency>
         <!-- 压缩序列化 -->
-        <dependency>
-            <groupId>org.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
-            <version>1.8.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-pool2</artifactId>
-            <version>2.11.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.lz4</groupId>-->
+<!--            <artifactId>lz4-java</artifactId>-->
+<!--            <version>1.8.0</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.commons</groupId>-->
+<!--            <artifactId>commons-pool2</artifactId>-->
+<!--            <version>2.11.1</version>-->
+<!--        </dependency>-->
         <!-- 粒子拦截器 -->
         <dependency>
             <groupId>com.github.retrooper</groupId>
@@ -107,11 +110,11 @@
             <scope>provided</scope>
         </dependency>
         <!-- 哈希算法 -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>33.4.8-jre</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.google.guava</groupId>-->
+<!--            <artifactId>guava</artifactId>-->
+<!--            <version>33.4.8-jre</version>-->
+<!--        </dependency>-->
         <!-- js engin -->
         <dependency>
             <groupId>org.graalvm.js</groupId>
@@ -136,5 +139,14 @@
             <version>5.9.0</version>
             <scope>provided</scope>
         </dependency>
+        <!-- placeholder api -->
+<!--        <dependency>-->
+<!--            <groupId>me.clip</groupId>-->
+<!--            <artifactId>placeholderapi</artifactId>-->
+<!--            <version>2.11.6</version>-->
+<!--&lt;!&ndash;            <scope>provided</scope>&ndash;&gt;-->
+<!--            <scope>system</scope>-->
+<!--            <systemPath>${project.basedir}/src/main/lib/placeholderapi-2.11.6.jar</systemPath>-->
+<!--        </dependency>-->
     </dependencies>
 </project>

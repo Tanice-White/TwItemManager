@@ -1,7 +1,7 @@
 var inner_name = "测试持续掉血";
 var enable = true;
 
-var lore = "这是这个buff的具体描述，测试持续掉血"
+var lore = ["这是这个buff的具体描述，测试持续掉血","用于拓展buff的显示"]
 var role_condition = "all"  // attacker defender all -> 决定 buff 持有者作为哪一方能够生效 必写
 var priority= 0;  // 必写
 var calculate_type = "timer"; // 必写

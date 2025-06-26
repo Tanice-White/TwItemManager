@@ -1,7 +1,7 @@
-package io.github.tanice.twItemManager.manager.pdc.impl;
+package io.github.tanice.twItemManager.manager.pdc;
 
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,42 +10,24 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
-
 /**
  * 实体持有的 buff属性
  * 与版本号相关
  */
 @Getter
-public class EntityPDC implements Serializable {
+public class EntityBuffPDC implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final double version = Config.version;
+    private final double version;
 
     /* 影响属性的值 */
     /* 构造函数内初始化会触发序列化的问题 */
     private final Map<String, BuffPDC> buffs;
 
-    public EntityPDC(){
+    public EntityBuffPDC(){
+        version = Config.version;
         buffs = new ConcurrentHashMap<>();
-    }
-
-    @Override
-    public @NotNull String toString() {
-        Set<Map.Entry<String, BuffPDC>> allEntries = buffs.entrySet();
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("EntityPDC{");
-        sb.append("version=").append(version).append(", ");
-        boolean first = true;
-        for (Map.Entry<String, BuffPDC> entry : allEntries) {
-            if (!first) sb.append(", ");
-            sb.append(entry.getKey()).append('=').append(entry.getValue());
-            first = false;
-        }
-        sb.append("}");
-        return sb.toString();
     }
 
     /**
@@ -71,8 +53,8 @@ public class EntityPDC implements Serializable {
      * 获取 buff 名称
      * 在数据储存后，所有的buff都是生效了的，即可以直接更新
      */
-    public List<CalculablePDC> getBuffPDCs(){
-        List<CalculablePDC> res = new ArrayList<>();
+    public List<BuffPDC> getBuffPDCs(){
+        List<BuffPDC> res = new ArrayList<>();
         for (BuffPDC bPDC : buffs.values()) {
             if (bPDC != null){
                 if (!bPDC.isEnable()) {
@@ -145,5 +127,22 @@ public class EntityPDC implements Serializable {
                 /* 正常的 buff 储存还能有效的时间 */
             } else bPDC.setDeltaTime(bPDC.getEndTimeStamp() - currentTime);
         }
+    }
+
+    @Override
+    public @NotNull String toString() {
+        Set<Map.Entry<String, BuffPDC>> allEntries = buffs.entrySet();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("EntityPDC{");
+        sb.append("version=").append(version).append(", ");
+        boolean first = true;
+        for (Map.Entry<String, BuffPDC> entry : allEntries) {
+            if (!first) sb.append(", ");
+            sb.append(entry.getKey()).append('=').append(entry.getValue());
+            first = false;
+        }
+        sb.append("}");
+        return sb.toString();
     }
 }

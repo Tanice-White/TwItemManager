@@ -19,7 +19,7 @@ public class OriSerializationUtil {
         return new byte[0];
     }
 
-    public static @Nullable Object deserialize(byte[] bytes){
+    public static @Nullable Object deserialize(byte @NotNull [] bytes){
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
              ObjectInputStream ois = new ObjectInputStream(bais)) {
             return ois.readObject();

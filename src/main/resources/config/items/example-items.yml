@@ -1,6 +1,9 @@
 # 所支持的 minimessage 格式
 # <gradient>TEXT_TO_DISPLAY</gradient>
 # <#fffff>TEXT_TO_DISPLAY<#0fffff>TEXT_TO_DISPLAY.....
+
+# type是 Item 则不要写占位符，不会主动识别
+
 物品内部名:
   type: item  # 默认item  有 gem item consumable material(简化的item) 四个类型
   id: stone_sword  # 对应原版物品ID
@@ -126,19 +129,6 @@
   hold_buff:
     - 测试闪避
 
-
-
-可食用物内部名:
-  id: stone_sword  # 自定义任意物品
-  type: consumable
-  food: +5 # 饱食度回复(默认正数)
-  potion:
-    - slow 2 10  # 表示食用后给予使用者缓慢2, 持续10个tick (1s=20tick)
-    - glow 1 40  # 其余的药水效果均可
-  mana: +10  # 人物蓝量 +10 (默认为正数)
-
-
-
 测试宝石1:  # 内部名
   # 只会识别以下7个key
   # modifiers部分同等级以及品质(无颜色代码)一样的要求
@@ -160,7 +150,6 @@
   remove_chance: 0.9  # 拆卸成功率 默认为1
   loss_when_failed: true  # 镶嵌或者拆卸失败是否修丢失
 
-
 测试宝石2:
   id: coal
   custom_model_data: 2001
@@ -169,3 +158,25 @@
     - "这是一个宝石"
   attrs:
     attack_damage: +10
+
+# 可使用物品都是永久更改
+可食用物内部名:
+  id: apple  # 自定义任意物品
+  type: consumable
+  cd: 60 # 食用cd (单位为秒)
+  # 具体修改项
+  health: 5
+  max_health: 25  # 最大生命值 +25
+  mana: 50  # 人物蓝量 +10
+  max_mana: 50  # 最大蓝量 +50
+  food: +5 # 饱食度 +5
+  saturation: 6  # 饱和 +6
+  level: 1  # 等级 +1
+  effect:  # 原版buff
+    - "glow 2 10"  # 表示食用后给予使用者缓慢2, 持续10个tick (1s=20tick)
+  buff:  # 自定义buff
+    - "测试持续掉血 10"  # 持续时间 10个tick的内部名为 测试持续掉血 的 buff
+  command:  # 执行指令 使用 # 做玩家名称占位符
+    - ""
+  lore:
+    - "<green>吃了我大大滴好:)</green>"

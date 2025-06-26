@@ -5,7 +5,9 @@
   # BASE ADD MULTIPLY FIX 用于计算
   # 其余的只有run函数有用，其他属性无效
   calculate_type: BASE # 必写（基础属性，不能自定义行为，只能在伤害计算中被动使用）
-  lore: 这是这个buff的具体描述，用于自动生成物品描述
+  lore:
+    - 这是这个buff的具体描述, 拓展buff显示
+    - 必须写成list的格式
   role_condition: all  # attacker defender all -> 决定 buff 持有者作为哪一方能够生效
   damage: 0
   armor: 100
@@ -27,6 +29,7 @@
 测试增益_1_damage_add:
   priority: 0
   calculate_type: ADD
+  chance: 0.5  # 作为 attack_buff 时有效，概率为对方挂上 buff
   damage: 0.5
 
 测试增益_2_damage_mul:

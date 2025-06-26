@@ -1,12 +1,12 @@
 package io.github.tanice.twItemManager.manager.pdc.impl;
 
-import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.graalvm.polyglot.Context;
@@ -17,7 +17,8 @@ import java.io.IOException;
 import java.io.Serial;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
@@ -36,15 +37,12 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
 
     /* js配置文件名 */
     private String jsName;
-    /* 激活间隔(s) */
-    protected int cd;
     private String jsPath;
     private transient Context jsContext;
     private String jsContent;
 
-    /* buff描述(用于自动生成 lore) */
-    @Getter
-    private String lore;
+    /* 激活间隔(s) */
+    protected int cd;
 
     /* buff生效的角色条件 */
     @Getter
@@ -54,17 +52,39 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
     @Getter
     private boolean enable;
 
+    /* buff 还能生效的时间 - 数据库读取使用, 其他情况不允许读取 */
+    @Getter
+    @Setter
+    private long deltaTime;
+
+    /* 属性结束时间(负数则永续) - 非js使用 */
+    @Getter
+    @Setter
+    private long endTimeStamp;
+
+    /* 激活几率 */
+    @Getter
+    @Setter
+    private double chance;
+
+    /* 持续时间 - 均使用(Timer类只使用这个做判断) */
+    @Getter
+    @Setter
+    private int duration;
+
     /* 额外添加 */
     private String particle;
     private Color particleColor;
     private int particleNum;
 
+    /* 非实体显示的Lore */
+    private List<String> lore;
+
+    /**
+     * 序列化使用
+     */
     public BuffPDC() {
         super();
-    }
-
-    public BuffPDC(AttributeCalculateSection s) {
-        super(s);
     }
 
     public BuffPDC(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
@@ -73,7 +93,17 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
         jsPath = null;
         enable = cfg.getBoolean(ENABLE, true);
         cd = cfg.getInt(CD, -1);
-        lore = cfg.getString(LORE, "buff: " + innerName);
+        deltaTime = -1;
+        endTimeStamp = -1;
+        /* 覆写 */
+        chance = cfg.getDouble(CHANCE, 1D);
+        duration = cfg.getInt(DURATION, -1);
+        /* 非偶数duration提示 */
+        if (duration >= 0 && duration % 2 != 0) {
+            duration--;
+            logWarning("duration必须是偶数，否则该buff会永续");
+        }
+        lore = cfg.getStringList(LORE);
         buffActiveCondition = BuffActiveCondition.valueOf(cfg.getString(BUFF_ACTIVE_CONDITION, "all").toUpperCase());
     }
 
@@ -82,28 +112,6 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
         this.jsPath = jsPath.toAbsolutePath().toString();
         this.initializeJS();
         this.readJSVariables();
-    }
-
-    @Override
-    public @NotNull String toString() {
-        return "BuffPDC{" +
-                "priority=" + priority + ", " +
-                "jsName=" + jsName + ".js, " +
-                "buffInnerName=" + innerName + ", " +
-                "attributeCalculateSection=" + attributeCalculateSection + ", " +
-                "attribute-addition=" + enumMapToString(vMap) +
-                "type-addition=" + enumMapToString(tMap) +
-                "endTimeStamp=" + endTimeStamp + ", " +
-                "chance=" + chance + ", " +
-                "cd=" + cd + ", " +
-                "duration=" + duration + ", " +
-                "deltaTime=" + deltaTime +
-                "}";
-    }
-
-    @Override
-    public @NotNull Map<AttributeKey, String> toLoreMap() {
-        return Map.of();
     }
 
     /**
@@ -126,6 +134,47 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
             logWarning("js执行错误(后续计算继续执行): " + e.getMessage());
             return true;
         }
+    }
+
+    @Override
+    public BuffPDC clone() {
+        try {
+            BuffPDC clone = (BuffPDC) super.clone();
+            // 复制不可变字段
+            clone.jsName = this.jsName;
+            clone.cd = this.cd;
+            clone.jsPath = this.jsPath;
+            clone.jsContent = this.jsContent;
+            clone.buffActiveCondition = this.buffActiveCondition;
+            clone.enable = this.enable;
+            clone.particle = this.particle;
+            clone.particleNum = this.particleNum;
+            // 复制可变字段
+            clone.vMap = this.vMap.clone();
+            clone.tMap = this.tMap.clone();
+            // 重置瞬态字段
+            clone.jsContext = null;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return "BuffPDC{" +
+                "priority=" + priority + ", " +
+                "jsName=" + jsName + ".js, " +
+                "buffInnerName=" + innerName + ", " +
+                "attributeCalculateSection=" + attributeCalculateSection + ", " +
+                "attribute-addition=" + enumMapToString(vMap) +
+                "type-addition=" + enumMapToString(tMap) +
+                "endTimeStamp=" + endTimeStamp + ", " +
+                "chance=" + chance + ", " +
+                "cd=" + cd + ", " +
+                "duration=" + duration + ", " +
+                "deltaTime=" + deltaTime +
+                "}";
     }
 
     /**
@@ -172,11 +221,14 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
         chance = getScriptValue(CHANCE, 0D);
         cd = getScriptValue(CD, 0);
         duration = getScriptValue(DURATION, 0);
+        lore = getScriptValue(LORE, List.of(innerName));
+
         String acs = getScriptValue(ACS, "other");
         attributeCalculateSection = AttributeCalculateSection.valueOf(acs.toUpperCase());
-        lore = getScriptValue(LORE, "buff: " + innerName);
+
         String bac = getScriptValue(BUFF_ACTIVE_CONDITION, "all");
         buffActiveCondition = BuffActiveCondition.valueOf(bac.toUpperCase());
+
         for (AttributeType at : AttributeType.values()) {
             vMap.put(at, getScriptValue(at.toString().toLowerCase(), 0D));
         }
@@ -201,37 +253,22 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
                 return (T) Double.valueOf(value.asDouble());
             } else if (defaultValue instanceof Boolean) {
                 return (T) Boolean.valueOf(value.asBoolean());
+            // 对 List<String> 的支持
+            } else if (defaultValue instanceof List) {
+                if (!value.hasArrayElements()) return defaultValue;
+
+                List<String> resultList = new ArrayList<>();
+                long arraySize = value.getArraySize();
+                for (long i = 0; i < arraySize; i++) {
+                    Value element = value.getArrayElement(i);
+                    resultList.add(element.asString());
+                }
+                return (T) resultList;
             }
-            // 其他类型尝试转换
             return (T) value.as(defaultValue.getClass());
         } catch (Exception e) {
             logWarning("JS变量转换失败 [" + variableName + "]: " + e.getMessage());
             return defaultValue;
-        }
-    }
-
-    @Override
-    public BuffPDC clone() {
-        try {
-            BuffPDC clone = (BuffPDC) super.clone();
-            // 复制不可变字段
-            clone.jsName = this.jsName;
-            clone.cd = this.cd;
-            clone.jsPath = this.jsPath;
-            clone.jsContent = this.jsContent;
-            clone.lore = this.lore;
-            clone.buffActiveCondition = this.buffActiveCondition;
-            clone.enable = this.enable;
-            clone.particle = this.particle;
-            clone.particleNum = this.particleNum;
-            // 复制可变字段
-            clone.vMap = this.vMap.clone();
-            clone.tMap = this.tMap.clone();
-            // 重置瞬态字段
-            clone.jsContext = null;
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
         }
     }
 }

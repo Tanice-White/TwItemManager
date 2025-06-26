@@ -36,7 +36,7 @@ public class Gem extends BaseItem {
 
     @Override
     protected void loadBase(@NotNull ItemMeta meta) {
-        meta.displayName(MiniMessageUtil.deserialize(cfg.getString(DISPLAY_NAME,"")));
+        meta.displayName(MiniMessageUtil.serialize(cfg.getString(DISPLAY_NAME,"")));
         meta.setMaxStackSize(cfg.getInt(MAX_STACK, 1));
         meta.setUnbreakable(true);
     }

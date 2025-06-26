@@ -3,14 +3,17 @@ package io.github.tanice.twItemManager.infrastructure;
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.manager.pdc.ConsumablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.checkerframework.checker.units.qual.N;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,13 +29,24 @@ public class PDCAPI {
     private static final Plugin PDC_NAMESPACE = TwItemManager.getInstance();
     
     private static final String ITEM_PDC_DATA_KEY = "TwItemManager-PDC";
+
     private static final String INNER_NAME_KEY = "inner-name";
+
     private static final String OWNER_KEY = "owner";
+
     private static final String UPDATE_CODE_KEY = "update-code";
+
     private static final String TIME_STAMP_KEY = "time-stamp";
+
     private static final String SLOT_KEY = "slot";
+
     private static final String MAX_DAMAGE_KEY = "max-damage";
     private static final String CURRENT_DAMAGE_KEY = "damage";
+    private static final String ITEM_BROKEN_KEY = "broken";
+
+    private static final String MAX_MANA_KEY = "max-mana";
+    private static final String CURRENT_MANA_KEY = "current-mana";
+    private static final String MANA_FULL_KEY = "mana_full";
 
     public static @Nullable CalculablePDC getCalculablePDC(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
@@ -49,13 +63,13 @@ public class PDCAPI {
         return (CalculablePDC) deserialize(dataBytes);
     }
 
-    public static @Nullable EntityPDC getCalculablePDC(@NotNull LivingEntity entity) {
+    public static @Nullable EntityBuffPDC getCalculablePDC(@NotNull LivingEntity entity) {
         byte[] dataBytes =  entity.getPersistentDataContainer().get(
                 new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
                 PersistentDataType.BYTE_ARRAY
         );
         if (dataBytes == null) return null;
-        return (EntityPDC) deserialize(dataBytes);
+        return (EntityBuffPDC) deserialize(dataBytes);
     }
 
     public static boolean setCalculablePDC(@NotNull ItemStack item, @NotNull CalculablePDC cPDC) {
@@ -76,9 +90,9 @@ public class PDCAPI {
         return true;
     }
 
-    public static boolean setCalculablePDC(@NotNull LivingEntity entity, @NotNull EntityPDC ePDC) {
+    public static boolean setCalculablePDC(@NotNull LivingEntity entity, @NotNull EntityBuffPDC ePDC) {
         if (ePDC.getVersion() != Config.version) {
-            ePDC = new EntityPDC();
+            ePDC = new EntityBuffPDC();
         }
         entity.getPersistentDataContainer().set(
             new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
@@ -86,6 +100,39 @@ public class PDCAPI {
             serialize(ePDC)
         );
         return true;
+    }
+
+    public static boolean setConsumablePDC(@NotNull ItemStack item, @NotNull ConsumablePDC cPDC) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
+        return setConsumablePDC(meta, cPDC);
+    }
+
+    public static boolean setConsumablePDC(@NotNull ItemMeta meta, @NotNull ConsumablePDC cPDC) {
+        /* 内容失效 */
+        if (cPDC.getVersion() != Config.version) return false;
+
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
+                PersistentDataType.BYTE_ARRAY,
+                serialize(cPDC)
+        );
+        return true;
+    }
+
+    public static @Nullable ConsumablePDC getConsumablePDC(@NotNull ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+        return getConsumablePDC(meta);
+    }
+
+    public static @Nullable ConsumablePDC getConsumablePDC(@NotNull ItemMeta meta) {
+        byte[] dataBytes =  meta.getPersistentDataContainer().get(
+          new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
+          PersistentDataType.BYTE_ARRAY
+        );
+        if (dataBytes == null) return null;
+        return (ConsumablePDC) deserialize(dataBytes);
     }
 
     /**
@@ -236,6 +283,65 @@ public class PDCAPI {
                 PersistentDataType.INTEGER,
                 currentDamage
         );
+    }
+
+    public static boolean addCurrentDamage(@NotNull ItemStack item, int addition) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
+        return addCurrentDamage(meta, addition);
+    }
+
+    /**
+     * 返回是否添加成功
+     */
+    public static boolean addCurrentDamage(@NotNull ItemMeta meta, int addition) {
+        Integer maxDamage = getMaxDamage(meta);
+        if (maxDamage == null || maxDamage == 0) return false;
+
+        Integer currentDamage = getCurrentDamage(meta);
+        if (currentDamage == null) return false;
+
+        int newDamage = currentDamage + addition;
+
+        if (newDamage >= maxDamage) {
+            setCurrentDamage(meta, maxDamage);
+            setBrokenTag(meta, false);
+            return true;
+
+        } else if (newDamage >= 0) {
+            setCurrentDamage(meta, newDamage);
+            setBrokenTag(meta, newDamage == 0);
+            return true;
+
+        } else return false;
+    }
+
+    public static void setBrokenTag(@NotNull ItemMeta meta, boolean broken) {
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(PDC_NAMESPACE, ITEM_BROKEN_KEY),
+                PersistentDataType.BOOLEAN,
+                broken
+        );
+    }
+
+    /**
+     * 判断物品耐久是否清空
+     */
+    public static boolean isBroken(@NotNull ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
+        return isBroken(meta);
+    }
+
+    /**
+     * 判断物品耐久是否清空
+     */
+    public static boolean isBroken(@NotNull ItemMeta meta) {
+        Boolean b = meta.getPersistentDataContainer().get(
+                new NamespacedKey(PDC_NAMESPACE, ITEM_BROKEN_KEY),
+                PersistentDataType.BOOLEAN
+        );
+        return b != null && b;
     }
 
     /**
@@ -489,11 +595,97 @@ public class PDCAPI {
     /**
      * 卸载NBT
      */
-    public static void removeCustomNBT(@NotNull ItemMeta meta, @NotNull String key) {
-        String[] var = key.split(":");
-        if (var.length != 2) return;
-        meta.getPersistentDataContainer().remove(
-                new NamespacedKey(var[0], var[1])
+    public static void removeAllCustomNBT(@NotNull ItemMeta meta) {
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        for (NamespacedKey key : container.getKeys()) container.remove(key);
+    }
+
+    /**
+     * 设置玩家最大蓝量
+     */
+    public static void setMaxMana(@NotNull LivingEntity entity, double maxMana) {
+        entity.getPersistentDataContainer().set(
+                new NamespacedKey(PDC_NAMESPACE, MAX_MANA_KEY),
+                PersistentDataType.DOUBLE,
+                maxMana
         );
+    }
+
+    /**
+     * 获取玩家最大蓝量
+     */
+    public static double getMaxMana(@NotNull LivingEntity entity) {
+        Double d = entity.getPersistentDataContainer().get(
+                new NamespacedKey(PDC_NAMESPACE, MAX_MANA_KEY),
+                PersistentDataType.DOUBLE
+        );
+        return d == null ? 0D : d;
+    }
+
+    /**
+     * 设置玩家当前蓝量
+     */
+    public static void setCurrentMana(@NotNull LivingEntity entity, double currentMana) {
+        entity.getPersistentDataContainer().set(
+                new NamespacedKey(PDC_NAMESPACE, CURRENT_MANA_KEY),
+                PersistentDataType.DOUBLE,
+                currentMana
+        );
+    }
+
+    /**
+     * 获取玩家当前蓝量
+     */
+    public static double getCurrentMana(@NotNull LivingEntity entity) {
+        Double d = entity.getPersistentDataContainer().get(
+                new NamespacedKey(PDC_NAMESPACE, CURRENT_MANA_KEY),
+                PersistentDataType.DOUBLE
+        );
+        return d == null ? 0D : d;
+    }
+
+    /**
+     * 操作蓝量(不会超过最大值, 也不会小于0)
+     * @return 是否设置成功
+     */
+    public static boolean operateMana(@NotNull LivingEntity entity, double v) {
+        double maxMana = getMaxMana(entity);
+        if (maxMana <= 0 || maxMana < v) return false;
+
+        double currentMana = getCurrentMana(entity);
+        if (currentMana < v) return false;
+
+        double newMana = currentMana + v;
+        if (newMana >= maxMana) {
+            setCurrentMana(entity, maxMana);
+            setManaFullTag(entity, true);
+            return true;
+        } else if (newMana > 0) {
+            setCurrentMana(entity, newMana);
+            return true;
+        } else return false;
+    }
+
+    /**
+     * 设置物体 mana 是否回复完成
+     */
+    public static void setManaFullTag(@NotNull LivingEntity entity, boolean isFull) {
+        entity.getPersistentDataContainer().set(
+                new NamespacedKey(PDC_NAMESPACE, MANA_FULL_KEY),
+                PersistentDataType.BOOLEAN,
+                isFull
+        );
+    }
+
+    /**
+     * 蓝量是否到达最大值
+     */
+    public static boolean isManaFull(@NotNull LivingEntity entity) {
+        Boolean b = entity.getPersistentDataContainer().get(
+                new NamespacedKey(PDC_NAMESPACE, MANA_FULL_KEY),
+                PersistentDataType.BOOLEAN
+        );
+
+        return b != null && b;
     }
 }

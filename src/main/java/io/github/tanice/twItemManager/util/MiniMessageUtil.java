@@ -19,14 +19,17 @@ public class MiniMessageUtil {
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     /**
-     * “\n”表示换行 否则为空
+     * 将 String 打包成为 Component
      */
-    public static Component deserialize (@Nullable String message) {
+    public static Component serialize(@Nullable String message) {
         if (message == null || message.isEmpty()) return Component.empty();
         return miniMessage.deserialize(message);
     }
 
-    public static @NotNull String serialize (@Nullable Component component) {
+    /**
+     * 解 Component 成 String
+     */
+    public static @NotNull String deserialize (@Nullable Component component) {
         if (component == null) return "";
         return miniMessage.serialize(component);
     }
@@ -40,9 +43,9 @@ public class MiniMessageUtil {
     public static String @NotNull [] getOneLayerTags (@NotNull String input) {
         Matcher closedMatcher = CLOSED_TAG_PATTERN.matcher(input);
         if (closedMatcher.find()) {
-            String tagName = closedMatcher.group(1);    // 标签名（如 gradient）
-            String params = closedMatcher.group(2);     // 参数（如 :#fffff#0fffff）
-            // 构建完整起始标签（如 <gradient:#fffff#0fffff>）
+            String tagName = closedMatcher.group(1);    // 标签名
+            String params = closedMatcher.group(2);     // 参数
+            // 构建完整起始标签
             String startTag = "<" + tagName + (params != null ? params : "") + ">";
             String endTag = "</" + tagName + ">";
             return new String[]{startTag, endTag};

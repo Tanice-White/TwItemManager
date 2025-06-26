@@ -3,8 +3,8 @@ package io.github.tanice.twItemManager.listener;
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.EntityPDC;
+import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
@@ -39,7 +39,7 @@ public class BuffListener implements Listener {
     @EventHandler
     public void onPlayerDie (@NotNull PlayerDeathEvent event) {
         Player p =event.getPlayer();
-        EntityPDC ePDC = PDCAPI.getCalculablePDC(p);
+        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(p);
         if (ePDC != null) {
             /* 若直接 new 可能会频繁扩容，增加 GC 的压力 */
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -68,15 +68,17 @@ public class BuffListener implements Listener {
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         Player p =event.getPlayer();
-        EntityPDC ePDC = TwItemManager.getDatabaseManager().getEntityPDC(p.getUniqueId().toString());
+        EntityBuffPDC ePDC = TwItemManager.getDatabaseManager().loadEntityPDC(p.getUniqueId().toString());
         if (ePDC != null) {
             // 内部的 endTimeStamp 需要更新
             if (!ePDC.getBuffPDCs().isEmpty()) {
                 long curr = System.currentTimeMillis() + 100L;  // 手动延迟2tick
-                for (CalculablePDC bPDC : ePDC.getBuffPDCs()) bPDC.setEndTimeStamp(bPDC.getDeltaTime() + curr);
+                for (BuffPDC bPDC : ePDC.getBuffPDCs()) {
+                    bPDC.setEndTimeStamp(bPDC.getDeltaTime() + curr);
+                }
             }
 
-        } else ePDC = new EntityPDC();
+        } else ePDC = new EntityBuffPDC();
 
         if (!PDCAPI.setCalculablePDC(p, ePDC)) logWarning("设置玩家PDC 失败");
 

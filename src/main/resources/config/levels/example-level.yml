@@ -6,10 +6,6 @@
   level_up_need: 可食用物内部名  # TwItems inner Name
   chance: 0.8  # 每次有0.8的概率成功
   level_down_when_failed: false  # 失败是否丢降级 默认为false
-  # 或者使用下面的表达式, 其中 #level 是当前武器的等级占位符  #begin  #max 同上
-  # TODO 未实现
-  # chance: "1 _ #level / 100"
-
   # 计算方式BASE表示是在白值计算
   # 其余的方式单独乘算，且计算完成后的值作为武器的白值
   calculate_type: BASE  # 默认为BASE
