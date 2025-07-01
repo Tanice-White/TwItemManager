@@ -10,6 +10,7 @@ public class ConsumableAttributeKey {
     public static final String LEVEL = "level";
 
     public static final String CD = "cd";
+
     public static final String BUFF = "buff";
     public static final String EFFECT = "effect";
     public static final String COMMAND = "command";

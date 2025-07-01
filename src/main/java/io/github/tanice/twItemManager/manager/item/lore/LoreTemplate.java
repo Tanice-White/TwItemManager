@@ -2,12 +2,11 @@ package io.github.tanice.twItemManager.manager.item.lore;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
+import io.github.tanice.twItemManager.constance.key.AttributeKey;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
+import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
-import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
-import io.github.tanice.twItemManager.manager.item.base.impl.Item;
-import io.github.tanice.twItemManager.manager.item.base.impl.Material;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.ConsumablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
@@ -27,6 +26,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC.EMPTY_GEM;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**
@@ -43,7 +43,10 @@ public class LoreTemplate {
     /* item 中原本的lore */
     private final String ORI_KEY = "ori";
 
-    private final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{(\\??)([^}]+)}");
+    private final String INVALID_GEM_LORE = "<gray>Invalid gem</gray>";
+    private final String EMPTY_GEM_LORE = "<gray>空置宝石槽</gray>";
+
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{(\\??)([^}]+)}");
 
     private final String templateName;
     private final List<String> templates;
@@ -60,7 +63,6 @@ public class LoreTemplate {
             if (Config.debug) logWarning("[generateAndAttachLoreToItem] 物品底层或 META 不存在");
             return;
         }
-
         /* Consumable */
         if (baseItem instanceof Consumable consumable) {
             ConsumablePDC csPDC = PDCAPI.getConsumablePDC(itemStack);
@@ -72,6 +74,8 @@ public class LoreTemplate {
         /* Gem Item Material(无PDC) */
         } else meta.lore(generateLoreComponents(baseItem, PDCAPI.getCalculablePDC(itemStack)));
 
+        // TODO 品质名和等级绑定
+
         itemStack.setItemMeta(meta);
     }
 
@@ -82,28 +86,45 @@ public class LoreTemplate {
     private @NotNull List<Component> generateLoreComponents(@NotNull BaseItem baseItem, @Nullable CalculablePDC cPDC) {
         // Material 类
         if (cPDC == null) return baseItem.getItemLore().stream().map(MiniMessageUtil::serialize).toList();
+        ItemManager itemManager = TwItemManager.getItemManager();
 
-        boolean numberDisplay = cPDC.getAttributeCalculateSection() == AttributeCalculateSection.BASE;
         Map<String, Double> attrLore =  cPDC.getAttrLore();
-        List<Component> res = new ArrayList<>();
+
+        if (cPDC instanceof ItemPDC) ((ItemPDC) cPDC).selfCalculate();
+
+        List<Component> res = new ArrayList<>(templates.size());
 
         for (String template : templates) {
             switch (template) {
                 case ORI_KEY -> res.addAll(baseItem.getItemLore().stream().map(MiniMessageUtil::serialize).toList());
-                case SKILL_KEY -> res.add(MiniMessageUtil.serialize("这是技能测试，用于占位 \")"));
+                case SKILL_KEY -> res.add(MiniMessageUtil.serialize("这是技能测试，用于占位\")"));
                 case QUALITY_KEY -> {
-                    if (!(cPDC instanceof ItemPDC itemPDC)) break;
-                    AttributePDC qPDC = TwItemManager.getItemManager().getQualityPDC(itemPDC.getQualityName());
-                    if (qPDC == null) break;
-                    // TODO qPDC.getDisplayName(); 更新
-                    // TODO lore更新
+                    if (!(cPDC instanceof ItemPDC itemPDC)) continue;
+                    AttributePDC aPDC = itemManager.getQualityPDC(itemPDC.getQualityName());
+                    if (aPDC == null) continue;
+                    Map<String, Double> qualityAttr = aPDC.getAttrLore();
+                    /* TODO 品质描述无效 */
+                    for (String qualityLoreT : aPDC.getInnerLoreTemplate()) {
+                        res.add(MiniMessageUtil.serialize(matchAndReplace(qualityLoreT, qualityAttr, aPDC.getAttributeCalculateSection() != AttributeCalculateSection.BASE)));
+                    }
                 }
                 case GEM_KEY -> {
-                    if (!(cPDC instanceof ItemPDC itemPDC)) break;
+                    if (!(cPDC instanceof ItemPDC itemPDC)) continue;
                     String[] gems = itemPDC.getGems();
-                    // TODO 更新槽位显示
+                    BaseItem bit;
+                    for (String gem : gems) {
+                        if (gem.equals(EMPTY_GEM)) {
+                            res.add(MiniMessageUtil.serialize(EMPTY_GEM_LORE));
+                            continue;
+                        }
+                        bit = itemManager.getBaseItem(gem);
+                        res.add(MiniMessageUtil.serialize(bit == null ? INVALID_GEM_LORE : bit.getDisplayName()));
+                    }
                 }
-                default -> res.add(MiniMessageUtil.serialize(matchAndReplace(template, attrLore, numberDisplay)));
+                default -> {
+                    String l = matchAndReplace(template, attrLore, cPDC.getAttributeCalculateSection() != AttributeCalculateSection.BASE);
+                    if (!l.isEmpty()) res.add(MiniMessageUtil.serialize(l));
+                }
             }
         }
         return res;
@@ -111,14 +132,15 @@ public class LoreTemplate {
 
     /**
      * 为 Consumable 生成 lore
+     * 原版 药水效果 和 自定义buff不计入
      */
     private @NotNull List<Component> generateLoreComponents(@NotNull Consumable consumable, @NotNull ConsumablePDC cPDC) {
-        Map<String, List<String>> attrLore =  cPDC.getContentLore();
+        Map<String, Double> attrLore =  cPDC.getContentLore();
         List<Component> res = new ArrayList<>();
         for (String template : templates) {
             if (template.equals(ORI_KEY)) {
                 res.addAll(consumable.getItemLore().stream().map(MiniMessageUtil::serialize).toList());
-            } else res.add(MiniMessageUtil.serialize(matchAndReplace(template, attrLore)));
+            } else res.add(MiniMessageUtil.serialize(matchAndReplace(template, attrLore, false)));
         }
         return res;
     }
@@ -126,52 +148,38 @@ public class LoreTemplate {
     /**
      * 匹配 {} 内的关键词，没有则不改变直接输出
      */
-    private @NotNull String matchAndReplace(@NotNull String loreTemplateString, @NotNull Map<String, Double> PDCAttrs, boolean numberDisplay) {
+    private @NotNull String matchAndReplace(@NotNull String loreTemplateString, @NotNull Map<String, Double> PDCAttrs, boolean percentageDisplay) {
         StringBuilder sb = new StringBuilder();
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(loreTemplateString);
         String k;
         Double v;
         boolean isConditional;
+        boolean found = false;
         // 替换所有符合条件的部分
         while (matcher.find()) {
+            found = true;
             isConditional = "?".equals(matcher.group(1));
             k = matcher.group(2).toLowerCase();
             v = PDCAttrs.get(k);
-            if (v == null || v == 0.0) {
-                v = 0.0;
-                if (isConditional) continue;
+            if (v == null) v = 0.0;
+
+            if (!isConditional || v != 0.0) {
+                String formatted = percentageDisplay || displayAsPercentage(k) ? String.format("%.1f%%", v * 100) : String.format("%.1f", v);
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(formatted));
+                matcher.appendTail(sb);
             }
-            String formatted = numberDisplay ? String.format("%.1f", v) : String.format("%.1f%%", v * 100);
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(formatted));
         }
-        matcher.appendTail(sb);
-        if (!matcher.find()) sb.append(loreTemplateString);
+        if (!found) sb.append(loreTemplateString);
         return sb.toString();
     }
 
-    private @NotNull String matchAndReplace(@NotNull String loreTemplateString, @NotNull Map<String, List<String>> PDCAttrs) {
-        StringBuilder sb = new StringBuilder();
-        Matcher matcher = PLACEHOLDER_PATTERN.matcher(loreTemplateString);
-        String k;
-        List<String> vList;
-        String v = "";
-        boolean isConditional;
-        // 替换所有符合条件的部分
-        while (matcher.find()) {
-            isConditional = "?".equals(matcher.group(1));
-            k = matcher.group(2).toLowerCase();
-            vList = PDCAttrs.get(k);
-            if (vList == null) {
-                v = "";
-                if (isConditional) continue;
-            } else {
-                for (String vs : vList) v += vs;
-                v = v.substring(1, v.length() - 1);
-            }
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(v));
-        }
-        matcher.appendTail(sb);
-        if (!matcher.find()) sb.append(loreTemplateString);
-        return sb.toString();
+    /**
+     * 必须显示为百分数的属性值
+     */
+    private boolean displayAsPercentage(@NotNull String attrName) {
+        return attrName.equalsIgnoreCase(AttributeKey.CRITICAL_STRIKE_CHANCE) ||
+                attrName.equalsIgnoreCase(AttributeKey.CRITICAL_STRIKE_DAMAGE) ||
+                attrName.equalsIgnoreCase(AttributeKey.MANA_COST) ||
+                attrName.equalsIgnoreCase(AttributeKey.SKILL_COOLDOWN);
     }
 }

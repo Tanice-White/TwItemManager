@@ -32,10 +32,12 @@ public class PlayerDataListener implements Listener{
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         Player p =event.getPlayer();
-
-        PlayerData playerData = TwItemManager.getDatabaseManager().loadPlayerData(p.getUniqueId().toString());
-        if(playerData == null) playerData = PlayerData.initPlayerData(p);
-        playerData.selfActivate();
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            PlayerData playerData = TwItemManager.getDatabaseManager().loadPlayerData(p.getUniqueId().toString());
+            if(playerData == null) playerData = PlayerData.initPlayerData(p);
+            /* 数据库读取的类中player是空的, 在 selfActivate 会作检测并初始化 */
+            playerData.selfActivate();
+        }, 1L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

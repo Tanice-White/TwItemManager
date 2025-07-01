@@ -26,11 +26,9 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
 public abstract class CalculablePDC implements Serializable, Comparable<CalculablePDC> {
     @Serial
     private static final long serialVersionUID = 1L;
-    private static final String defaultLore = "<gray>default_lore</gray>";
 
     /* 属性在具体配置中的所属路径 */
     protected static final String ATTR_SECTION_KEY = "attrs";
-    protected static final String OUTER_LORE_KEY = "outer_lore";
 
     /* 属性名称 */
     protected String innerName;
@@ -83,7 +81,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
 
         if (cfg == null) return;
         /* vMap初始化 */
-        vMap.put(AttributeType.DAMAGE, cfg.getDouble(BASE_DAMAGE, 0D));
+        vMap.put(AttributeType.ATTACK_DAMAGE, cfg.getDouble(BASE_DAMAGE, 0D));
         vMap.put(AttributeType.ARMOR, cfg.getDouble(ARMOR, 0D));
         vMap.put(AttributeType.CRITICAL_STRIKE_CHANCE, cfg.getDouble(CRITICAL_STRIKE_CHANCE, 0D));
         vMap.put(AttributeType.CRITICAL_STRIKE_DAMAGE, cfg.getDouble(CRITICAL_STRIKE_DAMAGE, 0D));

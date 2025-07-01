@@ -26,7 +26,7 @@ public class Material extends BaseItem {
 
     @Override
     protected void loadBase(@NotNull ItemMeta meta) {
-        meta.displayName(MiniMessageUtil.serialize(cfg.getString(DISPLAY_NAME,"")));
+        meta.displayName(MiniMessageUtil.serialize(displayName));
         meta.setMaxStackSize(cfg.getInt(MAX_STACK, 1));
         meta.setUnbreakable(true);
         int cmd = cfg.getInt(CUSTOM_MODEL_DATA);

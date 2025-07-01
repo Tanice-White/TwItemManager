@@ -42,7 +42,7 @@ public class ItemPDC extends CalculablePDC {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private static final String EMPTY_GEM = "$";
+    public static final String EMPTY_GEM = "$";
 
     /* 影响属性的值 */
     @Setter

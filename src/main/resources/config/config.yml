@@ -10,7 +10,7 @@ database:
     port: 3306
     database_name: tw_item_manager
     username: root
-    password: TR20030831
+    password: test123456
 
 
 # 是否生成示例配置文件

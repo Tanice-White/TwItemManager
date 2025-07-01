@@ -1,6 +1,7 @@
 package io.github.tanice.twItemManager.manager.item.base.impl;
 
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
+import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +24,11 @@ public class Consumable extends BaseItem {
 
     @Override
     protected void loadBase(@NotNull ItemMeta meta) {
-
+        meta.displayName(MiniMessageUtil.serialize(displayName));
     }
 
     @Override
     protected void loadPDCs(@NotNull ItemMeta meta) {
-
         updateUpdateCode(meta);
     }
 }

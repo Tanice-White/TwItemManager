@@ -27,6 +27,10 @@ public abstract class BaseItem {
     /** 内部名称 */
     @Getter
     protected final String innerName;
+
+    /** 原始的展示名称 */
+    @Getter
+    protected final String displayName;
     /** 原始描述 */
     /* 会被归为 loreTemplate 中的 [Item] 关键词下 */
     protected List<String> lore;
@@ -48,6 +52,7 @@ public abstract class BaseItem {
     public BaseItem(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
         this.cfg = cfg;
         this.innerName = innerName;
+        this.displayName = cfg.getString(DISPLAY_NAME, innerName);
         lore = cfg.getStringList(LORE);
         loreTemplateName = cfg.getString(LORE_TEMPLATE,"");
         customNBT = new HashMap<>();

@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 同类加算
  */
 public enum AttributeType implements Serializable {
-    DAMAGE,
+    ATTACK_DAMAGE,
     ARMOR,
     CRITICAL_STRIKE_CHANCE, // 加算
     CRITICAL_STRIKE_DAMAGE, // 加算

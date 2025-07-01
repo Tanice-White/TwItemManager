@@ -14,13 +14,14 @@ import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import lombok.Getter;
+import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import org.bukkit.Bukkit;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -181,6 +182,11 @@ public class ItemManager {
         return item;
     }
 
+    /**
+     * 物品前缀重铸
+     * 返回 null 表示重铸失败
+     * 否则返回多余的宝石（没有则返回空）
+     */
     public @Nullable String recast(@NotNull Player player, @NotNull ItemStack item) {
         BaseItem bit = itemMap.get(getInnerName(item));
         if (!(bit instanceof Item it)) {
@@ -212,7 +218,7 @@ public class ItemManager {
             return null;
         }
         updateItemDisplayView(item);
-        return null;
+        return "";
     }
 
     public boolean levelUp(@NotNull Player player, @NotNull ItemStack item, @Nullable ItemStack levelUpNeed, boolean check) {
@@ -397,23 +403,29 @@ public class ItemManager {
      * 根据物品Meta和PDC修改物品显示
      */
     public void updateItemDisplayView(@NotNull ItemStack item) {
+        BaseItem baseItem = getBaseItem(item);
+        /* 本质上也判断了是否为插件物品 */
+        if (baseItem == null) return;
+
         CalculablePDC cPDC = getCalculablePDC(item);
-        if (cPDC == null) return;
+        /* 原版属性绑定 (只有ItemPDC有原版属性) */
+        if (cPDC instanceof ItemPDC iPDC) iPDC.attachOriAttrsTo(item);
 
-        /* TODO lore 更新 */
-
-        if (cPDC instanceof ItemPDC iPDC) {
-            /* 原版属性绑定 */
-            iPDC.attachOriAttrsTo(item);
-            /* TODO 品质显示 */
-
-            /* TODO 等级显示 */
-
+        LoreTemplate loreTemplate = loreTemplateMap.get(baseItem.getLoreTemplateName());
+        /* TODO 这一块的逻辑很乱 */
+        /* 没有模板则直接将内部的lore直接赋值 */
+        if (loreTemplate == null) {
+            ItemMeta meta = item.getItemMeta();
+            meta.lore(baseItem.getItemLore().stream().map(MiniMessageUtil::serialize).toList());
+            item.setItemMeta(meta);
+            return;
         }
+        loreTemplate.AttachLoreToItem(item);
     }
 
     /**
      * 将物品的品质剥离
+     * TODO 指令执行
      */
     public void toPaleItem(@NotNull ItemStack item) {
         setQualityName(item, "");
@@ -452,7 +464,7 @@ public class ItemManager {
         for (String qualityGroupName : qualityGroupNames) {
             qg = qualityGroupMap.get(qualityGroupName);
             if (qg == null) {
-                logWarning("No quality group found with name: " + qualityGroupName);
+                logWarning("品质组: " + qualityGroupName + " 不存在");
                 continue;
             }
             qgs.add(qg);

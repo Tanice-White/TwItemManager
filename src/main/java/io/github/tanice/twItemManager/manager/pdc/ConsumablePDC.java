@@ -52,21 +52,18 @@ public class ConsumablePDC implements Serializable {
     /**
      * 可变属性转为MAP
      */
-    public @NotNull Map<String, List<String>> getContentLore() {
-        Map<String, List<String>> contentMap = new HashMap<>(); // 保持插入顺序
+    public @NotNull Map<String, Double> getContentLore() {
+        Map<String, Double> contentMap = new HashMap<>();
         // PlayerData
-        contentMap.put(HEALTH.toLowerCase(), List.of(String.valueOf(changedPlayerData.getHealth())));
-        contentMap.put(MAX_HEALTH.toLowerCase(), List.of(String.valueOf(changedPlayerData.getMaxHealth())));
-        contentMap.put(MANA.toLowerCase(), List.of(String.valueOf(changedPlayerData.getMana())));
-        contentMap.put(MAX_MANA.toLowerCase(), List.of(String.valueOf(changedPlayerData.getMaxMana())));
-        contentMap.put(FOOD.toLowerCase(), List.of(String.valueOf(changedPlayerData.getFood())));
-        contentMap.put(SATURATION.toLowerCase(), List.of(String.valueOf(changedPlayerData.getSaturation())));
-        contentMap.put(LEVEL.toLowerCase(), List.of(String.valueOf(changedPlayerData.getLevel())));
+        contentMap.put(HEALTH.toLowerCase(), changedPlayerData.getHealth());
+        contentMap.put(MAX_HEALTH.toLowerCase(), changedPlayerData.getMaxHealth());
+        contentMap.put(MANA.toLowerCase(), changedPlayerData.getMana());
+        contentMap.put(MAX_MANA.toLowerCase(), changedPlayerData.getMaxMana());
+        contentMap.put(FOOD.toLowerCase(), changedPlayerData.getFood());
+        contentMap.put(SATURATION.toLowerCase(), changedPlayerData.getSaturation());
+        contentMap.put(LEVEL.toLowerCase(), changedPlayerData.getLevel());
 
-        contentMap.put(CD.toLowerCase(), List.of(String.valueOf(cd)));
-        contentMap.put(BUFF.toLowerCase(), buffNames.isEmpty() ? List.of() : new ArrayList<>(buffNames));
-        contentMap.put(COMMAND.toLowerCase(), commands.isEmpty() ? List.of() : new ArrayList<>(commands));
-        contentMap.put(EFFECT.toLowerCase(), effects.isEmpty() ? List.of() : new ArrayList<>(effects));
+        contentMap.put(CD.toLowerCase(), (double) cd);
 
         return contentMap;
     }

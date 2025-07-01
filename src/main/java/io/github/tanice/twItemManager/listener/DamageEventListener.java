@@ -191,7 +191,7 @@ public class DamageEventListener implements Listener {
         }
 
         /* 武器的对外白值（品质+宝石+白值） */
-        finalDamage = aAttrMap.get(AttributeType.DAMAGE);
+        finalDamage = aAttrMap.get(AttributeType.ATTACK_DAMAGE);
         /* 只要是twItemManager的物品，伤害一定是1，否则一定大于1 */
         /* 不影响原版武器伤害的任何计算 */
         /* 不是插件物品 */

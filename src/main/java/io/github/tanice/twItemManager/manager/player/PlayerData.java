@@ -5,18 +5,22 @@ import io.github.tanice.twItemManager.infrastructure.AttributeAPI;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 import static io.github.tanice.twItemManager.constance.key.ConsumableAttributeKey.*;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 @Getter
 public class PlayerData {
     private final String uuid;
-    private final Player player;
+    private Player player;
 
     /* 生命值 */
     @Setter
@@ -80,11 +84,18 @@ public class PlayerData {
      * 玩家初始化后调用
      */
     public void selfActivate() {
+        if (player == null) {
+            player = Bukkit.getPlayer(uuid);
+            if (player == null) {
+                logWarning("Player " + uuid + " 不存在, 取消 PlayerData 同步");
+                return;
+            }
+        }
         AttributeAPI.setOriBaseAttr(player, Attribute.MAX_HEALTH, maxHealth);
         player.setHealth(health);
         player.setHealthScale(maxHealth);
         player.setHealthScaled(true);
-        /* 蓝条显示 */
+        /* TODO 蓝条显示 */
 
     }
 
