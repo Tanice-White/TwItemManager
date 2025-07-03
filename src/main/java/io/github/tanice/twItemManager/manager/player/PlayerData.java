@@ -12,6 +12,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 import static io.github.tanice.twItemManager.constance.key.ConsumableAttributeKey.*;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
@@ -83,7 +85,7 @@ public class PlayerData {
      */
     public void selfActivate() {
         if (player == null) {
-            player = Bukkit.getPlayer(uuid);
+            player = Bukkit.getPlayer(UUID.fromString(uuid));
             if (player == null) {
                 logWarning("Player " + uuid + " 不存在, 取消 PlayerData 同步");
                 return;
@@ -91,7 +93,7 @@ public class PlayerData {
         }
         AttributeAPI.setOriBaseAttr(player, Attribute.MAX_HEALTH, maxHealth);
         player.setHealth(health);
-        player.setHealthScale(maxHealth);
+        player.setHealthScale(20);
         player.setHealthScaled(true);
         /* TODO 蓝条显示 */
 

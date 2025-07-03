@@ -150,6 +150,14 @@ public class DatabaseManager {
                         res.add(new BuffRecord(uuid, buffInnerName, cooldown, duration));
                     }
                 }
+
+                /* 由于写入的时候可能为空，则在读取的时候进行删除 */
+                String deleteSql = "DELETE FROM buff_records WHERE uuid = ?";
+                try (PreparedStatement deletePst = connection.prepareStatement(deleteSql)) {
+                    deletePst.setString(1, uuid);
+                    deletePst.executeUpdate();
+                }
+
                 future.complete(res);
             } catch (SQLException e) {
                 logWarning("加载玩家 " + uuid + " 的buff出错: " + e.getMessage());
@@ -202,7 +210,7 @@ public class DatabaseManager {
                 }
             } catch (SQLException e) {
                 logWarning("从数据库获取玩家 " + uuid + " 的EntityPDC出错: " + e.getMessage());
-                future.completeExceptionally(e);
+                future.completeExceptionally(null);
             }
             future.complete(null);
         });

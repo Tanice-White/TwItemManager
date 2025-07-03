@@ -77,7 +77,7 @@ public class BuffManager {
     }
 
     public void onDisable() {
-        saveRecords();
+        saveAllRecords();
         buffMap.clear();
 
         // 停止任务
@@ -100,7 +100,7 @@ public class BuffManager {
     }
 
     /**
-     * 延迟添加
+     * 需要延迟添加
      * 玩家登录后从数据库初始化对应的信息
      */
     public void onPlayerJoin(@NotNull Player player) {
@@ -138,16 +138,17 @@ public class BuffManager {
     /**
      * 遍历所有 hold_buff 并更新
      */
-    public void updateHoldBuffs(@NotNull LivingEntity e, ItemStack @Nullable... preItems) {
-        /* buff移除 */
+    public void updateHoldBuffs(@NotNull LivingEntity e) {
+        /* 所有永久 buff 移除 */
         BaseItem bit;
-        if (preItems != null) {
-            for (ItemStack item : preItems) {
-                if (item == null) continue;
-                bit = TwItemManager.getItemManager().getBaseItem(item);
-                if (bit instanceof Item pi) deactivateBuff(e, pi.getHoldBuffs());
-            }
-        }
+//        if (preItems != null) {
+//            for (ItemStack item : preItems) {
+//                if (item == null) continue;
+//                bit = TwItemManager.getItemManager().getBaseItem(item);
+//                if (bit instanceof Item pi) deactivateBuff(e, pi.getHoldBuffs());
+//            }
+//        }
+        deactivateAllHoldBuffs(e);
 
         EntityEquipment equip = e.getEquipment();
         if (equip == null) return;
@@ -319,8 +320,8 @@ public class BuffManager {
                 }
 
                 if (Config.debug) logInfo("[activeBuff] " + e.getName() + " addOtherBuff: " + bPDC);
-                ePDC.addBuff(bPDC);
             }
+            ePDC.addBuff(bPDC);
         }
         PDCAPI.setCalculablePDC(e, ePDC);
     }
@@ -347,6 +348,18 @@ public class BuffManager {
     }
 
     /**
+     * 移除所有永久buff
+     */
+    public void deactivateAllHoldBuffs(@NotNull LivingEntity e) {
+        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(e);
+        if (ePDC == null) ePDC = new EntityBuffPDC();
+        for (BuffPDC bPDC : ePDC.getBuffPDCs()) {
+            if (!bPDC.isEnable() || bPDC.getDuration() < 0 || bPDC.getEndTimeStamp() < 0) ePDC.removeBuff(bPDC);
+            if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) cancelTimerBuffTask(e, bPDC.getInnerName());
+        }
+    }
+
+    /**
      * 物品不为空且不是宝石
      * TODO 判断耐久度
      */
@@ -362,7 +375,7 @@ public class BuffManager {
         if (!buffRecords.hasAnyBuff(playerId)) entityCache.remove(playerId);
     }
 
-    private void saveRecords() {
+    private void saveAllRecords() {
         TwItemManager.getDatabaseManager().saveBuffRecords(buffRecords.records.values());
     }
 
@@ -437,6 +450,7 @@ public class BuffManager {
      * 计时器类buff记录
      */
     private class BuffRecords {
+        // key : [uuid]-[buffName]
         final Map<String, BuffRecord> records = new ConcurrentHashMap<>(100);
 
         public void process() {

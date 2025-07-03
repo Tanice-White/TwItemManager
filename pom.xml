@@ -148,11 +148,5 @@
 <!--            <scope>system</scope>-->
 <!--            <systemPath>${project.basedir}/src/main/lib/placeholderapi-2.11.6.jar</systemPath>-->
 <!--        </dependency>-->
-        <!-- 支持MiniMessage -->
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-api</artifactId>
-            <version>4.22.0</version>
-        </dependency>
     </dependencies>
 </project>
