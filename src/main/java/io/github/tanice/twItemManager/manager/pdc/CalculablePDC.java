@@ -36,8 +36,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     protected int priority;
     /* 所属计算区 */
     protected AttributeCalculateSection attributeCalculateSection;
-    /* 是否是需要计算的BASE ADD MULTIPLY FIX */
-    protected boolean needCalculation;
 
     /* 属性具体值 */
     protected EnumMap<AttributeType, Double> vMap;
@@ -59,7 +57,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         innerName = "default";
         priority = Integer.MAX_VALUE;
         this.attributeCalculateSection = attributeCalculateSection;
-        initNeedCalculation();
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
     }
@@ -74,7 +71,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         this.innerName = innerName;
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = acs;
-        initNeedCalculation();
 
         vMap = new EnumMap<>(AttributeType.class);
         tMap = new EnumMap<>(DamageType.class);
@@ -146,7 +142,6 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     public @NotNull AttributePDC toAttributePDC() {
         AttributePDC pdc = new AttributePDC();
         pdc.attributeCalculateSection = attributeCalculateSection;
-        pdc.initNeedCalculation();
         pdc.merge(this, 1);
         return pdc;
     }
@@ -171,13 +166,5 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     public int compareTo(@NotNull CalculablePDC other) {
         // 按优先级升序排序
         return Integer.compare(this.priority, other.priority);
-    }
-
-    protected void initNeedCalculation() {
-        needCalculation =
-                attributeCalculateSection == AttributeCalculateSection.BASE ||
-                attributeCalculateSection == AttributeCalculateSection.ADD ||
-                attributeCalculateSection == AttributeCalculateSection.MULTIPLY ||
-                attributeCalculateSection == AttributeCalculateSection.FIX;
     }
 }

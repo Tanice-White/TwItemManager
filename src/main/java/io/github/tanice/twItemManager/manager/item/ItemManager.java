@@ -264,6 +264,7 @@ public class ItemManager {
             s += " 武器降级";
         }
         player.sendMessage(s);
+        updateItemDisplayView(item);
         return true;
     }
 
@@ -297,6 +298,7 @@ public class ItemManager {
         }
         PDCAPI.levelDown(item);
         player.sendMessage("§a降级成功!");
+        updateItemDisplayView(item);
     }
 
     
@@ -323,6 +325,7 @@ public class ItemManager {
         }
         PDCAPI.setLevel(item, level);
         player.sendMessage("§a等级设置成功");
+        updateItemDisplayView(item);
     }
 
     public boolean insertGem(@NotNull Player player, @NotNull ItemStack item, @NotNull ItemStack gem) {
@@ -356,6 +359,7 @@ public class ItemManager {
             return true;
         }
         player.sendMessage(s);
+        updateItemDisplayView(item);
         return false;
     }
 
@@ -382,6 +386,7 @@ public class ItemManager {
             player.sendMessage("§e此宝石已经不存在，无法获取");
             logWarning("玩家: " + player.getName() + "所拆卸下的宝石: " + gn +"不存在");
         }
+        updateItemDisplayView(item);
         return gem;
     }
 

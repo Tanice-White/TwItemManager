@@ -37,7 +37,7 @@ import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public class BuffManager {
-    private static final int RUN_CD = 2;
+    private static final int BUFF_RUN_CD = 2;
     private final JavaPlugin plugin;
     /** 全局可用Buff*/
     private final Map<String, BuffPDC> buffMap;
@@ -46,6 +46,7 @@ public class BuffManager {
     private final BuffRecords buffRecords;
     /** 任务处理 */
     private BukkitTask buffTask;
+    private BukkitTask buffParticleTask;
     /** 实体状态缓存 */
     private final Map<UUID, CachedEntity> entityCache;
 
@@ -62,8 +63,8 @@ public class BuffManager {
 
         buffRecords = new BuffRecords();
         entityCache = new ConcurrentHashMap<>();
-        // 启动时间轮处理任务 (每5tick执行一次)
-        buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, RUN_CD);
+
+        buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, BUFF_RUN_CD);
         logInfo("BuffManager loaded, Scheduler started");
     }
 
@@ -71,7 +72,7 @@ public class BuffManager {
         onDisable();
         this.loadBuffFilesAndBuffMap();
 
-        buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, RUN_CD);
+        buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, BUFF_RUN_CD);
         logInfo("BuffManager reloaded, Scheduler restarted");
     }
 
@@ -83,6 +84,11 @@ public class BuffManager {
         if (buffTask != null) {
             buffTask.cancel();
             buffTask = null;
+        }
+
+        if (buffParticleTask != null) {
+            buffParticleTask.cancel();
+            buffParticleTask = null;
         }
         // 清空缓存
         buffRecords.records.clear();
@@ -99,15 +105,16 @@ public class BuffManager {
      */
     public void onPlayerJoin(@NotNull Player player) {
         if (!Config.use_mysql) return;
-        List<BuffRecord> res = TwItemManager.getDatabaseManager().loadPlayerBuffRecords(player.getUniqueId().toString());
-        if (res.isEmpty()) return;
-
-        for (BuffRecord r : res) buffRecords.addCacheAndRecord(player, r);
-        if (Config.debug) {
-            StringBuilder s = new StringBuilder("玩家 " + player.getName() + "加入，同步buff: ");
-            for (BuffRecord r : res) s.append(r.toString()).append(" ");
-            logInfo(s.toString());
-        }
+        TwItemManager.getDatabaseManager().loadPlayerBuffRecords(player.getUniqueId().toString())
+            .thenAccept(res -> {
+                if (res.isEmpty()) return;
+                for (BuffRecord r : res) buffRecords.addCacheAndRecord(player, r);
+                if (Config.debug) {
+                    StringBuilder s = new StringBuilder("玩家 " + player.getName() + "加入，同步buff: ");
+                    for (BuffRecord r : res) s.append(r.toString()).append(" ");
+                    logInfo(s.toString());
+                }
+            });
     }
 
     /**
@@ -295,7 +302,7 @@ public class BuffManager {
                 logWarning("buff 名: " + bn + "不存在");
                 continue;
             }
-            if (!bPDC.isEnable() || random.nextDouble() < bPDC.getChance()) continue;
+            if (!bPDC.isEnable() || (!isHoldBuff && random.nextDouble() < bPDC.getChance())) continue;
             /* 全局计算类属性 */
             if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
                 if (isHoldBuff) bPDC.setDuration(-1);
@@ -438,7 +445,7 @@ public class BuffManager {
                 Map.Entry<String, BuffRecord> entry = it.next();
                 BuffRecord record = entry.getValue();
                 // 检查CD
-                record.cooldownCounter -= RUN_CD;
+                record.cooldownCounter -= BUFF_RUN_CD;
                 if (record.cooldownCounter <= 0) {
                     CachedEntity cached = BuffManager.instance.entityCache.get(record.uuid);
                     if (cached == null || cached.entity == null || !cached.entity.isValid() || cached.entity.isDead()) {
@@ -455,7 +462,7 @@ public class BuffManager {
                 // 检查持续时间
                 /* 最开始就小于0则永续 */
                 if (record.durationCounter >= 0) {
-                    record.durationCounter -= RUN_CD;
+                    record.durationCounter -= BUFF_RUN_CD;
                     if (record.durationCounter <= 0) it.remove();
                 }
             }

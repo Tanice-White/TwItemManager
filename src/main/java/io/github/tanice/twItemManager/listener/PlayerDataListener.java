@@ -1,14 +1,13 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.event.PlayerDataChangeEvent;
+import io.github.tanice.twItemManager.event.PlayerDataLimitChangeEvent;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,12 +31,12 @@ public class PlayerDataListener implements Listener{
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         Player p =event.getPlayer();
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            PlayerData playerData = TwItemManager.getDatabaseManager().loadPlayerData(p.getUniqueId().toString());
-            if(playerData == null) playerData = PlayerData.initPlayerData(p);
-            /* 数据库读取的类中player是空的, 在 selfActivate 会作检测并初始化 */
-            playerData.selfActivate();
-        }, 1L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getDatabaseManager().loadPlayerData(p.getUniqueId().toString())
+            .thenAccept(playerData -> {
+                if(playerData == null) playerData = PlayerData.initPlayerData(p);
+                /* 数据库读取的类中player是空的, 在 selfActivate 会作检测并初始化 */
+                playerData.selfActivate();
+            }), 1L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -48,8 +47,8 @@ public class PlayerDataListener implements Listener{
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerDataChange(@NotNull PlayerDataChangeEvent event) {
-        Player p =event.getPlayer();
+    public void onPlayerDataChange(@NotNull PlayerDataLimitChangeEvent event) {
+        Player p = event.getPlayer();
         PlayerData playerData = PlayerData.readPlayerData(p);
         TwItemManager.getDatabaseManager().savePlayerData(playerData);
     }

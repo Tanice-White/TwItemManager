@@ -113,7 +113,7 @@ public class Item extends BaseItem {
             logWarning("ItemPDC 设置出错");
         }
         setSlot(meta ,cfg.getString(SLOT,"ANY"));
-        /* 灵魂绑定的玩家名(暂时不使用UUID) */
+        /* 灵魂绑定的玩家 UUID */
         setOwner(meta, "");
         updateUpdateCode(meta);
     }

@@ -41,7 +41,7 @@ public abstract class BaseItem {
     /** 对应的config */
     protected final ConfigurationSection cfg;
 
-    /* 额外的nbt */
+    /** 额外的nbt */
     protected final Map<String, String> customNBT;
 
     /**

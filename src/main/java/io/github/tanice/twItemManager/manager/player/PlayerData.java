@@ -12,8 +12,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 import static io.github.tanice.twItemManager.constance.key.ConsumableAttributeKey.*;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 

@@ -67,25 +67,27 @@ public class BuffListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        Player p =event.getPlayer();
-        EntityBuffPDC ePDC = TwItemManager.getDatabaseManager().loadEntityPDC(p.getUniqueId().toString());
-        if (ePDC != null) {
-            // 内部的 endTimeStamp 需要更新
-            if (!ePDC.getBuffPDCs().isEmpty()) {
-                long curr = System.currentTimeMillis() + 100L;  // 手动延迟2tick
-                for (BuffPDC bPDC : ePDC.getBuffPDCs()) {
-                    bPDC.setEndTimeStamp(bPDC.getDeltaTime() + curr);
+        Player p = event.getPlayer();
+        TwItemManager.getDatabaseManager().loadEntityPDC(p.getUniqueId().toString())
+            .thenAccept(ePDC -> {
+                EntityBuffPDC usePDC = (ePDC == null) ? new EntityBuffPDC() : ePDC;
+                // 内部的 endTimeStamp 需要更新
+                if (!usePDC.getBuffPDCs().isEmpty()) {
+                    long curr = System.currentTimeMillis() + 100L;  // 手动延迟2tick
+                    for (BuffPDC bPDC : usePDC.getBuffPDCs()) {
+                        bPDC.setEndTimeStamp(bPDC.getDeltaTime() + curr);
+                    }
                 }
-            }
+                // 切回主线程
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    if (!PDCAPI.setCalculablePDC(p, usePDC)) logWarning("设置玩家PDC 失败");
 
-        } else ePDC = new EntityBuffPDC();
-
-        if (!PDCAPI.setCalculablePDC(p, ePDC)) logWarning("设置玩家PDC 失败");
-
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            TwItemManager.getBuffManager().updateHoldBuffs(event.getPlayer(), (ItemStack) null);
-            TwItemManager.getBuffManager().onPlayerJoin(p);
-        }, 10L);
+                    plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                        TwItemManager.getBuffManager().updateHoldBuffs(event.getPlayer(), (ItemStack) null);
+                        TwItemManager.getBuffManager().onPlayerJoin(p);
+                    }, 1L);
+                });
+            });
     }
 
     /**

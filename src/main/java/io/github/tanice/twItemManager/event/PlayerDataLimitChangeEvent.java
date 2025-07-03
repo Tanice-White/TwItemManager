@@ -7,7 +7,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class PlayerDataChangeEvent extends Event implements Cancellable {
+public class PlayerDataLimitChangeEvent extends Event implements Cancellable {
     private boolean cancelled;
     private static final HandlerList handlers = new HandlerList();
 
@@ -16,7 +16,7 @@ public class PlayerDataChangeEvent extends Event implements Cancellable {
 
     public static HandlerList getHandlerList() {return handlers;}
 
-    public PlayerDataChangeEvent(@NotNull final Player player) {
+    public PlayerDataLimitChangeEvent(@NotNull final Player player) {
         this.player = player;
     }
 
