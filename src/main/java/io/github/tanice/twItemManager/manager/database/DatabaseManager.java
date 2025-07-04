@@ -269,11 +269,11 @@ public class DatabaseManager {
                         double maxHealth = rs.getDouble("max_health");
                         double mana = rs.getDouble("mana");
                         double maxMana = rs.getDouble("max_mana");
-                        double food = rs.getDouble("food");
+                        int food = rs.getInt("food");
                         double saturation = rs.getDouble("saturation");
-                        double level = rs.getDouble("level");
+                        int level = rs.getInt("level");
                         boolean allowFlight = rs.getBoolean("allow_flight");
-                        future.complete(new PlayerData(uuid, food, saturation, level,
+                        future.complete(new PlayerData(uuid, food, (float) saturation, level,
                                 health, maxHealth, allowFlight, mana, maxMana));
                         return;
                     }

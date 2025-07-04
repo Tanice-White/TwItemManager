@@ -30,11 +30,6 @@ public class Gem extends BaseItem {
     }
 
     @Override
-    protected void loadClassValues() {
-
-    }
-
-    @Override
     protected void loadBase(@NotNull ItemMeta meta) {
         meta.displayName(MiniMessageUtil.serialize(displayName));
         meta.setMaxStackSize(cfg.getInt(MAX_STACK, 1));

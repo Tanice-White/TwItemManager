@@ -95,6 +95,9 @@ public class BuffManager {
         entityCache.clear();
     }
 
+    /**
+     * 获取 buffPDC 的可变副本
+     */
     public @Nullable BuffPDC getBuffPDC(@Nullable String bufInnerName) {
         return buffMap.get(bufInnerName).clone();
     }
@@ -157,37 +160,37 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(e, i.getHoldBuffs(), true);
+            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(e, i.getHoldBuffs(), true);
+            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getHelmet();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(e, i.getHoldBuffs(), true);
+            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getChestplate();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(e, i.getHoldBuffs(), true);
+            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getLeggings();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(e, i.getHoldBuffs(), true);
+            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
         }
 
         it = equip.getBoots();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(e, i.getHoldBuffs(), true);
+            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
         }
     }
 
@@ -205,37 +208,37 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
         }
 
         it = equip.getHelmet();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
         }
 
         it = equip.getChestplate();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
         }
 
         it = equip.getLeggings();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
         }
 
         it = equip.getBoots();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
         }
     }
 
@@ -253,44 +256,44 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
         }
 
         it = equip.getHelmet();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
         }
 
         it = equip.getChestplate();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
         }
 
         it = equip.getLeggings();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
         }
 
         it = equip.getBoots();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuff(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
         }
     }
 
     /**
      * 让 buff 生效
      */
-    public void activeBuff(@NotNull LivingEntity e, @NotNull List<String> buffNames, boolean isHoldBuff) {
+    public void activeBuffs(@NotNull LivingEntity e, @NotNull List<String> buffNames, boolean isHoldBuff) {
         if (buffNames.isEmpty()) return;
 
         BuffPDC bPDC;
@@ -324,6 +327,38 @@ public class BuffManager {
             ePDC.addBuff(bPDC);
         }
         PDCAPI.setCalculablePDC(e, ePDC);
+    }
+
+    /**
+     * 让 buff 以传入时间生效
+     */
+    public void activeBuffWithTimeLimit(@NotNull LivingEntity entity, @NotNull String buffName, int duration) {
+        BuffPDC bPDC;
+        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(entity);
+        if (ePDC == null) ePDC = new EntityBuffPDC();
+
+        bPDC = getBuffPDC(buffName);
+        if (bPDC == null) {
+            logWarning("buff : " + buffName + "不存在");
+            return;
+        }
+        if (!bPDC.isEnable()) {
+            logWarning("buff: " + buffName + "未启用");
+            return;
+        }
+        bPDC.setDuration(duration);
+        if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
+            startTimerBuffTask(entity, bPDC);
+
+            if (Config.debug) logInfo("[activeBuff] " + entity.getName() + " addTimerBuff: " + bPDC);
+        } else {
+            long curr = System.currentTimeMillis();
+            bPDC.setEndTimeStamp(curr + (50L * duration));
+
+            if (Config.debug) logInfo("[activeBuff] " + entity.getName() + " addOtherBuff: " + bPDC);
+        }
+        ePDC.addBuff(bPDC);
+        PDCAPI.setCalculablePDC(entity, ePDC);
     }
 
     /**

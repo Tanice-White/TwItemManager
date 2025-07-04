@@ -1,25 +1,50 @@
 package io.github.tanice.twItemManager.manager.item.base.impl;
 
+import io.github.tanice.twItemManager.TwItemManager;
+import io.github.tanice.twItemManager.event.PlayerDataLimitChangeEvent;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
+import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static io.github.tanice.twItemManager.constance.key.ConsumableAttributeKey.*;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.updateUpdateCode;
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**
- * 右键使用可产生效果的物品
+ * 可食用物品
+ * 由插件代劳，PDC不储存在物品中
  */
 public class Consumable extends BaseItem {
+    /* TODO 食用cd */
+    private int cd;
+    private final PlayerData changedPlayerData;
+    private final List<String> buffLore;
+    private final List<String> commandLore;
+    private final List<String> effectLore;
+    private final boolean isLimitChange;
 
     public Consumable(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
         super(innerName, cfg);
-    }
+        changedPlayerData = PlayerData.newFromConsumable(cfg);
+        buffLore = cfg.getStringList(BUFF);
+        commandLore = cfg.getStringList(COMMAND);
+        effectLore = cfg.getStringList(EFFECT);
 
-    @Override
-    protected void loadClassValues() {
-
+        isLimitChange = changedPlayerData.getMaxMana() != 0 || changedPlayerData.getMaxHealth() != 0;
     }
 
     @Override
@@ -30,5 +55,83 @@ public class Consumable extends BaseItem {
     @Override
     protected void loadPDCs(@NotNull ItemMeta meta) {
         updateUpdateCode(meta);
+    }
+
+    /**
+     * 属性生效
+     * 返回是否生效成功
+     */
+    public boolean activate(@NotNull Player player) {
+        PlayerData playerData = PlayerData.readPlayerData(player);
+        if (isLimitChange) {
+            PlayerDataLimitChangeEvent playerDataLimitChangeEvent = new PlayerDataLimitChangeEvent(player);
+            Bukkit.getPluginManager().callEvent(playerDataLimitChangeEvent);
+            if (playerDataLimitChangeEvent.isCancelled()) return false;
+        }
+        playerData.mergeAndActive(changedPlayerData);
+
+        String[] v;
+        if (buffLore != null && !buffLore.isEmpty()) {
+            for (String bn : buffLore) {
+                v = bn.split(" ");
+                if (v.length != 2) {
+                    logWarning("Consumable: " + innerName + " 中自定义 buff: " + bn + " 格式错误 ([buff名][空格][持续tick])");
+                    continue;
+                }
+                TwItemManager.getBuffManager().activeBuffWithTimeLimit(player, v[0], Integer.parseInt(v[1]));
+            }
+        }
+
+        if (effectLore != null && !effectLore.isEmpty()) {
+            for (String en : effectLore) {
+                v = en.split(" ");
+                if (v.length != 3) {
+                    logWarning("Consumable: " + innerName + " 中原版药水效果: " + en + " 格式错误 ([效果名][空格][药水效果等级][持续tick])");
+                    continue;
+                }
+                PotionEffectType effectType = Registry.EFFECT.get(new NamespacedKey(NamespacedKey.MINECRAFT_NAMESPACE, v[0].toLowerCase()));
+                if (effectType == null) {
+                    logWarning("原版例子效果名称无法识别: " + v[0]);
+                    continue;
+                }
+
+                PotionEffect effect = new PotionEffect(
+                        effectType,
+                        Math.max(Integer.parseInt(v[2]), 0),
+                        Math.max(Integer.parseInt(v[1]) - 1, 1),
+                        true,            // 是否显示粒子效果
+                        true,            // 是否显示状态图标
+                        false             // 是否有环境音效
+                );
+                player.addPotionEffect(effect);
+            }
+        }
+
+        if (commandLore != null && !commandLore.isEmpty()) {
+            for (String cn : commandLore) {
+                if (cn.isEmpty()) continue;
+                Bukkit.dispatchCommand(player, cn.replace(" self ", " " + player.getName() + " "));
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 可变属性转为MAP
+     */
+    public @NotNull Map<String, Double> getContentLore() {
+        Map<String, Double> contentMap = new HashMap<>();
+        // PlayerData
+        contentMap.put(HEALTH.toLowerCase(), changedPlayerData.getHealth());
+        contentMap.put(MAX_HEALTH.toLowerCase(), changedPlayerData.getMaxHealth());
+        contentMap.put(MANA.toLowerCase(), changedPlayerData.getMana());
+        contentMap.put(MAX_MANA.toLowerCase(), changedPlayerData.getMaxMana());
+        contentMap.put(FOOD.toLowerCase(), (double) changedPlayerData.getFood());
+        contentMap.put(SATURATION.toLowerCase(), (double) changedPlayerData.getSaturation());
+        contentMap.put(LEVEL.toLowerCase(), (double) changedPlayerData.getLevel());
+
+        contentMap.put(CD.toLowerCase(), (double) cd);
+
+        return contentMap;
     }
 }

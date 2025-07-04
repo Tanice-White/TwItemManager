@@ -68,10 +68,6 @@ public class Item extends BaseItem {
      */
     public Item(@NotNull String innerName, @NotNull ConfigurationSection config) {
         super(innerName, config);
-    }
-
-    @Override
-    protected void loadClassValues() {
         skills = cfg.getStringList(SKILLS);
         qualityGroups = cfg.getStringList(QUALITY_GROUPS);
         cancelDamage = cfg.getBoolean(CANCEL_DAMAGE, false);

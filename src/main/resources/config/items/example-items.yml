@@ -173,10 +173,10 @@
   saturation: 6  # 饱和 +6
   level: 1  # 等级 +1
   effect:  # 原版buff
-    - "glow 2 10"  # 表示食用后给予使用者缓慢2, 持续10个tick (1s=20tick)
+    - "glowing 1 40"  # 表示食用后给予使用者缓慢2, 持续10个tick (1s=20tick)  # 这里的等级就是游戏中的效果等级，不需要额外-1
   buff:  # 自定义buff
-    - "测试持续掉血 10"  # 持续时间 10个tick的内部名为 测试持续掉血 的 buff
-  command:  # 执行指令 使用 # 做玩家名称占位符
-    - ""
+    - "测试持续掉血 20"  # 持续时间 10个tick的内部名为 测试持续掉血 的 buff
+  command:  # 执行指令 使用 self 做玩家名称占位符(检测的是[空格][self][空格] 所以当self在最后的时候，需要空一格)
+    - "kill self "
   lore:
     - "<green>吃了我大大滴好:)</green>"

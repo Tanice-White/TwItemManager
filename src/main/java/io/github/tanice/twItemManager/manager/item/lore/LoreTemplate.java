@@ -8,7 +8,6 @@ import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.ConsumablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
@@ -64,15 +63,9 @@ public class LoreTemplate {
             return;
         }
         /* Consumable */
-        if (baseItem instanceof Consumable consumable) {
-            ConsumablePDC csPDC = PDCAPI.getConsumablePDC(itemStack);
-            if (csPDC == null) {
-                if (Config.debug) logWarning("[generateAndAttachLoreToItem] 物品PDC不存在");
-                return;
-            }
-            meta.lore(generateLoreComponents(consumable, csPDC));
+        if (baseItem instanceof Consumable consumable) meta.lore(generateLoreComponents(consumable));
         /* Gem Item Material(无PDC) */
-        } else meta.lore(generateLoreComponents(baseItem, PDCAPI.getCalculablePDC(itemStack)));
+        else meta.lore(generateLoreComponents(baseItem, PDCAPI.getCalculablePDC(itemStack)));
 
         // TODO 品质名和等级绑定
 
@@ -134,8 +127,8 @@ public class LoreTemplate {
      * 为 Consumable 生成 lore
      * 原版 药水效果 和 自定义buff不计入
      */
-    private @NotNull List<Component> generateLoreComponents(@NotNull Consumable consumable, @NotNull ConsumablePDC cPDC) {
-        Map<String, Double> attrLore =  cPDC.getContentLore();
+    private @NotNull List<Component> generateLoreComponents(@NotNull Consumable consumable) {
+        Map<String, Double> attrLore =  consumable.getContentLore();
         List<Component> res = new ArrayList<>();
         for (String template : templates) {
             if (template.equals(ORI_KEY)) {

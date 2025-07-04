@@ -66,8 +66,6 @@ public abstract class BaseItem {
     protected void generate() {
         Material material = loadMaterial();
         if (material == null) return;
-        /* 加载自身类中的属性*/
-        loadClassValues();
         item = new ItemStack(material, cfg.getInt(AMOUNT, 1));
         ItemMeta meta = item.getItemMeta();
         setInnerName(meta, innerName);
@@ -97,10 +95,6 @@ public abstract class BaseItem {
         return material;
     }
 
-    /**
-     * 读取子类自身的不可变数据--需要储存在运行类中
-     */
-    protected abstract void loadClassValues();
     /**
      * 读取物品基础信息(原版)
      */

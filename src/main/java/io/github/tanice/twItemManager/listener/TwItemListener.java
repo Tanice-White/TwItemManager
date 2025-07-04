@@ -1,27 +1,27 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
+import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
-import io.papermc.paper.persistence.PersistentDataContainerView;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static io.github.tanice.twItemManager.util.Logger.logWarning;
+
 /**
- * 所有和本插件生成的物品事件
+ * 处理灵魂绑定和可食用物品
  */
 public class TwItemListener implements Listener {
     private final JavaPlugin plugin;
@@ -55,6 +55,19 @@ public class TwItemListener implements Listener {
     public void onPlayerDrop(@NotNull PlayerDropItemEvent event) {
         ItemStack i = event.getItemDrop().getItemStack();
         if (isTwItem(i) && isSoulBind(i)) event.setCancelled(true);
+    }
+
+    /**
+     * 可食用物品监听
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void PlayerInteractConsumable(@NotNull PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+        ItemStack item = event.getItem();
+        BaseItem bit = TwItemManager.getItemManager().getBaseItem(item);
+        if (!(bit instanceof Consumable consumable)) return;
+        if (consumable.activate(event.getPlayer())) item.setAmount(item.getAmount() - 1);
     }
 
     private boolean isTwItem(@Nullable ItemStack i) {

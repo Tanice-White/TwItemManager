@@ -34,13 +34,13 @@ public class PlayerData {
     private double maxMana;
     /* 饥饿度 */
     @Setter
-    private double food;
+    private int food;
     /* 饱食度 */
     @Setter
-    private double saturation;
+    private float saturation;
     /* 等级 */
     @Setter
-    private double level;
+    private int level;
     /* 允许飞行 */
     @Setter
     private boolean allowFlight;
@@ -48,7 +48,7 @@ public class PlayerData {
     /**
      * 数据库初始化使用，其余情况请勿使用
      */
-    public PlayerData(@NotNull String uuid, double food, double saturation, double level, double health, double maxHealth, boolean allowFlight, double mana, double maxMana) {
+    public PlayerData(@NotNull String uuid, int food, float saturation, int level, double health, double maxHealth, boolean allowFlight, double mana, double maxMana) {
         this.player = null;
         this.uuid = uuid;
 
@@ -82,6 +82,7 @@ public class PlayerData {
 
     /**
      * 玩家初始化后调用
+     * tips: 先修改最大值
      */
     public void selfActivate() {
         if (player == null) {
@@ -92,9 +93,20 @@ public class PlayerData {
             }
         }
         AttributeAPI.setOriBaseAttr(player, Attribute.MAX_HEALTH, maxHealth);
-        player.setHealth(health);
-        player.setHealthScale(20);
-        player.setHealthScaled(true);
+        player.setHealth(Math.min(health, maxHealth));
+
+        if (!player.isHealthScaled()) {
+            player.setHealthScale(20);
+            player.setHealthScaled(true);
+        }
+
+        player.setFoodLevel(food);
+        player.setSaturation(saturation);
+        player.setLevel(level);
+
+        player.setAllowFlight(allowFlight);
+        PDCAPI.setMaxMana(player, maxMana);
+        PDCAPI.setCurrentMana(player, Math.min(mana,maxMana));
         /* TODO 蓝条显示 */
 
     }
@@ -109,9 +121,9 @@ public class PlayerData {
                 cfg.getDouble(MAX_HEALTH, 0D),
                 cfg.getDouble(MANA, 0D),
                 cfg.getDouble(MAX_MANA, 0D),
-                cfg.getDouble(FOOD, 0D),
-                cfg.getDouble(SATURATION, 0D),
-                cfg.getDouble(LEVEL, 0D)
+                cfg.getInt(FOOD, 0),
+                (float) cfg.getDouble(SATURATION, 0D),
+                cfg.getInt(LEVEL, 0)
         );
     }
 
@@ -157,7 +169,7 @@ public class PlayerData {
     /**
      * consumable 专用
      */
-    private PlayerData(double health, double maxHealth, double mana, double maxMana, double food, double saturation, double level) {
+    private PlayerData(double health, double maxHealth, double mana, double maxMana, int food, float saturation, int level) {
         uuid = null;
         player = null;
         this.health = health;

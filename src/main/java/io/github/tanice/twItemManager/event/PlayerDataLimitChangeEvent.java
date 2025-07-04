@@ -7,6 +7,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * 玩家数据中 最值 更改事件
+ */
 public class PlayerDataLimitChangeEvent extends Event implements Cancellable {
     private boolean cancelled;
     private static final HandlerList handlers = new HandlerList();
