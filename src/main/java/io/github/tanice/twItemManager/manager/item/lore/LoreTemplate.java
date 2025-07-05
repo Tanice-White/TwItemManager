@@ -103,10 +103,6 @@ public class LoreTemplate {
                     boolean f = aPDC.getAttributeCalculateSection() != AttributeCalculateSection.BASE;
                     String v;
 
-                    for (Map.Entry<String, Double> entry : qAttrs.entrySet()) {
-                        logWarning(entry.getKey() + " = " + entry.getValue() + " ");
-                    }
-
                     for (String l : qlt.templates) {
                         v = matchAndReplace(l, qAttrs, f);
                         if (!v.isEmpty()) res.add(MiniMessageUtil.serialize(v));
