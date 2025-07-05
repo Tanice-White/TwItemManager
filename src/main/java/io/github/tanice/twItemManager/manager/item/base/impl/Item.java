@@ -27,9 +27,9 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
  */
 public class Item extends BaseItem {
     /** 技能组名 */
-    private List<String> skills;
+    private final List<String> skills;
     /** 可选品质组组名 */
-    private List<String> qualityGroups;
+    private final List<String> qualityGroups;
     /** 等级模板名 */
     @Getter
     private String levelTemplateName;
@@ -117,6 +117,9 @@ public class Item extends BaseItem {
     @Override
     public @NotNull List<String> selfUpdate(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return List.of();
+        removeCustomNBT(meta);
+
         /* 基础信息重载 */
         loadBase(meta);
 
@@ -134,6 +137,7 @@ public class Item extends BaseItem {
         newPDC.attachOriAttrsTo(item);
         PDCAPI.setCalculablePDC(item, newPDC);
 
+        attachCustomNBT(meta);
         item.setItemMeta(meta);
         /* 多余的宝石给予玩家 */
         return externalGems;

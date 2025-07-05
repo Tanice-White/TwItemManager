@@ -2,7 +2,7 @@ package io.github.tanice.twItemManager.manager.database;
 
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.buff.BuffRecord;
-import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.util.serialize.OriSerializationUtil;
 import org.jetbrains.annotations.NotNull;
@@ -171,13 +171,13 @@ public class DatabaseManager {
     /**
      * 保存EntityPDC到数据库（序列化为byte数组）
      * @param uuid 实体UUID
-     * @param entityBuffPDC EntityPDC对象
+     * @param entityPDC EntityPDC对象
      */
-    public void saveEntityPDC(@NotNull String uuid, @Nullable EntityBuffPDC entityBuffPDC) {
-        final EntityBuffPDC finalEntityBuffPDC = (entityBuffPDC == null) ? new EntityBuffPDC() : entityBuffPDC;
+    public void saveEntityPDC(@NotNull String uuid, @Nullable EntityPDC entityPDC) {
+        final EntityPDC finalEntityPDC = (entityPDC == null) ? new EntityPDC() : entityPDC;
         dbExecutor.execute(() -> {
-            finalEntityBuffPDC.simplify(System.currentTimeMillis());
-            byte[] data = OriSerializationUtil.serialize(finalEntityBuffPDC);
+            finalEntityPDC.simplify(System.currentTimeMillis());
+            byte[] data = OriSerializationUtil.serialize(finalEntityPDC);
             String sql = "INSERT INTO entity_pdc_data (uuid, data) VALUES (?, ?) "
                     + "ON DUPLICATE KEY UPDATE data = VALUES(data)";
             try (PreparedStatement pst = connection.prepareStatement(sql)) {
@@ -195,8 +195,8 @@ public class DatabaseManager {
      * @param uuid 实体UUID
      * @return EntityPDC对象，不存在则返回null
      */
-    public CompletableFuture<EntityBuffPDC> loadEntityPDC(@NotNull String uuid) {
-        CompletableFuture<EntityBuffPDC> future = new CompletableFuture<>();
+    public CompletableFuture<EntityPDC> loadEntityPDC(@NotNull String uuid) {
+        CompletableFuture<EntityPDC> future = new CompletableFuture<>();
         dbExecutor.execute(() -> {
             String sql = "SELECT data FROM entity_pdc_data WHERE uuid = ?";
             try (PreparedStatement pst = connection.prepareStatement(sql)) {
@@ -204,7 +204,7 @@ public class DatabaseManager {
                 try (ResultSet rs = pst.executeQuery()) {
                     if (rs.next()) {
                         byte[] data = rs.getBytes("data");
-                        future.complete((EntityBuffPDC) OriSerializationUtil.deserialize(data));
+                        future.complete((EntityPDC) OriSerializationUtil.deserialize(data));
                         return;
                     }
                 }

@@ -24,7 +24,7 @@ public class AttributePDC extends CalculablePDC {
 
     private String displayName;
 
-    private List<String> innerLoreTemplate;
+    private String LoreTemplateName;
 
     public AttributePDC(){
         super();
@@ -38,7 +38,7 @@ public class AttributePDC extends CalculablePDC {
     public AttributePDC(@NotNull String innerName, @NotNull AttributeCalculateSection acs, @NotNull ConfigurationSection cfg) {
         super(innerName, acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         this.displayName = cfg.getString(DISPLAY_NAME, innerName);
-        this.innerLoreTemplate = cfg.getStringList(LORE_TEMPLATE);
+        this.LoreTemplateName = cfg.getString(LORE_TEMPLATE);
     }
 
     @Override

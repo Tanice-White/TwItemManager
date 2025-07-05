@@ -1,6 +1,7 @@
 package io.github.tanice.twItemManager.manager.pdc;
 
 import io.github.tanice.twItemManager.config.Config;
+import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -14,20 +15,30 @@ import java.util.concurrent.ConcurrentHashMap;
  * 实体持有的 buff属性
  * 与版本号相关
  */
-@Getter
-public class EntityBuffPDC implements Serializable {
+public class EntityPDC implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-
+    @Getter
     private final double version;
 
-    /* 影响属性的值 */
+
     /* 构造函数内初始化会触发序列化的问题 */
+    /** key=[uuid]-[buffName] value=BuffPDC */
     private final Map<String, BuffPDC> buffs;
 
-    public EntityBuffPDC(){
+    /* 所食用的可食用物次数 */
+    /** key=可食用物品内部名 value=Integer */
+    private final Map<String, Integer> consumeTimes;
+
+    /* 所食用可食用物品冷却(储存下一次可食用时间) */
+    /** key=可食用物品内部名 value=Long */
+    private final Map<String, Long> consumeCD;
+
+    public EntityPDC(){
         version = Config.version;
         buffs = new ConcurrentHashMap<>();
+        consumeTimes = new ConcurrentHashMap<>();
+        consumeCD = new ConcurrentHashMap<>();
     }
 
     /**
@@ -110,6 +121,7 @@ public class EntityBuffPDC implements Serializable {
     /**
      * 自我简化，同时 只更新 buff 生效时间
      * 删除 永久性buff 和不再生效的buff
+     * 可食用物品部分不需要
      */
     public void simplify(long currentTime) {
         if (buffs.isEmpty()) return;
@@ -127,6 +139,37 @@ public class EntityBuffPDC implements Serializable {
                 /* 正常的 buff 储存还能有效的时间 */
             } else bPDC.setDeltaTime(bPDC.getEndTimeStamp() - currentTime);
         }
+    }
+
+    /**
+     * 食用物品
+     * @return 是否食用成功
+     */
+    public boolean consume(@NotNull Consumable consumable) {
+        String innerName = consumable.getInnerName();
+        int cd = consumable.getCd();
+        int times = consumable.getTimes();
+
+        boolean f = false;
+        long currentTime = System.currentTimeMillis();
+
+        /* 食用cd判定 */
+        Long c = consumeCD.get(innerName);
+        if (c == null || cd <= 0 || c < currentTime) f = true;
+        if (!f) return false;
+
+        /* 食用次数判定 */
+        f = false;
+        Integer t = consumeTimes.get(innerName);
+        if (t == null || times < 0 || t < times) f = true;
+        t = t == null ? 0 : t;
+
+        if (!f) return false;
+
+        /* 可以食用 */
+        consumeTimes.put(innerName, t + 1);
+        if (cd > 0) consumeCD.put(innerName, currentTime + (long) cd * 1000);
+        return true;
     }
 
     @Override

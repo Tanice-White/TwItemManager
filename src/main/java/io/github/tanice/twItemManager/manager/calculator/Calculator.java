@@ -5,7 +5,7 @@ import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
@@ -184,7 +184,7 @@ public abstract class Calculator {
      * 获取目标生效的buff
      */
     protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity e) {
-        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(e);
+        EntityPDC ePDC = PDCAPI.getEntityPDC(e);
         if (ePDC == null) return new ArrayList<>();
         return ePDC.getActiveBuffPDCs(System.currentTimeMillis());
     }

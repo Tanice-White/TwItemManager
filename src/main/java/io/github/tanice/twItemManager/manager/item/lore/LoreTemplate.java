@@ -81,7 +81,7 @@ public class LoreTemplate {
         if (cPDC == null) return baseItem.getItemLore().stream().map(MiniMessageUtil::serialize).toList();
         ItemManager itemManager = TwItemManager.getItemManager();
 
-        Map<String, Double> attrLore =  cPDC.getAttrLore();
+        Map<String, Double> attrLore =  cPDC.getAttrMap();
 
         if (cPDC instanceof ItemPDC) ((ItemPDC) cPDC).selfCalculate();
 
@@ -95,10 +95,21 @@ public class LoreTemplate {
                     if (!(cPDC instanceof ItemPDC itemPDC)) continue;
                     AttributePDC aPDC = itemManager.getQualityPDC(itemPDC.getQualityName());
                     if (aPDC == null) continue;
-                    Map<String, Double> qualityAttr = aPDC.getAttrLore();
-                    /* TODO 品质描述无效 */
-                    for (String qualityLoreT : aPDC.getInnerLoreTemplate()) {
-                        res.add(MiniMessageUtil.serialize(matchAndReplace(qualityLoreT, qualityAttr, aPDC.getAttributeCalculateSection() != AttributeCalculateSection.BASE)));
+
+                    LoreTemplate qlt = TwItemManager.getItemManager().getLoreTemplate(aPDC.getLoreTemplateName());
+                    if (qlt == null) continue;
+
+                    Map<String, Double> qAttrs = aPDC.getAttrMap();
+                    boolean f = aPDC.getAttributeCalculateSection() != AttributeCalculateSection.BASE;
+                    String v;
+
+                    for (Map.Entry<String, Double> entry : qAttrs.entrySet()) {
+                        logWarning(entry.getKey() + " = " + entry.getValue() + " ");
+                    }
+
+                    for (String l : qlt.templates) {
+                        v = matchAndReplace(l, qAttrs, f);
+                        if (!v.isEmpty()) res.add(MiniMessageUtil.serialize(v));
                     }
                 }
                 case GEM_KEY -> {
@@ -141,7 +152,7 @@ public class LoreTemplate {
     /**
      * 匹配 {} 内的关键词，没有则不改变直接输出
      */
-    private @NotNull String matchAndReplace(@NotNull String loreTemplateString, @NotNull Map<String, Double> PDCAttrs, boolean percentageDisplay) {
+    private @NotNull String matchAndReplace(@NotNull String loreTemplateString, @NotNull Map<String, Double> attrMap, boolean percentageDisplay) {
         StringBuilder sb = new StringBuilder();
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(loreTemplateString);
         String k;
@@ -153,15 +164,17 @@ public class LoreTemplate {
             found = true;
             isConditional = "?".equals(matcher.group(1));
             k = matcher.group(2).toLowerCase();
-            v = PDCAttrs.get(k);
-            if (v == null) v = 0.0;
+            v = attrMap.get(k);
 
-            if (!isConditional || v != 0.0) {
-                String formatted = percentageDisplay || displayAsPercentage(k) ? String.format("%.1f%%", v * 100) : String.format("%.1f", v);
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(formatted));
-                matcher.appendTail(sb);
-            }
+            if (v == null) v = 0.0;
+            if (isConditional && v == 0.0) continue;
+
+            String formatted = percentageDisplay || displayAsPercentage(k) ? String.format("%.1f%%", v * 100) : String.format("%.1f", v);
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(formatted));
+            /* 这样写 如果lore带问号但是值为0则不会显示 */
+            matcher.appendTail(sb);
         }
+
         if (!found) sb.append(loreTemplateString);
         return sb.toString();
     }

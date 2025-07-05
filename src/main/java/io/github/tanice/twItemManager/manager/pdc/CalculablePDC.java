@@ -84,8 +84,8 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         vMap.put(AttributeType.ARMOR_TOUGHNESS, cfg.getDouble(ARMOR_TOUGHNESS, 0D));
         vMap.put(AttributeType.PRE_ARMOR_REDUCTION, cfg.getDouble(PRE_ARMOR_REDUCTION, 0D));
         vMap.put(AttributeType.AFTER_ARMOR_REDUCTION, cfg.getDouble(AFTER_ARMOR_REDUCTION, 0D));
-        vMap.put(AttributeType.MANA_COST, cfg.getDouble(MANA_COST, 0D));
-        vMap.put(AttributeType.SKILL_COOL_DOWN, cfg.getDouble(SKILL_COOLDOWN, 0D));
+        vMap.put(AttributeType.SKILL_MANA_COST, cfg.getDouble(MANA_COST, 0D));
+        vMap.put(AttributeType.SKILL_COOLDOWN, cfg.getDouble(SKILL_COOLDOWN, 0D));
         /* tMap初始化 */
         tMap.put(DamageType.MELEE, cfg.getDouble(MELEE, 0D));
         tMap.put(DamageType.MAGIC, cfg.getDouble(MAGIC, 0D));
@@ -149,7 +149,7 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     /**
      * 将属性转为 lore 显示
      */
-    public @NotNull Map<String, Double> getAttrLore() {
+    public @NotNull Map<String, Double> getAttrMap() {
         // 使用HashMap，初始容量设置为足够大以避免扩容
         // 数据量较小的时候串行速度比并行快
         Map<String, Double> result = new HashMap<>((vMap.size() + tMap.size()) * 2);

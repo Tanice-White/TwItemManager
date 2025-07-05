@@ -4,7 +4,7 @@ import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
@@ -39,7 +39,7 @@ public class BuffListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDie (@NotNull PlayerDeathEvent event) {
         Player p =event.getPlayer();
-        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(p);
+        EntityPDC ePDC = PDCAPI.getEntityPDC(p);
         if (ePDC != null) {
             /* 若直接 new 可能会频繁扩容，增加 GC 的压力 */
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -62,7 +62,7 @@ public class BuffListener implements Listener {
         Player p =event.getPlayer();
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             TwItemManager.getBuffManager().onPlayerQuit(p);
-            TwItemManager.getDatabaseManager().saveEntityPDC(p.getUniqueId().toString(), PDCAPI.getCalculablePDC(p));
+            TwItemManager.getDatabaseManager().saveEntityPDC(p.getUniqueId().toString(), PDCAPI.getEntityPDC(p));
         }, 1L);
     }
 
@@ -72,7 +72,7 @@ public class BuffListener implements Listener {
         Player p = event.getPlayer();
         TwItemManager.getDatabaseManager().loadEntityPDC(p.getUniqueId().toString())
             .thenAccept(ePDC -> {
-                EntityBuffPDC usePDC = (ePDC == null) ? new EntityBuffPDC() : ePDC;
+                EntityPDC usePDC = (ePDC == null) ? new EntityPDC() : ePDC;
                 // 内部的 endTimeStamp 需要更新
                 if (!usePDC.getBuffPDCs().isEmpty()) {
                     long curr = System.currentTimeMillis() + 99L;  // 手动延迟1tick
@@ -114,6 +114,7 @@ public class BuffListener implements Listener {
         /* shift 放入发射器, 得到的是发射器而不是Player */
         if (!(event.getInventory().getHolder() instanceof Player player)) return;
         /* event 的 getCurrentItem() 太抽象了, 直接全部更新得了 */
+        if (TwItemManager.getItemManager().isNotItem(event.getCurrentItem()) && TwItemManager.getItemManager().isNotItem(event.getCursor())) return;
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> changeBuff(player), 1L);
     }
 

@@ -4,7 +4,7 @@ import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -61,13 +61,13 @@ public class PDCAPI {
         return (CalculablePDC) deserialize(dataBytes);
     }
 
-    public static @Nullable EntityBuffPDC getCalculablePDC(@NotNull LivingEntity entity) {
+    public static @Nullable EntityPDC getEntityPDC(@NotNull LivingEntity entity) {
         byte[] dataBytes =  entity.getPersistentDataContainer().get(
                 new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
                 PersistentDataType.BYTE_ARRAY
         );
         if (dataBytes == null) return null;
-        return (EntityBuffPDC) deserialize(dataBytes);
+        return (EntityPDC) deserialize(dataBytes);
     }
 
     public static boolean setCalculablePDC(@NotNull ItemStack item, @NotNull CalculablePDC cPDC) {
@@ -88,9 +88,9 @@ public class PDCAPI {
         return true;
     }
 
-    public static boolean setCalculablePDC(@NotNull LivingEntity entity, @NotNull EntityBuffPDC ePDC) {
+    public static boolean setCalculablePDC(@NotNull LivingEntity entity, @NotNull EntityPDC ePDC) {
         if (ePDC.getVersion() != Config.version) {
-            ePDC = new EntityBuffPDC();
+            ePDC = new EntityPDC();
         }
         entity.getPersistentDataContainer().set(
             new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
@@ -596,7 +596,10 @@ public class PDCAPI {
      */
     public static void removeAllCustomNBT(@NotNull ItemMeta meta) {
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        for (NamespacedKey key : container.getKeys()) container.remove(key);
+        for (NamespacedKey key : container.getKeys()) {
+            if (key.getNamespace().equalsIgnoreCase(TwItemManager.getInstance().getName())) continue;
+            container.remove(key);
+        }
     }
 
     /**

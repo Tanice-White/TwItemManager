@@ -12,7 +12,7 @@ import io.github.tanice.twItemManager.manager.item.lore.LoreTemplate;
 import io.github.tanice.twItemManager.manager.item.quality.QualityGroup;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import org.bukkit.Bukkit;
@@ -121,6 +121,13 @@ public class ItemManager {
     }
 
     /**
+     * 获取描述模板类
+     */
+    public @Nullable LoreTemplate getLoreTemplate(@NotNull String loreTemplateName) {
+        return loreTemplateMap.get(loreTemplateName);
+    }
+
+    /**
      * 获取等级模板对应的模板属性
      */
     public @Nullable AttributePDC getLevelPDC(@NotNull String levelTemplateName) {
@@ -146,7 +153,7 @@ public class ItemManager {
     }
 
     public String getCalculablePDCAsString(@NotNull LivingEntity entity) {
-        EntityBuffPDC cPDC = PDCAPI.getCalculablePDC(entity);
+        EntityPDC cPDC = PDCAPI.getEntityPDC(entity);
         if (cPDC == null) return "此物品没有持久化的PDC";
         return cPDC.toString();
     }
@@ -184,25 +191,24 @@ public class ItemManager {
 
     /**
      * 物品前缀重铸
-     * 返回 null 表示重铸失败
-     * 否则返回多余的宝石（没有则返回空）
+     * 返回是否重铸成功
      */
-    public @Nullable String recast(@NotNull Player player, @NotNull ItemStack item) {
+    public void recast(@NotNull Player player, @NotNull ItemStack item) {
         BaseItem bit = itemMap.get(getInnerName(item));
         if (!(bit instanceof Item it)) {
             player.sendMessage("§e此物品不能重铸");
-            return null;
+            return;
         }
 
         if (item.getMaxStackSize() > 1) {
             player.sendMessage("§e可堆叠物品不应该有品质!");
-            return null;
+            return;
         }
 
         List<String> qgs = it.getQualityGroups();
         if (qgs.isEmpty()) {
             player.sendMessage("§e此物品不能重铸");
-            return null;
+            return;
         }
 
         /* 获取随机品质 */
@@ -210,15 +216,15 @@ public class ItemManager {
         if (aPDC == null) {
             player.sendMessage("§e重铸失败, 请联系管理");
             logWarning("玩家: " + player.getName() + " 重铸武器 " + getInnerName(item) + " 时出现null品质, 请检查配置文件");
-            return null;
+            return;
         }
         if (!setQualityName(item, aPDC.getInnerName())) {
             player.sendMessage("§e重铸失败, 请联系管理");
             logWarning("玩家: " + player.getName() + " 重铸武器 " + getInnerName(item) + " 时品质设置失败, 请联系作者");
-            return null;
+            return;
         }
+        player.sendMessage("§a重铸成功: " + aPDC.getDisplayName());
         updateItemDisplayView(item);
-        return "";
     }
 
     public boolean levelUp(@NotNull Player player, @NotNull ItemStack item, @Nullable ItemStack levelUpNeed, boolean check) {
@@ -256,6 +262,7 @@ public class ItemManager {
         if (Math.random() < lt.getChance()){
             PDCAPI.levelUp(item);
             player.sendMessage("§a强化成功!");
+            updateItemDisplayView(item);
             return true;
         }
         String s = "§c强化失败";
@@ -264,7 +271,6 @@ public class ItemManager {
             s += " 武器降级";
         }
         player.sendMessage(s);
-        updateItemDisplayView(item);
         return true;
     }
 
@@ -345,6 +351,8 @@ public class ItemManager {
             if (f) {
                 player.sendMessage("§a宝石镶嵌成功!");
                 setCalculablePDC(item, iPDC);
+                /* 更新描述 */
+                updateItemDisplayView(item);
                 return true;
             } else {
                 player.sendMessage("§e宝石有问题，请询问管理员");
@@ -359,7 +367,6 @@ public class ItemManager {
             return true;
         }
         player.sendMessage(s);
-        updateItemDisplayView(item);
         return false;
     }
 
@@ -417,7 +424,7 @@ public class ItemManager {
         if (cPDC instanceof ItemPDC iPDC) iPDC.attachOriAttrsTo(item);
 
         LoreTemplate loreTemplate = loreTemplateMap.get(baseItem.getLoreTemplateName());
-        /* TODO 这一块的逻辑很乱 */
+
         /* 没有模板则直接将内部的lore直接赋值 */
         if (loreTemplate == null) {
             ItemMeta meta = item.getItemMeta();
@@ -425,6 +432,7 @@ public class ItemManager {
             item.setItemMeta(meta);
             return;
         }
+        /* 否则按照模板来显示 */
         loreTemplate.AttachLoreToItem(item);
     }
 

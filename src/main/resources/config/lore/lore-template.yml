@@ -31,3 +31,6 @@ quality_default:
   - "<yellow>暴击伤害: {?critical_strike_damage}</yellow>"
   - "<blue>冷却缩减: {?skill_cooldown}</blue>"
   - "<blue>蓝蚝缩减: {?skill_mana_cost}</blue>"
+
+consumable_default:
+  - ""

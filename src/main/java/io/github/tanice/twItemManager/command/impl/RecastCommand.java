@@ -29,9 +29,7 @@ public class RecastCommand extends SubCommand {
             sender.sendMessage("§c请手持TwItem执行此命令");
             return true;
         }
-        String qn = TwItemManager.getItemManager().recast(player, item);
-        if (qn != null) sender.sendMessage("§a重铸成功: " + qn);
-        else sender.sendMessage("§c重铸失败");
+        TwItemManager.getItemManager().recast(player, item);
         return true;
     }
 }

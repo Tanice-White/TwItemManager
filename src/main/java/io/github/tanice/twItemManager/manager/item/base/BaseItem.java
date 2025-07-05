@@ -141,11 +141,11 @@ public abstract class BaseItem {
     public @NotNull List<String> selfUpdate(@NotNull ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return List.of();
-
         removeCustomNBT(meta);
-
+        // 覆写操作区域
         loadBase(meta);
         loadPDCs(meta);
+        // 覆写操作区域
         attachCustomNBT(meta);
         item.setItemMeta(meta);
         return List.of();

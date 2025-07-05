@@ -49,7 +49,7 @@ public final class AttributeKey {
     public static final String ARMOR_TOUGHNESS = "armor_toughness";
     public static final String PRE_ARMOR_REDUCTION = "pre_armor_reduction";
     public static final String AFTER_ARMOR_REDUCTION = "after_armor_reduction";
-    public static final String MANA_COST = "mana_cost";
+    public static final String MANA_COST = "skill_mana_cost";
     public static final String SKILL_COOLDOWN = "skill_cooldown";
     public static final String SET_NAME = "set_name";
     public static final String MAX_DURABILITY = "max_durability";

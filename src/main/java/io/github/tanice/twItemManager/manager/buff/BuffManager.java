@@ -7,7 +7,7 @@ import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityBuffPDC;
+import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.SlotUtil;
 import lombok.Getter;
@@ -297,8 +297,8 @@ public class BuffManager {
         if (buffNames.isEmpty()) return;
 
         BuffPDC bPDC;
-        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(e);
-        if (ePDC == null) ePDC = new EntityBuffPDC();
+        EntityPDC ePDC = PDCAPI.getEntityPDC(e);
+        if (ePDC == null) ePDC = new EntityPDC();
 
         for (String bn : buffNames) {
             bPDC = getBuffPDC(bn);
@@ -334,8 +334,8 @@ public class BuffManager {
      */
     public void activeBuffWithTimeLimit(@NotNull LivingEntity entity, @NotNull String buffName, int duration) {
         BuffPDC bPDC;
-        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(entity);
-        if (ePDC == null) ePDC = new EntityBuffPDC();
+        EntityPDC ePDC = PDCAPI.getEntityPDC(entity);
+        if (ePDC == null) ePDC = new EntityPDC();
 
         bPDC = getBuffPDC(buffName);
         if (bPDC == null) {
@@ -368,8 +368,8 @@ public class BuffManager {
         if (buffNames == null) return;
 
         BuffPDC bPDC;
-        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(e);
-        if (ePDC == null) ePDC = new EntityBuffPDC();
+        EntityPDC ePDC = PDCAPI.getEntityPDC(e);
+        if (ePDC == null) ePDC = new EntityPDC();
 
         for (String bn : buffNames) {
             bPDC = getBuffPDC(bn);
@@ -386,8 +386,8 @@ public class BuffManager {
      * 移除所有永久buff
      */
     public void deactivateAllHoldBuffs(@NotNull LivingEntity e) {
-        EntityBuffPDC ePDC = PDCAPI.getCalculablePDC(e);
-        if (ePDC == null) ePDC = new EntityBuffPDC();
+        EntityPDC ePDC = PDCAPI.getEntityPDC(e);
+        if (ePDC == null) ePDC = new EntityPDC();
         for (BuffPDC bPDC : ePDC.getBuffPDCs()) {
             if (!bPDC.isEnable() || bPDC.getDuration() < 0 || bPDC.getEndTimeStamp() < 0) ePDC.removeBuff(bPDC);
             if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) cancelTimerBuffTask(e, bPDC.getInnerName());

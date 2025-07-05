@@ -1,9 +1,11 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
+import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
+import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,14 +13,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**
  * 处理灵魂绑定和可食用物品
@@ -44,8 +43,10 @@ public class TwItemListener implements Listener {
     public void onPlayerHeldSoulBind(@NotNull PlayerItemHeldEvent event) {
         ItemStack item = event.getPlayer().getInventory().getItem(event.getNewSlot());
         if (item == null) return;
-        if(isTwItem(item) && isSoulBind(item)) TwItemManager.getItemManager().doSoulBind(item, event.getPlayer());
-        TwItemManager.getItemManager().updateItemDisplayView(item);
+        if(isTwItem(item) && !isSoulBind(item)) {
+            TwItemManager.getItemManager().doSoulBind(item, event.getPlayer());
+            TwItemManager.getItemManager().updateItemDisplayView(item);
+        }
     }
 
     /**
@@ -65,9 +66,20 @@ public class TwItemListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         ItemStack item = event.getItem();
+        if (item == null) return;
+
         BaseItem bit = TwItemManager.getItemManager().getBaseItem(item);
         if (!(bit instanceof Consumable consumable)) return;
-        if (consumable.activate(event.getPlayer())) item.setAmount(item.getAmount() - 1);
+
+        EntityPDC ePDC = PDCAPI.getEntityPDC(event.getPlayer());
+        if (ePDC == null) ePDC = new EntityPDC();
+
+        if (ePDC.consume(consumable) && consumable.activate(event.getPlayer())) {
+            item.setAmount(item.getAmount() - 1);
+            return;
+        }
+        event.getPlayer().sendMessage("§c有股神秘的力量在阻止你吃下它");
+        event.setCancelled(true);
     }
 
     private boolean isTwItem(@Nullable ItemStack i) {

@@ -5,6 +5,7 @@ import io.github.tanice.twItemManager.event.PlayerDataLimitChangeEvent;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -18,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static io.github.tanice.twItemManager.constance.key.ConsumableAttributeKey.*;
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.updateUpdateCode;
@@ -29,8 +29,13 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
  * 由插件代劳，PDC不储存在物品中
  */
 public class Consumable extends BaseItem {
-    /* TODO 食用cd */
-    private int cd;
+    /* 食用cd(s) */
+    @Getter
+    private final int cd;
+    /* 食用次数 */
+    @Getter
+    private final int times;
+
     private final PlayerData changedPlayerData;
     private final List<String> buffLore;
     private final List<String> commandLore;
@@ -39,6 +44,8 @@ public class Consumable extends BaseItem {
 
     public Consumable(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
         super(innerName, cfg);
+        cd = cfg.getInt(CD, -1);
+        times = cfg.getInt(TIMES, -1);
         changedPlayerData = PlayerData.newFromConsumable(cfg);
         buffLore = cfg.getStringList(BUFF);
         commandLore = cfg.getStringList(COMMAND);
@@ -98,7 +105,7 @@ public class Consumable extends BaseItem {
                 PotionEffect effect = new PotionEffect(
                         effectType,
                         Math.max(Integer.parseInt(v[2]), 0),
-                        Math.max(Integer.parseInt(v[1]) - 1, 1),
+                        Math.max(Integer.parseInt(v[1]) - 1, 0),
                         true,            // 是否显示粒子效果
                         true,            // 是否显示状态图标
                         false             // 是否有环境音效
@@ -110,7 +117,7 @@ public class Consumable extends BaseItem {
         if (commandLore != null && !commandLore.isEmpty()) {
             for (String cn : commandLore) {
                 if (cn.isEmpty()) continue;
-                Bukkit.dispatchCommand(player, cn.replace(" self ", " " + player.getName() + " "));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cn.replace(" self ", " " + player.getName() + " "));
             }
         }
         return true;
@@ -131,6 +138,7 @@ public class Consumable extends BaseItem {
         contentMap.put(LEVEL.toLowerCase(), (double) changedPlayerData.getLevel());
 
         contentMap.put(CD.toLowerCase(), (double) cd);
+        contentMap.put(TIMES.toLowerCase(), (double) times);
 
         return contentMap;
     }

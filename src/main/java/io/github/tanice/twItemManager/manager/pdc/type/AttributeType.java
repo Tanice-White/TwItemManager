@@ -15,8 +15,6 @@ public enum AttributeType implements Serializable {
     AFTER_ARMOR_REDUCTION,  // 属性单独提供，加算  基本的减伤就是此类型  受平衡影响
 
     // TODO 这俩右键技能释放的时候需要考虑
-    MANA_COST,              // 加算
-    SKILL_COOL_DOWN,        // 加算
-
-    // TODO 特定情况下的伤害减免
+    SKILL_MANA_COST,        // 加算
+    SKILL_COOLDOWN,         // 加算
 }

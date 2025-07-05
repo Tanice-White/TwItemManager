@@ -140,22 +140,23 @@
   hide_flags:
     - UNBREAKABLE
   lore:
-    - "这是一个宝石"
+    - "这是一个宝石1"
+  lore_template: default
   # 计算方式BASE表示是在白值计算
   # 其余的方式单独乘算，且计算完成后的值作为武器的白值
   calculate_type: ADD  # 默认为BASE
   attrs:
     attack_damage: -0.1  # 伤害减少10%
-  embed_chance: 0.9  # 镶嵌成功率  默认为 1
-  remove_chance: 0.9  # 拆卸成功率 默认为1
-  loss_when_failed: true  # 镶嵌或者拆卸失败是否修丢失
+  chance: 0.9  # 镶嵌成功率  默认为 1
+  loss_when_failed: true  # 镶嵌失败是否修丢失
 
 测试宝石2:
   id: coal
   custom_model_data: 2001
   type: gem
   lore:
-    - "这是一个宝石"
+    - "这是一个宝石2"
+  lore_template: default
   attrs:
     attack_damage: +10
 
@@ -163,7 +164,8 @@
 可食用物内部名:
   id: apple  # 自定义任意物品
   type: consumable
-  cd: 60 # 食用cd (单位为秒)
+  cd: 60  # 食用cd (单位为秒)  负数表示不限制(默认不限制)
+  times: 1  # 食用次数  负数表示不限制(默认不限制)
   # 具体修改项
   health: 5
   max_health: 25  # 最大生命值 +25
@@ -173,10 +175,10 @@
   saturation: 6  # 饱和 +6
   level: 1  # 等级 +1
   effect:  # 原版buff
-    - "glowing 1 40"  # 表示食用后给予使用者缓慢2, 持续10个tick (1s=20tick)  # 这里的等级就是游戏中的效果等级，不需要额外-1
+    - "glowing 1 40"  # 表示食用后给予使用者发光1, 持续40个tick (1s=20tick)  # 这里的等级就是游戏中的效果等级，不需要额外-1
   buff:  # 自定义buff
     - "测试持续掉血 20"  # 持续时间 10个tick的内部名为 测试持续掉血 的 buff
   command:  # 执行指令 使用 self 做玩家名称占位符(检测的是[空格][self][空格] 所以当self在最后的时候，需要空一格)
-    - "kill self "
+    - ""
   lore:
     - "<green>吃了我大大滴好:)</green>"

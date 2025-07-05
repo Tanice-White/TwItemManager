@@ -7,7 +7,8 @@
 # skill_cooldown、mana_cost、armor、armor_toughness、
 # pre_armor_reduction、after_armor_reduction
 品质组名:
-  <red>品质1</red>:  # 这里的格式无效  # 需要单独设置 displayName 否则使用品质内部名
+  品质1:  # 这里的格式无效  # 需要单独设置 displayName 否则使用品质内部名
+    display_name: <red>破损</red>
     slot: any  # MC支持的物品佩戴位置  # 默认为ANY
     weight: 1  # 品质的权重用于随机选择 必写
     # 计算方式BASE表示是在白值计算
@@ -15,9 +16,7 @@
     calculate_type: BASE  # 默认为BASE  #不是BASE时会默认转化为百分比显示  -1表示减少100%的伤害
     attrs:
       attack_damage: -1
-    lore:  # 品质描述，用于物品lore的模板生成
-      # 下面两个本质上是一样的 (值是-1且计算区位于BASE的情况下)
-      - "<red>攻击伤害: -1</red>"
+    lore_template: quality_default
 
   # 品质显示的名称为(蓝色的）品质2
   <blue>品质2</blue>:
@@ -26,19 +25,22 @@
       critical_strike_chance: -0.1
       critical_strike_damage: -0.1
     lore_template: quality_default
+
   品质3:
     weight: 1
-    display_name: 我是品质3  # 需要单独设置 displayName 否则使用品质内部名
+    display_name: <blue>神秘</blue>  # 需要单独设置 displayName 否则使用品质内部名
     attrs:
       skill_cooldown: -0.1  # 技能冷却 (所有)
       skill_mana_cost: -0.1  # 技能蓝耗 (所有)
     lore_template: quality_default
+
   品质4:
     weight: 1
     attrs:
       armor: 5
       armor_toughness: 5
     lore_template: quality_default
+
   品质5:
     weight: 1.2
 

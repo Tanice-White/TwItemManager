@@ -100,13 +100,24 @@ public class PlayerData {
             player.setHealthScaled(true);
         }
 
+        if (food < 0) food = 0;
+        if (food > 20) food = 20;
         player.setFoodLevel(food);
+
+        if (saturation < 0) saturation = 0;
+        if (saturation > 20) saturation = 20;
         player.setSaturation(saturation);
+
+        if (level < 0) level = 0;
         player.setLevel(level);
 
         player.setAllowFlight(allowFlight);
+
+        if (maxMana < 0) maxMana = 0;
+        if (mana < 0) mana = 0;
+        if (mana > maxMana) mana = maxMana;
         PDCAPI.setMaxMana(player, maxMana);
-        PDCAPI.setCurrentMana(player, Math.min(mana,maxMana));
+        PDCAPI.setCurrentMana(player, mana);
         /* TODO 蓝条显示 */
 
     }
