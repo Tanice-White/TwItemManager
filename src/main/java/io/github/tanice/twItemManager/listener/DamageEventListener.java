@@ -120,16 +120,14 @@ public class DamageEventListener implements Listener {
     /**
      * 实体受伤检测
      */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(@NotNull EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity living)) return;
         if (event.getFinalDamage() <= 0) return;
 
-        boolean c = false;
-        if (event instanceof EntityDamageByEntityEvent oe) c = oe.isCritical();
+        if (event instanceof EntityDamageByEntityEvent) return;
 
-        boolean isC = c;
-        Bukkit.getScheduler().runTaskLater(plugin, () -> generateIndicator(living, isC, event.getFinalDamage()), 1L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> generateIndicator(living, false, event.getFinalDamage()), 1L);
     }
 
     /**
@@ -154,6 +152,7 @@ public class DamageEventListener implements Listener {
         CombatEntityCalculator bc = new CombatEntityCalculator(livingT);
         EnumMap<AttributeType, Double> aAttrMap = ac.getAttrsValue();
         EnumMap<AttributeType, Double> bAttrMap = bc.getAttrsValue();
+        boolean isCritical = false;
 
         if (Config.debug) {
             logInfo("[EntityDamageByEntityEvent] attacker attribute map: " + enumMapToString(aAttrMap));
@@ -200,7 +199,7 @@ public class DamageEventListener implements Listener {
             /* 怪物拿起的武器不受这个影响，伤害是满额的 */
             /* 所以玩家才计算比例 */
         else if (damager instanceof Player p) {
-            // TODO 不确定玩家的cooldown会不会受到武器影响，应该要受到武器的影响
+            // 不确定玩家的cooldown会不会受到武器影响，应该要受到武器的影响
             finalDamage *= 0.15 + p.getAttackCooldown() * 0.85;
         }
 
@@ -209,6 +208,7 @@ public class DamageEventListener implements Listener {
 
         /* 暴击事件 + 修正 */
         if (random.nextDouble() < aAttrMap.get(AttributeType.CRITICAL_STRIKE_CHANCE)){
+            isCritical = true;
             finalDamage *= aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE) < 1 ? 1: aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE);
         }
 
@@ -264,6 +264,9 @@ public class DamageEventListener implements Listener {
         /* TIMER 不处理，而是在增加buff的时候处理 */
         // doDamage(event, isCritical, finalDamage);
         event.setDamage(finalDamage);
+
+        final boolean c = isCritical;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> generateIndicator(livingT, c, event.getFinalDamage()), 1L);
     }
 
     /**

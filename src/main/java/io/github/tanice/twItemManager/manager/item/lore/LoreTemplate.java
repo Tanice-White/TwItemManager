@@ -7,6 +7,7 @@ import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
+import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
@@ -14,6 +15,9 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,6 +46,9 @@ public class LoreTemplate {
     private final String GEM_KEY = "gem";
     /* item 中原本的lore */
     private final String ORI_KEY = "ori";
+
+    private final String OWNER_KEY = "owner";
+    private final String DURABILITY_KEY = "durability";
 
     private final String INVALID_GEM_LORE = "<gray>Invalid gem</gray>";
     private final String EMPTY_GEM_LORE = "<gray>空置宝石槽</gray>";
@@ -65,7 +73,7 @@ public class LoreTemplate {
         /* Consumable */
         if (baseItem instanceof Consumable consumable) meta.lore(generateLoreComponents(consumable));
         /* Gem Item Material(无PDC) */
-        else meta.lore(generateLoreComponents(baseItem, PDCAPI.getCalculablePDC(itemStack)));
+        else meta.lore(generateLoreComponents(itemStack, baseItem, PDCAPI.getCalculablePDC(itemStack)));
 
         // TODO 品质名和等级绑定
 
@@ -76,21 +84,47 @@ public class LoreTemplate {
      * 为 BaseItem 生成 lore
      * Material 类没有 PDC
      */
-    private @NotNull List<Component> generateLoreComponents(@NotNull BaseItem baseItem, @Nullable CalculablePDC cPDC) {
+    private @NotNull List<Component> generateLoreComponents(@NotNull ItemStack itemStack, @NotNull BaseItem baseItem, @Nullable CalculablePDC cPDC) {
         // Material 类
         if (cPDC == null) return baseItem.getItemLore().stream().map(MiniMessageUtil::serialize).toList();
+
         ItemManager itemManager = TwItemManager.getItemManager();
-
-        Map<String, Double> attrLore =  cPDC.getAttrMap();
-
         if (cPDC instanceof ItemPDC) ((ItemPDC) cPDC).selfCalculate();
-
+        Map<String, Double> attrLore =  cPDC.getAttrMap();
         List<Component> res = new ArrayList<>(templates.size());
 
         for (String template : templates) {
             switch (template) {
                 case ORI_KEY -> res.addAll(baseItem.getItemLore().stream().map(MiniMessageUtil::serialize).toList());
-                case SKILL_KEY -> res.add(MiniMessageUtil.serialize("这是技能测试，用于占位\")"));
+                case OWNER_KEY -> {
+                    if (!(baseItem instanceof Item item)) continue;
+                    if (!item.isSoulBind()) continue;
+
+                    String uuid = PDCAPI.getOwner(itemStack);
+                    if (uuid == null) {
+                        res.add(MiniMessageUtil.serialize("所有者: <gray>无</gray>"));
+                        continue;
+                    }
+                    OfflinePlayer owner = Bukkit.getOfflinePlayer(UUID.fromString(uuid));
+                    res.add(MiniMessageUtil.serialize("所有者: " + owner.getName()));
+                }
+                case DURABILITY_KEY -> {
+                    if (!(cPDC instanceof ItemPDC itemPDC)) continue;
+                    Integer md = PDCAPI.getMaxDamage(itemStack);
+                    Integer cd = PDCAPI.getCurrentDamage(itemStack);
+
+                    if (md == null || cd == null) continue;
+
+                    if (md == -1) {
+                        res.add(MiniMessageUtil.serialize("耐久: <blue>无法破坏</blue>"));
+                        continue;
+                    }
+                    res.add(MiniMessageUtil.serialize("耐久: " + cd + "/" + md));
+                }
+                case SKILL_KEY -> {
+                    if (!(baseItem instanceof Item item)) continue;
+                    res.add(MiniMessageUtil.serialize("这是技能测试，用于占位\")"));
+                }
                 case QUALITY_KEY -> {
                     if (!(cPDC instanceof ItemPDC itemPDC)) continue;
                     AttributePDC aPDC = itemManager.getQualityPDC(itemPDC.getQualityName());
@@ -166,6 +200,7 @@ public class LoreTemplate {
             if (isConditional && v == 0.0) continue;
 
             String formatted = percentageDisplay || displayAsPercentage(k) ? String.format("%.1f%%", v * 100) : String.format("%.1f", v);
+            if (v > 0) formatted = "+" + formatted;
             matcher.appendReplacement(sb, Matcher.quoteReplacement(formatted));
             /* 这样写 如果lore带问号但是值为0则不会显示 */
             matcher.appendTail(sb);

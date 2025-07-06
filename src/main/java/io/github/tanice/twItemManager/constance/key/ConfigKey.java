@@ -54,8 +54,4 @@ public final class ConfigKey {
     public static final String MAX = "max";
     public static final String LEVEL_UP_NEED = "level_up_need";
     public static final String LEVEL_DOWN_WHEN_FAILED = "level_down_when_failed";
-
-    /* 全局配置文件 */
-    /* 防御计算配置 */
-    public static final String USE_DAMAGE_REDUCTION_BALANCE_FOR_PLAYER = "use_damage_reduction_balance_for_player";
 }

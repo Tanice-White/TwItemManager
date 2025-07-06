@@ -200,6 +200,8 @@ public class ItemPDC extends CalculablePDC {
         /* 品质若为BASE，则是加算，否则乘算 */
         AttributePDC aPDC = im.getQualityPDC(qualityName);
         if (aPDC != null) selfMerge(aPDC, 1);
+
+        List<CalculablePDC> gemPDCs = new ArrayList<>();
         /* 宝石 */
         for (String gn : gems) {
             if (gn.equals(EMPTY_GEM)) continue;
@@ -207,8 +209,12 @@ public class ItemPDC extends CalculablePDC {
             if (!(bit instanceof Gem gem)) continue;
             cPDC = PDCAPI.getCalculablePDC(gem.getItem());
             if (cPDC == null) continue;
-            selfMerge(cPDC.toAttributePDC(), 1);
+            // 按顺序merge
+            if (cPDC.getAttributeCalculateSection() == AttributeCalculateSection.BASE) selfMerge(cPDC.toAttributePDC(), 1);
+            else gemPDCs.add(cPDC);
         }
+
+        for (CalculablePDC c : gemPDCs) selfMerge(c.toAttributePDC(), 1);
 
         /* 等级 */
         bit = im.getBaseItem(innerName);

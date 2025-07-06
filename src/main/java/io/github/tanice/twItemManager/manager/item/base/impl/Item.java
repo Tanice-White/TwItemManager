@@ -49,7 +49,7 @@ public class Item extends BaseItem {
     @Getter
     private String setName;
 
-    /** 物品需要有伤害类型 */
+    /** 物品伤害类型 */
     @Getter
     private DamageType damageType;
 
