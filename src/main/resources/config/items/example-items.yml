@@ -161,11 +161,12 @@
     attack_damage: +10
 
 # 可使用物品都是永久更改
-可食用物内部名:
+可食用物:
   id: apple  # 自定义任意物品
   type: consumable
   cd: 60  # 食用cd (单位为秒)  负数表示不限制(默认不限制)
   times: 1  # 食用次数  负数表示不限制(默认不限制)
+  sound: "entity.generic.drink 1.0 1.0"  # [作用域:音效名称][音量][音调]  # 不能少任何部分, 默认无音效, 作用域默认minecraft
   # 具体修改项
   health: 5
   max_health: 25  # 最大生命值 +25
@@ -182,3 +183,15 @@
     - ""
   lore:
     - "<green>吃了我大大滴好:)</green>"
+
+可以kuku吃的东西:
+  id: coal
+  type: consumable
+  sound: "entity.generic.drink 1.0 1.0"
+  health: 5
+  food: +5
+  saturation: 20
+  effect:
+    - "glowing 1 40"  # 表示食用后给予使用者发光1, 持续40个tick (1s=20tick)  # 这里的等级就是游戏中的效果等级，不需要额外-1
+  lore:
+    - "<yellow>吃!:)</yellow>"

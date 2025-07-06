@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -42,6 +43,10 @@ public class Consumable extends BaseItem {
     private final List<String> effectLore;
     private final boolean isLimitChange;
 
+    private Sound soundName;
+    private float soundVolume;
+    private float soundPitch;
+
     public Consumable(@NotNull String innerName, @NotNull ConfigurationSection cfg) {
         super(innerName, cfg);
         cd = cfg.getInt(CD, -1);
@@ -52,6 +57,20 @@ public class Consumable extends BaseItem {
         effectLore = cfg.getStringList(EFFECT);
 
         isLimitChange = changedPlayerData.getMaxMana() != 0 || changedPlayerData.getMaxHealth() != 0;
+
+        String v = cfg.getString(SOUND);
+        if (v != null) {
+            String[] sound = v.split(" ");
+            if (sound.length != 3) {
+                logWarning("可食用物品中不合法的声音配置: " + v);
+                return;
+            }
+            String[] k = sound[0].split(":");
+            if (k.length == 2) soundName = Registry.SOUNDS.get(new NamespacedKey(k[0], k[1]));
+            else soundName = Registry.SOUNDS.get(NamespacedKey.minecraft(sound[0]));
+            soundVolume = Float.parseFloat(sound[1]);
+            soundPitch = Float.parseFloat(sound[2]);
+        }
     }
 
     @Override
@@ -121,6 +140,14 @@ public class Consumable extends BaseItem {
             }
         }
         return true;
+    }
+
+    /**
+     * 发出吃东西的声音
+     */
+    public void playSound(@NotNull Player player) {
+        if (soundName == null) return;
+        player.getWorld().playSound(player.getLocation(), soundName, soundVolume, soundPitch);
     }
 
     /**

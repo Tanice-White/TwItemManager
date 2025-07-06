@@ -100,7 +100,7 @@ public class BuffListener implements Listener {
         int slot = event.getSlot();
         if (!isArmorSlot(slot) && !isHandSlot(slot)) return;
         /* 原本位置的物品是否是twItem */
-        if (TwItemManager.getItemManager().isNotItem(event.getOldItemStack()) && TwItemManager.getItemManager().isNotItem(event.getNewItemStack())) return;
+        if (TwItemManager.getItemManager().isNotItemClassInTwItem(event.getOldItemStack()) && TwItemManager.getItemManager().isNotItemClassInTwItem(event.getNewItemStack())) return;
         /* 这里获取的物品，延迟执行不会变化 */
         /* 考虑到主副手交换，两个全都删除 */
         changeBuff(event.getPlayer());
@@ -114,7 +114,7 @@ public class BuffListener implements Listener {
         /* shift 放入发射器, 得到的是发射器而不是Player */
         if (!(event.getInventory().getHolder() instanceof Player player)) return;
         /* event 的 getCurrentItem() 太抽象了, 直接全部更新得了 */
-        if (TwItemManager.getItemManager().isNotItem(event.getCurrentItem()) && TwItemManager.getItemManager().isNotItem(event.getCursor())) return;
+        if (TwItemManager.getItemManager().isNotItemClassInTwItem(event.getCurrentItem()) && TwItemManager.getItemManager().isNotItemClassInTwItem(event.getCursor())) return;
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> changeBuff(player), 1L);
     }
 
@@ -128,7 +128,7 @@ public class BuffListener implements Listener {
         ItemStack newItem = player.getInventory().getItem(event.getNewSlot());
 
         /* 原物品是插件物品则需要 */
-        if (TwItemManager.getItemManager().isNotItem(previousItem) &&  TwItemManager.getItemManager().isNotItem(newItem)) return;
+        if (TwItemManager.getItemManager().isNotItemClassInTwItem(previousItem) &&  TwItemManager.getItemManager().isNotItemClassInTwItem(newItem)) return;
         changeBuff(player);
     }
 
@@ -141,7 +141,7 @@ public class BuffListener implements Listener {
         Player p = event.getPlayer();
         ItemStack item = event.getItemDrop().getItemStack();
         // 更新buff
-        if (!TwItemManager.getItemManager().isNotItem(item)) changeBuff(p);
+        if (!TwItemManager.getItemManager().isNotItemClassInTwItem(item)) changeBuff(p);
     }
 
     /**
@@ -152,7 +152,7 @@ public class BuffListener implements Listener {
     public void onItemPickup(@NotNull EntityPickupItemEvent event) {
         ItemStack item = event.getItem().getItemStack();
         // 更新buff
-        if (!TwItemManager.getItemManager().isNotItem(item)) changeBuff(event.getEntity());
+        if (!TwItemManager.getItemManager().isNotItemClassInTwItem(item)) changeBuff(event.getEntity());
     }
 
     /**

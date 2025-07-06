@@ -136,14 +136,12 @@ public class ItemManager {
         return lt.getAttributePDC();
     }
 
-    public boolean isNotItem(@Nullable ItemStack item) {
-        String in = getInnerName(item);
-        if (in == null) return true;
-        return isNotItem(in);
+    public boolean isNotItemClassInTwItem(@Nullable ItemStack item) {
+        return !(getBaseItem(item) instanceof Item);
     }
 
-    public boolean isNotItem(@NotNull String innerName) {
-        return !itemMap.containsKey(innerName);
+    public boolean isTwItem(@NotNull String innerName) {
+        return itemMap.containsKey(innerName);
     }
     
     public String getCalculablePDCAsString(@NotNull ItemStack item) {
@@ -257,7 +255,7 @@ public class ItemManager {
             return false;
         }
         // 判断升级物品是否正确
-        if (check && (isNotItem(levelUpNeed) || !lt.getLevelUpNeed().equals(getInnerName(levelUpNeed)))) return false;
+        if (check && (isNotItemClassInTwItem(levelUpNeed) || !lt.getLevelUpNeed().equals(getInnerName(levelUpNeed)))) return false;
 
         if (Math.random() < lt.getChance()){
             PDCAPI.levelUp(item);

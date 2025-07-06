@@ -111,7 +111,7 @@ public class GetCommand extends SubCommand {
      * 给予物品核心逻辑
      */
     private void giveItem(CommandSender sender, String itemName, String targetName, int amount) {
-        if (TwItemManager.getItemManager().isNotItem(itemName)) {
+        if (!TwItemManager.getItemManager().isTwItem(itemName)) {
             sender.sendMessage("§c物品 " + itemName + " 不存在！");
             return;
         }

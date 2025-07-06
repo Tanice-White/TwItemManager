@@ -36,7 +36,7 @@ public class LevelCommand extends SubCommand {
         }
         ItemStack item = player.getInventory().getItemInMainHand();
 
-        if (TwItemManager.getItemManager().isNotItem(item)) {
+        if (TwItemManager.getItemManager().isNotItemClassInTwItem(item)) {
             sender.sendMessage("§c请手持TwItem执行此命令");
             return true;
         }

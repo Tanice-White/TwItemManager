@@ -195,7 +195,7 @@ public class DamageEventListener implements Listener {
         /* 不影响原版武器伤害的任何计算 */
         /* 不是插件物品 */
         /* 原版弓箭伤害就是会飘 */
-        if (TwItemManager.getItemManager().isNotItem(itemStack)) finalDamage += event.getDamage();
+        if (TwItemManager.getItemManager().isNotItemClassInTwItem(itemStack)) finalDamage += event.getDamage();
             /* 怪物拿起的武器不受这个影响，伤害是满额的 */
             /* 所以玩家才计算比例 */
         else if (damager instanceof Player p) {

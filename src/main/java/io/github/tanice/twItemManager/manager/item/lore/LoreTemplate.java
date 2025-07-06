@@ -8,6 +8,7 @@ import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
+import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
@@ -70,12 +71,22 @@ public class LoreTemplate {
             if (Config.debug) logWarning("[generateAndAttachLoreToItem] 物品底层或 META 不存在");
             return;
         }
+
+        CalculablePDC cPDC = PDCAPI.getCalculablePDC(itemStack);
+
         /* Consumable */
         if (baseItem instanceof Consumable consumable) meta.lore(generateLoreComponents(consumable));
         /* Gem Item Material(无PDC) */
-        else meta.lore(generateLoreComponents(itemStack, baseItem, PDCAPI.getCalculablePDC(itemStack)));
+        else meta.lore(generateLoreComponents(itemStack, baseItem, cPDC));
 
-        // TODO 品质名和等级绑定
+        if (cPDC instanceof ItemPDC iPDC) {
+            String name = baseItem.getDisplayName();
+            AttributePDC a = TwItemManager.getItemManager().getQualityPDC(iPDC.getQualityName());
+            if (a != null) name = a.getDisplayName() + "  " + name;
+            int level = iPDC.getLevel();
+            if (level > 0) name += "  <yellow>Lv.<gray>" + level;
+            meta.displayName(MiniMessageUtil.serialize(name));
+        }
 
         itemStack.setItemMeta(meta);
     }

@@ -2,7 +2,6 @@ package io.github.tanice.twItemManager.command.impl;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.command.SubCommand;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -20,8 +19,8 @@ public class RemoveGemCommand extends SubCommand {
             return true;
         }
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR || TwItemManager.getItemManager().isNotItem(item)) {
-            sender.sendMessage("§c请手持TwItem执行此命令");
+        if (item.getType().isAir() || TwItemManager.getItemManager().isNotItemClassInTwItem(item)) {
+            sender.sendMessage("§c请手持TwItemManager插件物品执行此命令");
             return true;
         }
         ItemStack gem = TwItemManager.getItemManager().removeGem(player,item);

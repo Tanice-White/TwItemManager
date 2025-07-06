@@ -79,6 +79,8 @@ public class TwItemListener implements Listener {
             ePDC.consume(consumable, ct);
             item.setAmount(item.getAmount() - 1);
             PDCAPI.setCalculablePDC(event.getPlayer(), ePDC);
+            // 播放音效
+            consumable.playSound(event.getPlayer());
             return;
         }
         PDCAPI.setCalculablePDC(event.getPlayer(), ePDC);
@@ -87,7 +89,7 @@ public class TwItemListener implements Listener {
     }
 
     private boolean isTwItem(@Nullable ItemStack i) {
-        return !TwItemManager.getItemManager().isNotItem(i);
+        return !TwItemManager.getItemManager().isNotItemClassInTwItem(i);
     }
 
     private boolean isSoulBind(ItemStack i) {

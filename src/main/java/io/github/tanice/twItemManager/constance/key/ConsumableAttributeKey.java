@@ -15,6 +15,7 @@ public class ConsumableAttributeKey {
     public static final String BUFF = "buff";
     public static final String EFFECT = "effect";
     public static final String COMMAND = "command";
+    public static final String SOUND = "sound";
 
     private ConsumableAttributeKey() {}
 }
