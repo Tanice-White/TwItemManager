@@ -2,6 +2,7 @@ package io.github.tanice.twItemManager.util;
 
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -18,7 +19,7 @@ public class Tool {
      * @param <V> 值的类型
      * @return 格式化后的字符串
      */
-    public static <K extends Enum<K>, V> @NotNull String enumMapToString(EnumMap<K, V> map) {
+    public static <K extends Enum<K>, V> @NotNull String enumMapToString(@Nullable EnumMap<K, V> map) {
         if (map == null || map.isEmpty()) return "{}";
 
         StringBuilder sb = new StringBuilder();
@@ -39,7 +40,7 @@ public class Tool {
      * @param <K> 键的类型
      * @return 格式化后的字符串
      */
-    public static <K> @NotNull String mapToString(Map<K, double[]> map) {
+    public static <K> @NotNull String mapToString1(@Nullable Map<K, double[]> map) {
         if (map == null || map.isEmpty()) return "{}";
 
         StringBuilder sb = new StringBuilder();
@@ -50,6 +51,54 @@ public class Tool {
             sb.append(entry.getKey()).append("=");
             double[] value = entry.getValue();
             sb.append(Arrays.toString(value));
+            first = false;
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * 将 Map<String, Long> 转换为字符串，空映射显示为 "0"
+     * @param map 要转换的映射，允许为null
+     * @return 格式为 "{key1=value1, key2=value2}"，空映射返回 "0"
+     */
+    public static @NotNull String mapToString2(@Nullable Map<String, Long> map) {
+        if (map == null || map.isEmpty()) {
+            return "{}";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        Long v;
+        boolean first = true;
+        for (Map.Entry<String, Long> entry : map.entrySet()) {
+            if (!first) sb.append(", ");
+            v = entry.getValue();
+            if (v == null) v = 0L;
+            sb.append(entry.getKey()).append("=").append(v);
+            first = false;
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * 将 Map<String, Long> 转换为字符串，空映射显示为 "0"
+     * @param map 要转换的映射，允许为null
+     * @return 格式为 "{key1=value1, key2=value2}"，空映射返回 "0"
+     */
+    public static @NotNull String mapToString3(@Nullable Map<String, Integer> map) {
+        if (map == null || map.isEmpty()) {
+            return "{}";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        Integer v;
+        boolean first = true;
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            if (!first) sb.append(", ");
+            v = entry.getValue();
+            if (v == null) v = 0;
+            sb.append(entry.getKey()).append("=").append(v);
             first = false;
         }
         sb.append("}");

@@ -3,6 +3,7 @@ package io.github.tanice.twItemManager.manager.pdc;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.util.Tool;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -141,18 +142,12 @@ public class EntityPDC implements Serializable {
         }
     }
 
-    /**
-     * 食用物品
-     * @return 是否食用成功
-     */
-    public boolean consume(@NotNull Consumable consumable) {
+    public boolean canConsume(@NotNull Consumable consumable, long currentTime) {
         String innerName = consumable.getInnerName();
         int cd = consumable.getCd();
         int times = consumable.getTimes();
 
         boolean f = false;
-        long currentTime = System.currentTimeMillis();
-
         /* 食用cd判定 */
         Long c = consumeCD.get(innerName);
         if (c == null || cd <= 0 || c < currentTime) f = true;
@@ -162,14 +157,22 @@ public class EntityPDC implements Serializable {
         f = false;
         Integer t = consumeTimes.get(innerName);
         if (t == null || times < 0 || t < times) f = true;
+
+        return f;
+    }
+
+    /**
+     * 食用物品
+     */
+    public void consume(@NotNull Consumable consumable, long currentTime) {
+        String innerName = consumable.getInnerName();
+        int cd = consumable.getCd();
+
+        Integer t = consumeTimes.get(innerName);
         t = t == null ? 0 : t;
-
-        if (!f) return false;
-
         /* 可以食用 */
         consumeTimes.put(innerName, t + 1);
         if (cd > 0) consumeCD.put(innerName, currentTime + (long) cd * 1000);
-        return true;
     }
 
     @Override
@@ -185,6 +188,9 @@ public class EntityPDC implements Serializable {
             sb.append(entry.getKey()).append('=').append(entry.getValue());
             first = false;
         }
+        sb.append("\n");
+        sb.append("consumeCD").append(Tool.mapToString2(consumeCD)).append(", ");
+        sb.append("consumeTimes").append(Tool.mapToString3(consumeTimes));
         sb.append("}");
         return sb.toString();
     }

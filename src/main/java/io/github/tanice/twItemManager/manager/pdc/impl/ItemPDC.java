@@ -11,10 +11,8 @@ import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
-import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
@@ -180,7 +178,7 @@ public class ItemPDC extends CalculablePDC {
                 "qualityName=" + qualityName + ", " +
                 "level=" + level + ", " +
                 "gem=" + Arrays.toString(gems) + ", " +
-                "oriAttrs=" + mapToString(oriAttrs) + ", " +
+                "oriAttrs=" + mapToString1(oriAttrs) + ", " +
                 "attributeCalculateSection=" + attributeCalculateSection + ", " +
                 "attribute-addition=" + enumMapToString(vMap) + ", " +
                 "type-addition=" + enumMapToString(tMap) +

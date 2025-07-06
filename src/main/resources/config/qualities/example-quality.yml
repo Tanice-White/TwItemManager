@@ -37,8 +37,8 @@
   品质4:
     weight: 1
     attrs:
-      armor: 5
-      armor_toughness: 5
+      armor: 50
+      armor_toughness: 1
     lore_template: quality_default
 
   品质5:

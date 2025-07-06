@@ -43,7 +43,7 @@ public class TwItemListener implements Listener {
     public void onPlayerHeldSoulBind(@NotNull PlayerItemHeldEvent event) {
         ItemStack item = event.getPlayer().getInventory().getItem(event.getNewSlot());
         if (item == null) return;
-        if(isTwItem(item) && !isSoulBind(item)) {
+        if(isTwItem(item) && isSoulBind(item)) {
             TwItemManager.getItemManager().doSoulBind(item, event.getPlayer());
             TwItemManager.getItemManager().updateItemDisplayView(item);
         }
@@ -74,10 +74,14 @@ public class TwItemListener implements Listener {
         EntityPDC ePDC = PDCAPI.getEntityPDC(event.getPlayer());
         if (ePDC == null) ePDC = new EntityPDC();
 
-        if (ePDC.consume(consumable) && consumable.activate(event.getPlayer())) {
+        long ct = System.currentTimeMillis();
+        if (ePDC.canConsume(consumable, ct) && consumable.activate(event.getPlayer())) {
+            ePDC.consume(consumable, ct);
             item.setAmount(item.getAmount() - 1);
+            PDCAPI.setCalculablePDC(event.getPlayer(), ePDC);
             return;
         }
+        PDCAPI.setCalculablePDC(event.getPlayer(), ePDC);
         event.getPlayer().sendMessage("§c有股神秘的力量在阻止你吃下它");
         event.setCancelled(true);
     }

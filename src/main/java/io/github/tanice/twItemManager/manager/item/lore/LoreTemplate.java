@@ -101,7 +101,7 @@ public class LoreTemplate {
                     if (!item.isSoulBind()) continue;
 
                     String uuid = PDCAPI.getOwner(itemStack);
-                    if (uuid == null) {
+                    if (uuid == null || uuid.isEmpty()) {
                         res.add(MiniMessageUtil.serialize("所有者: <gray>无</gray>"));
                         continue;
                     }

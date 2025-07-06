@@ -9,11 +9,19 @@ default:
   - "<blue>冷却缩减: {?skill_cooldown}</blue>"
   - "<blue>蓝耗缩减: {?skill_mana_cost}</blue>"
   # 原版属性不建议写，用原版显示即可
+  - "<color:white>───────────────────────────</color>"
   - quality  # 前缀的inner lore - 在具体配置文件中配置
+  - "<color:white>───────────────────────────</color>"
   - skill  # 技能的inner lore - 在具体配置文件中配置
+  - "<color:white>───────────────────────────</color>"
   - ori  # 显示物品创建模板部分输入的lore
+  - "<color:white>───────────────────────────</color>"
+  - "\n"
   - gem  # 宝石槽 - 显示宝石的 display_name
+  - "<br>"
+  - "<br>"
   - owner  # 灵魂绑定者的名称，没有灵魂绑定则不显示，未绑定则显示未绑定
+  - "<br>"
   - durability # 耐久度显示，无限耐久则显示无法破坏
 
 quality_default:

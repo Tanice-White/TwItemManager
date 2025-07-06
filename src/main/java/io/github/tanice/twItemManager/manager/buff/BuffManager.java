@@ -208,37 +208,37 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getHelmet();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getChestplate();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getLeggings();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
         }
 
         it = equip.getBoots();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
         }
     }
 
@@ -256,37 +256,37 @@ public class BuffManager {
         it = equip.getItemInMainHand();
         if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getItemInOffHand();
         if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getHelmet();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getChestplate();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getLeggings();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
         }
 
         it = equip.getBoots();
         if (isValid(it)) {
             bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getHoldBuffs(), false);
+            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
         }
     }
 

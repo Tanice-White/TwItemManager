@@ -157,7 +157,7 @@ public abstract class BaseItem {
      */
     public @NotNull ItemStack getItem() {
         /* 重新生成时间戳 */
-        if (item.getType() != Material.AIR) setTimeStamp(item);
+        // if (item.getType() != Material.AIR) setTimeStamp(item);
         return item.clone();
     }
 

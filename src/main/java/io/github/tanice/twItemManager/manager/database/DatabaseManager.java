@@ -19,13 +19,8 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
  * 数据库管理
  */
 public class DatabaseManager {
-    private static Connection connection;
-    private static final ExecutorService dbExecutor = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r);
-        t.setName("DatabaseManager-Async-Thread");
-        t.setDaemon(true);
-        return t;
-    });
+    private Connection connection;
+    private ExecutorService dbExecutor;
 
     public DatabaseManager() {
         onEnable();
@@ -45,6 +40,12 @@ public class DatabaseManager {
         properties.setProperty("autoReconnect", "true");
         try {
             connection = DriverManager.getConnection(url, properties);
+            dbExecutor = Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r);
+                t.setName("DatabaseManager-Async-Thread");
+                t.setDaemon(true);
+                return t;
+            });
         } catch (SQLException e) {
             logWarning("数据库连接失败! 关闭数据库同步");
             logWarning(e.getMessage());
@@ -65,7 +66,20 @@ public class DatabaseManager {
     }
 
     public void onDisable() {
-        dbExecutor.shutdown();
+        if (dbExecutor != null) {
+            dbExecutor.shutdown();
+            try {
+                if (!dbExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    dbExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                dbExecutor.shutdownNow();
+                logWarning("数据库线程池关闭出现问题，可能导致部分数据写入失败");
+            } finally {
+                dbExecutor = null;
+            }
+        }
+
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
