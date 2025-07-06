@@ -308,7 +308,7 @@ public class BuffManager {
             }
             if (!bPDC.isEnable() || (!isHoldBuff && random.nextDouble() < bPDC.getChance())) continue;
             /* 全局计算类属性 */
-            if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
+            if (bPDC.isTimer()) {
                 if (isHoldBuff) bPDC.setDuration(-1);
                 if (Config.debug) logInfo("[activeBuff] " + e.getName() + " addTimerBuff: " + bPDC);
                 startTimerBuffTask(e, bPDC);
@@ -347,7 +347,7 @@ public class BuffManager {
             return;
         }
         bPDC.setDuration(duration);
-        if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
+        if (bPDC.isTimer()) {
             startTimerBuffTask(entity, bPDC);
 
             if (Config.debug) logInfo("[activeBuff] " + entity.getName() + " addTimerBuff: " + bPDC);
@@ -375,7 +375,7 @@ public class BuffManager {
             bPDC = getBuffPDC(bn);
             if (bPDC == null) continue;
             /* TIMER */
-            if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) {
+            if (bPDC.isTimer()) {
                 cancelTimerBuffTask(e, bPDC.getInnerName());
             } else ePDC.removeBuff(bPDC);
         }
@@ -389,9 +389,12 @@ public class BuffManager {
         EntityPDC ePDC = PDCAPI.getEntityPDC(e);
         if (ePDC == null) ePDC = new EntityPDC();
         for (BuffPDC bPDC : ePDC.getBuffPDCs()) {
-            if (!bPDC.isEnable() || bPDC.getDuration() < 0 || bPDC.getEndTimeStamp() < 0) ePDC.removeBuff(bPDC);
-            if (bPDC.getAttributeCalculateSection() == AttributeCalculateSection.TIMER) cancelTimerBuffTask(e, bPDC.getInnerName());
+            if (!bPDC.isEnable() || bPDC.getDuration() < 0 || bPDC.getEndTimeStamp() < 0) {
+                ePDC.removeBuff(bPDC);
+                if (bPDC.isTimer()) cancelTimerBuffTask(e, bPDC.getInnerName());
+            }
         }
+        PDCAPI.setCalculablePDC(e, ePDC);
     }
 
     /**

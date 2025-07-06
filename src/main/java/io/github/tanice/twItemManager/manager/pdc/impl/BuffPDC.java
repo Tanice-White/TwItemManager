@@ -136,6 +136,10 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
         }
     }
 
+    public boolean isTimer() {
+        return this.attributeCalculateSection == AttributeCalculateSection.TIMER;
+    }
+
     @Override
     public BuffPDC clone() {
         try {

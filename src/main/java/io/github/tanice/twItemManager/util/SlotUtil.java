@@ -11,12 +11,13 @@ public class SlotUtil {
      */
     public static @NotNull EquipmentSlotGroup slotJudge(@Nullable String slot) {
         if (slot == null || slot.isEmpty()) return EquipmentSlotGroup.ANY;
-        EquipmentSlotGroup sg = EquipmentSlotGroup.getByName(slot);
-        if (sg == null) {
-            TwItemManager.getInstance().getLogger().warning("Invalid slot : " + slot + ", use ANY as default");
-            return EquipmentSlotGroup.ANY;
-        }
-        return sg;
+        if (mainHandJudge(slot)) return EquipmentSlotGroup.MAINHAND;
+        if (offHandJudge(slot)) return EquipmentSlotGroup.OFFHAND;
+        if (helmetJudge(slot)) return EquipmentSlotGroup.HEAD;
+        if (chestJudge(slot)) return EquipmentSlotGroup.CHEST;
+        if (legsJudge(slot)) return EquipmentSlotGroup.LEGS;
+        if (bootsJudge(slot)) return EquipmentSlotGroup.FEET;
+        return EquipmentSlotGroup.ANY;
     }
 
     /**
