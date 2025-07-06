@@ -6,6 +6,7 @@ import io.github.tanice.twItemManager.command.MainCommand;
 import io.github.tanice.twItemManager.command.impl.*;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.helper.asm.ASMHelper;
+import io.github.tanice.twItemManager.helper.mythicmobs.MMHelper;
 import io.github.tanice.twItemManager.listener.*;
 import io.github.tanice.twItemManager.manager.buff.BuffManager;
 import io.github.tanice.twItemManager.manager.database.DatabaseManager;
@@ -38,6 +39,7 @@ public final class TwItemManager extends JavaPlugin {
     private static DamageEventListener damageEventListener;
     private static TwItemUpdateListener updateListener;
     private static BuffListener buffListener;
+    private static MythicMobSkillListener mythicMobSkillListener;
 
     /** 指令 */
     private static MainCommand mainCommand;
@@ -68,6 +70,7 @@ public final class TwItemManager extends JavaPlugin {
         damageEventListener = new DamageEventListener(this);
         updateListener = new TwItemUpdateListener(this);
         buffListener = new BuffListener(this);
+        mythicMobSkillListener = new MythicMobSkillListener(this);
 
         mainCommand = new MainCommand(this);
         mainCommand.register(new GetCommand());
@@ -105,6 +108,7 @@ public final class TwItemManager extends JavaPlugin {
         damageEventListener.onReload();
         updateListener.onReload();
         buffListener.onReload();
+        mythicMobSkillListener.onReload();
 
         mainCommand.onReload();
     }

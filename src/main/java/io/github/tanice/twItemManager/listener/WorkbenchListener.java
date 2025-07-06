@@ -67,7 +67,7 @@ public class WorkbenchListener implements Listener {
         /* 获取光标物品和被点击物品 */
         ItemStack cursorItem = event.getCursor();
         ItemStack clickedItem = event.getCurrentItem();
-        if (TwItemManager.getItemManager().isNotItemClassInTwItem(clickedItem) || TwItemManager.getItemManager().isNotItemClassInTwItem(cursorItem)) return;
+        if (TwItemManager.getItemManager().isNotItemClassInTwItem(clickedItem) || TwItemManager.getItemManager().isNotGemClassInTwItem(cursorItem)) return;
 
         /* 排除非工作台的9个槽位 */
         InventoryView view = event.getView();

@@ -7,9 +7,9 @@ var priority= 1;  // 必写
 var calculate_type = "after_damage"; // 必写
 var duration = 118;
 
-function run(TwDamageEvent) {
-    var attacker = TwDamageEvent.getAttacker();
-    var damage = TwDamageEvent.getDamage();
+function run(damageAttr) {
+    var attacker = damageAttr.getAttacker();
+    var damage = damageAttr.getDamage();
     var x = damage * 0.4;
     attacker.setHealth(Math.min(attacker.getMaxHealth(), attacker.getHealth() + x))
     attacker.sendMessage("吸血: " + x);

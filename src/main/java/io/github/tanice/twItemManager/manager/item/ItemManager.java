@@ -140,6 +140,10 @@ public class ItemManager {
         return !(getBaseItem(item) instanceof Item);
     }
 
+    public boolean isNotGemClassInTwItem(@Nullable ItemStack item) {
+        return !(getBaseItem(item) instanceof Gem);
+    }
+
     public boolean isTwItem(@NotNull String innerName) {
         return itemMap.containsKey(innerName);
     }

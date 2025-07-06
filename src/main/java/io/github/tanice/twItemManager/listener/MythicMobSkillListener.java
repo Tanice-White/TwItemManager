@@ -1,0 +1,40 @@
+package io.github.tanice.twItemManager.listener;
+
+import io.github.tanice.twItemManager.helper.mythicmobs.TwiDamageMechanic;
+import io.lumine.mythic.bukkit.events.MythicDamageEvent;
+import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
+import io.lumine.mythic.bukkit.events.MythicSkillEvent;
+import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+
+import static io.github.tanice.twItemManager.util.Logger.logInfo;
+
+public class MythicMobSkillListener implements Listener {
+    private final JavaPlugin plugin;
+
+    public MythicMobSkillListener(@NotNull JavaPlugin plugin) {
+        this.plugin = plugin;
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+    }
+
+    public void onReload() {
+        plugin.getLogger().info("MythicMobSkillListener reloaded");
+    }
+
+    /* 注册自己的解释器 */
+    @EventHandler
+    public void OnMythicMechanicLoad(@NotNull MythicMechanicLoadEvent event) {
+        if (event.getMechanicName().equalsIgnoreCase("twDamage") || event.getEventName().equalsIgnoreCase("twd")) {
+            event.register(new TwiDamageMechanic(event.getConfig()));
+            logInfo("TwiDamageMechanic registered");
+        }
+    }
+
+    @EventHandler
+    public void onDamageEvent(@NotNull MythicDamageEvent event) {
+
+    }
+}
