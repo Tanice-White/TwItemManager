@@ -2,6 +2,7 @@ package io.github.tanice.twItemManager.manager.buff;
 
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.manager.skill.SkillDamageData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.LivingEntity;
@@ -26,6 +27,8 @@ public class DamageInnerAttr {
     private EnumMap<AttributeType, Double> defenderAttributes;
     /** 攻击来源类型 */
     private DamageType damageType;
+    /** 技能数据 */
+    private SkillDamageData skillDamageData;
 
     public DamageInnerAttr(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, double damage, @NotNull EnumMap<AttributeType, Double> attackerAttributes, @NotNull EnumMap<AttributeType, Double> defenderAttributes, @NotNull DamageType damageType) {
         this.attacker = attacker;
@@ -34,5 +37,16 @@ public class DamageInnerAttr {
         this.attackerAttributes = attackerAttributes;
         this.defenderAttributes = defenderAttributes;
         this.damageType = damageType;
+        this.skillDamageData = null;
+    }
+
+    public DamageInnerAttr(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, double damage, @NotNull EnumMap<AttributeType, Double> attackerAttributes, @NotNull EnumMap<AttributeType, Double> defenderAttributes, @NotNull DamageType damageType, @NotNull SkillDamageData skillDamageData) {
+        this.attacker = attacker;
+        this.defender = defender;
+        this.damage = damage;
+        this.attackerAttributes = attackerAttributes;
+        this.defenderAttributes = defenderAttributes;
+        this.damageType = damageType;
+        this.skillDamageData = skillDamageData;
     }
 }

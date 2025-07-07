@@ -2,6 +2,7 @@ package io.github.tanice.twItemManager.event;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
+import io.github.tanice.twItemManager.manager.buff.DamageInnerAttr;
 import io.github.tanice.twItemManager.manager.calculator.LivingEntityCombatPowerCalculator;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
@@ -9,15 +10,8 @@ import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
-import io.github.tanice.twItemManager.manager.buff.DamageInnerAttr;
-import lombok.Getter;
-import lombok.Setter;
-import org.bukkit.Material;
+import io.github.tanice.twItemManager.manager.skill.SkillDamageData;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -25,82 +19,43 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Random;
 
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
-public class TwDamageEvent extends Event implements Cancellable {
-    protected static final HandlerList handlers = new HandlerList();
-    protected boolean cancelled;
+public class TwSkillDamageEvent extends TwDamageEvent{
+    /** 技能元数据 */
+    private SkillDamageData skillDamageData;
 
-    protected final Random rand = new Random();
-    /** 攻击方 */
-    @Getter
-    protected LivingEntity attacker;
-    /** 防御方 */
-    @Getter
-    protected LivingEntity defender;
-    /** 是否为原版跳劈 */
-    @Getter
-    protected boolean critical;
-    /** 初始伤害 */
-    @Getter
-    @Setter
-    protected double damage;
-
-    protected boolean damageFloat;
-    protected double floatRange;
-    protected double worldK;
-
-    public TwDamageEvent(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, double oriDamage, boolean critical) {
-        this.attacker = attacker;
-        this.defender = defender;
-        this.damage = oriDamage;
-        this.critical = critical;
-        this.initFormConfig();
-    }
-
-    public TwDamageEvent(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, boolean critical) {
-        this.attacker = attacker;
-        this.defender = defender;
-        this.damage = 0;
-        this.critical = critical;
-        this.initFormConfig();
-    }
-
-    public static HandlerList getHandlerList() {return handlers;}
-    
-    @Override
-    public @NotNull HandlerList getHandlers() {
-        return handlers;
+    public TwSkillDamageEvent(@NotNull LivingEntity caster, @NotNull LivingEntity target, @NotNull SkillDamageData skillDamageData) {
+        super(caster, target, 0, false);
+        this.skillDamageData = skillDamageData;
     }
 
     @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean b) {
-        cancelled = b;
-    }
-    
     public double getFinalDamage() {
+
+        double finalDamage = 0;
+
+        if (skillDamageData.getDamage() != 0) finalDamage = skillDamageData.getDamage();
+        else {
+
+        }
+
         LivingEntityCombatPowerCalculator ac = new LivingEntityCombatPowerCalculator(attacker);
         LivingEntityCombatPowerCalculator bc = new LivingEntityCombatPowerCalculator(defender);
         EnumMap<AttributeType, Double> aAttrMap = ac.getDamageModifiers();
         EnumMap<AttributeType, Double> bAttrMap = bc.getDamageModifiers();
 
         if (Config.debug) {
-            logInfo("[TwDamageEvent] attacker attribute map: " + enumMapToString(aAttrMap));
-            logInfo("[TwDamageEvent] attacker damage type map: " + enumMapToString(ac.getDamageTypeMap()));
+            logInfo("[TwSkillDamageEvent] attacker attribute map: " + enumMapToString(aAttrMap));
+            logInfo("[TwSkillDamageEvent] attacker damage type map: " + enumMapToString(ac.getDamageTypeMap()));
         }
         /* 计算玩家生效属性 */
         /* 非法属性都在OTHER中 */
         DamageType weaponDamageType = DamageType.OTHER;
-        ItemStack itemStack = new ItemStack(Material.AIR);
 
+        ItemStack itemStack;
         EntityEquipment equipment = attacker.getEquipment();
         if (equipment != null) {
             itemStack = equipment.getItemInMainHand();  // 单独写出来用于后续判断
@@ -109,9 +64,7 @@ public class TwDamageEvent extends Event implements Cancellable {
             /* 否则武器类型保持OTHER不变 */
         }
 
-        double finalDamage = 0;
-
-        DamageInnerAttr damageInnerAttr = new DamageInnerAttr(attacker, defender, 0, aAttrMap, bAttrMap, weaponDamageType);
+        DamageInnerAttr damageInnerAttr = new DamageInnerAttr(attacker, defender, 0, aAttrMap, bAttrMap, weaponDamageType, skillDamageData);
         /* BEFORE_DAMAGE 事件计算 */
         List<BuffPDC> bd = ac.getBeforeList(BuffActiveCondition.ATTACKER);
         bd.addAll(bc.getBeforeList(BuffActiveCondition.DEFENDER));
@@ -125,25 +78,12 @@ public class TwDamageEvent extends Event implements Cancellable {
 
         /* 武器的对外白值（品质+宝石+白值） */
         finalDamage = aAttrMap.get(AttributeType.ATTACK_DAMAGE);
-        /* 只要是twItemManager的物品，伤害一定是1，否则一定大于1 */
-        /* 不影响原版武器伤害的任何计算 */
-        /* 不是插件物品 */
-        /* 原版弓箭伤害就是会飘 */
-        if (TwItemManager.getItemManager().isNotItemClassInTwItem(itemStack)) finalDamage += damage;
-            /* 怪物拿起的武器不受这个影响，伤害是满额的 */
-            /* 所以玩家才计算比例 */
-        else if (attacker instanceof Player p) {
-            // 不确定玩家的cooldown会不会受到武器影响，应该要受到武器的影响
-            finalDamage *= 0.15 + p.getAttackCooldown() * 0.85;
-        }
 
+        /* 类型增伤 */
         finalDamage *=  (1 + ac.getDamageTypeMap().getOrDefault(weaponDamageType, 0D));
-        if (critical) finalDamage *= 1 + Config.originalCriticalStrikeAddition;
 
         /* 暴击 */
-        critical = false;
         if (rand.nextDouble() < aAttrMap.get(AttributeType.CRITICAL_STRIKE_CHANCE)){
-            critical = true;
             finalDamage *= aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE) < 1 ? 1: aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE);
         }
 
@@ -190,15 +130,5 @@ public class TwDamageEvent extends Event implements Cancellable {
 
         /* TIMER 不处理，而是在增加buff的时候处理 */
         return finalDamage;
-    }
-
-    /**
-     * 加载全局配置中的信息
-     */
-    private void initFormConfig() {
-        /* 伤害计算配置 */
-        worldK = Config.worldK;
-        damageFloat = Config.damageFloat;
-        floatRange = Config.damageFloatRange;
     }
 }

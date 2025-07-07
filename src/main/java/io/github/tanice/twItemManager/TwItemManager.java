@@ -11,6 +11,7 @@ import io.github.tanice.twItemManager.listener.*;
 import io.github.tanice.twItemManager.manager.buff.BuffManager;
 import io.github.tanice.twItemManager.manager.database.DatabaseManager;
 import io.github.tanice.twItemManager.manager.item.ItemManager;
+import io.github.tanice.twItemManager.manager.skill.SkillManager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,8 @@ public final class TwItemManager extends JavaPlugin {
     private static ItemManager itemManager;
     @Getter
     private static BuffManager buffManager;
+    @Getter
+    private static SkillManager skillManager;
 
     /** 监听器 */
     private static TwItemListener twItemListener;
@@ -61,6 +64,7 @@ public final class TwItemManager extends JavaPlugin {
 
         itemManager = new ItemManager(this);
         buffManager = new BuffManager(this);
+        skillManager = new SkillManager(this);
 
         twItemListener = new TwItemListener(this);
         workbenchListener = new WorkbenchListener(this);
@@ -89,6 +93,7 @@ public final class TwItemManager extends JavaPlugin {
         if (databaseManager != null) databaseManager.onDisable();
         if (mainCommand != null) mainCommand.onDisable();
         if (buffManager != null) buffManager.onDisable();
+        if (skillManager != null) skillManager.OnDisable();
     }
 
     public void onReload() {
@@ -100,6 +105,7 @@ public final class TwItemManager extends JavaPlugin {
         /* reload 需要使用 databaseManager */
         buffManager.onReload();
         databaseManager.onReload();
+        skillManager.OnReload();
 
         twItemListener.onReload();
         workbenchListener.onReload();

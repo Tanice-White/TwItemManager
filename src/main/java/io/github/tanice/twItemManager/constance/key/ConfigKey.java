@@ -38,12 +38,13 @@ public final class ConfigKey {
 
     /* 通用关键词 */
     public static final String CHANCE = "chance";
+    public static final String CD = "cd";
+    public static final String MANA_COST = "mana";
 
     /*属性关键词*/
     public static final String ENABLE = "enable";
     public static final String ACS = "calculate_type";
     public static final String DURATION = "duration";
-    public static final String CD = "cd";
     public static final String INNER_NAME = "inner_name";
     public static final String PRIORITY = "priority";
     public static final String DAMAGE_TYPE = "damage_type";

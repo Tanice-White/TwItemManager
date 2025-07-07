@@ -6,46 +6,50 @@ import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
-import io.github.tanice.twItemManager.util.SlotUtil;
+import io.github.tanice.twItemManager.util.EquipmentUtil;
 import lombok.Getter;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
 
 public abstract class Calculator {
+    /** 是否使用玩家减伤平衡算法 */
+    private boolean useDamageReductionBalance;
+    /**
+     * 最终的伤害属性计算map
+     * 获取伤害计算各个区的顺序
+     * [BASE, DAMAGE_TYPE_ADDITION, ADD, MULTIPLY, FIX]
+     * 根据攻击实体武器的伤害类型
+     */
+    @Getter
+    private EnumMap<AttributeType, Double> damageModifiers;
     /**
      * 根据就算区分好的属性Map
-     * Timer 和 Other 不记录
-     * Before_Damage 和 After_damage 单独记录
      */
     @Getter
     protected final EnumMap<DamageType, Double> damageTypeMap = new EnumMap<>(DamageType.class);
     @Getter
     protected final EnumMap<AttributeCalculateSection, CalculablePDC> resultMap = new EnumMap<>(AttributeCalculateSection.class);
+
     protected final List<BuffPDC> beforeList = new ArrayList<>();
     protected final List<BuffPDC> betweenList = new ArrayList<>();
     protected final List<BuffPDC> afterList = new ArrayList<>();
 
-    /* 给序列机使用 */
+    /* 序列化使用 */
     public Calculator() {
-
     }
 
     public Calculator(@NotNull LivingEntity e) {
-        List<CalculablePDC> PDCs = getEffectiveEquipmentPDC(e);
-        PDCs.addAll(getEffectiveAccessory(e));
+        List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentItemPDC(e);
+        PDCs.addAll(EquipmentUtil.getEffectiveAccessoryAttributePDC(e));
         /* buff计算 */
         PDCs.addAll(getEntityCalculablePDC(e));
 
@@ -70,7 +74,11 @@ public abstract class Calculator {
                 resultMap.put(acs, aPDC);
             }
         }
+        useDamageReductionBalance = Config.useDamageReductionBalanceForPlayer;
+        damageModifiers = new EnumMap<>(AttributeType.class);
+
         initDamageMap();
+        initDamageModifiers();
     }
 
     /**
@@ -105,82 +113,6 @@ public abstract class Calculator {
     }
 
     /**
-     * 遍历物体生效槽位返回物品列表
-     */
-    protected @NotNull List<CalculablePDC> getEffectiveEquipmentPDC(@NotNull LivingEntity entity) {
-        EntityEquipment equip = entity.getEquipment();
-        if (equip == null) return new ArrayList<>();
-
-        List<CalculablePDC> res = new ArrayList<>();
-        CalculablePDC cp;
-        ItemStack it;
-
-        it = equip.getItemInMainHand();
-        if (SlotUtil.mainHandJudge(getSlot(it))) {
-            cp = getCalculablePDC(it);
-            if (cp != null) {
-                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                res.add(cp);
-            }
-        }
-
-        it = equip.getItemInOffHand();
-        if (SlotUtil.offHandJudge(getSlot(it))) {
-            cp = getCalculablePDC(it);
-            if (cp != null) {
-                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                res.add(cp);
-            }
-        }
-
-        it = equip.getHelmet();
-        if (it != null) {
-            if (SlotUtil.helmetJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
-            }
-        }
-
-        it = equip.getChestplate();
-        if (it != null) {
-            if (SlotUtil.chestJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
-            }
-        }
-
-        it = equip.getLeggings();
-        if (it != null) {
-            if (SlotUtil.legsJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
-            }
-        }
-
-        it = equip.getBoots();
-        if (it != null) {
-            if (SlotUtil.bootsJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
-            }
-        }
-
-        return res;
-    }
-
-    /**
      * 获取目标生效的buff
      */
     protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity e) {
@@ -188,20 +120,6 @@ public abstract class Calculator {
         if (ePDC == null) return new ArrayList<>();
         return ePDC.getActiveBuffPDCs(System.currentTimeMillis());
     }
-
-    /**
-     * 遍历目标的饰品
-     */
-    protected @NotNull List<AttributePDC> getEffectiveAccessory(@NotNull LivingEntity entity) {
-        return new ArrayList<>();
-    }
-
-    /**
-     * 获取伤害计算各个区的顺序
-     * [BASE, DAMAGE_TYPE_ADDITION, ADD, MULTIPLY, FIX]
-     * 根据攻击实体武器的伤害类型
-     */
-    public abstract EnumMap<AttributeType, Double> getAttrsValue();
 
     /**
      * 获取玩家 DamageType 属性 Map
@@ -220,5 +138,49 @@ public abstract class Calculator {
                 damageTypeMap.put(dt, damageTypeMap.getOrDefault(dt, 0D) + ctMap.getOrDefault(dt, 0D));
             }
         }
+    }
+
+    private void initDamageModifiers() {
+        CalculablePDC pdc;
+        Double result = null;
+
+        for (AttributeType attrType : AttributeType.values()) {
+            pdc = resultMap.get(AttributeCalculateSection.BASE);
+            if (pdc != null) result = pdc.getVMap().get(attrType);
+            if (result == null) result = 0D;
+            if (result != 0D){
+                /* 计算顺序：BASE * ADD * MULTIPLY * FIX */
+                pdc = resultMap.get(AttributeCalculateSection.ADD);
+                if (pdc != null) {
+                    Double value = pdc.getVMap().get(attrType);
+                    result *= (1 + value);
+                }
+                pdc = resultMap.get(AttributeCalculateSection.MULTIPLY);
+                if (pdc != null) {
+                    Double value = pdc.getVMap().get(attrType);
+                    result *= (1 + value);
+                }
+                pdc = resultMap.get(AttributeCalculateSection.FIX);
+                if (pdc != null) {
+                    Double value = pdc.getVMap().get(attrType);
+                    result *= (1 + value);
+                }
+            }
+            damageModifiers.put(attrType, result);
+        }
+
+        damageModifiers.put(AttributeType.PRE_ARMOR_REDUCTION, drBalance(damageModifiers.get(AttributeType.PRE_ARMOR_REDUCTION)));
+        damageModifiers.put(AttributeType.AFTER_ARMOR_REDUCTION, drBalance(damageModifiers.get(AttributeType.AFTER_ARMOR_REDUCTION)));
+    }
+
+    /**
+     * 减伤平衡算法
+     * @param oriDr 理论伤害减免比例
+     * @return 平衡后的伤害减免比例
+     */
+    private double drBalance(Double oriDr) {
+        if (oriDr == null) return 0D;
+        if (useDamageReductionBalance) return oriDr / (1 + oriDr);
+        return oriDr;
     }
 }

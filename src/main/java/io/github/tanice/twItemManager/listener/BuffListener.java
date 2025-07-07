@@ -5,6 +5,7 @@ import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
+import io.github.tanice.twItemManager.util.EquipmentUtil;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
@@ -61,7 +62,7 @@ public class BuffListener implements Listener {
         if (!Config.use_mysql) return;
         Player p =event.getPlayer();
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            TwItemManager.getBuffManager().onPlayerQuit(p);
+            TwItemManager.getBuffManager().clearAndStorePlayerBuffs(p);
             TwItemManager.getDatabaseManager().saveEntityPDC(p.getUniqueId().toString(), PDCAPI.getEntityPDC(p));
         }, 1L);
     }
@@ -86,7 +87,7 @@ public class BuffListener implements Listener {
 
                     plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                         TwItemManager.getBuffManager().updateHoldBuffs(event.getPlayer());
-                        TwItemManager.getBuffManager().onPlayerJoin(p);
+                        TwItemManager.getBuffManager().readPlayerBuffs(p);
                     }, 1L);
                 });
             });
@@ -98,7 +99,7 @@ public class BuffListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryChange(@NotNull PlayerInventorySlotChangeEvent event) {
         int slot = event.getSlot();
-        if (!isArmorSlot(slot) && !isHandSlot(slot)) return;
+        if (!EquipmentUtil.isArmorSlot(slot) && !EquipmentUtil.isHandSlot(slot)) return;
         /* 原本位置的物品是否是twItem */
         if (TwItemManager.getItemManager().isNotItemClassInTwItem(event.getOldItemStack()) && TwItemManager.getItemManager().isNotItemClassInTwItem(event.getNewItemStack())) return;
         /* 这里获取的物品，延迟执行不会变化 */
@@ -161,23 +162,5 @@ public class BuffListener implements Listener {
     private void changeBuff(@NotNull LivingEntity e) {
         if (Config.debug) logInfo(e.getName() + ": buff updated");
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(e), 1L);
-    }
-
-    /**
-     * 检查是否是装备栏
-     * @param slot 槽位
-     * @return 是否是装备栏
-     */
-    private boolean isArmorSlot(int slot) {
-        return slot >= 36 && slot <= 39; // 头盔、胸甲、护腿、靴子
-    }
-
-    /**
-     * 检查是否是手部栏
-     * @param slot 槽位
-     * @return 是否是手部栏
-     */
-    private boolean isHandSlot(int slot) {
-        return slot == 40 || slot == 41; // 主手、副手
     }
 }

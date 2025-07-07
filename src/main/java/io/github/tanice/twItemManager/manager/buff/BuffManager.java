@@ -3,21 +3,16 @@ package io.github.tanice.twItemManager.manager.buff;
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
-import io.github.tanice.twItemManager.manager.item.base.BaseItem;
-import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
-import io.github.tanice.twItemManager.util.SlotUtil;
+import io.github.tanice.twItemManager.util.EquipmentUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
@@ -32,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static io.github.tanice.twItemManager.infrastructure.PDCAPI.*;
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
@@ -106,7 +100,7 @@ public class BuffManager {
      * 需要延迟添加
      * 玩家登录后从数据库初始化对应的信息
      */
-    public void onPlayerJoin(@NotNull Player player) {
+    public void readPlayerBuffs(@NotNull Player player) {
         if (!Config.use_mysql) return;
         TwItemManager.getDatabaseManager().loadPlayerBuffRecords(player.getUniqueId().toString())
             .thenAccept(res -> {
@@ -123,7 +117,7 @@ public class BuffManager {
     /**
      * 玩家退出时清理所有Timer Buff任务
      */
-    public void onPlayerQuit(@NotNull Player player) {
+    public void clearAndStorePlayerBuffs(@NotNull Player player) {
         if (Config.use_mysql) {
             List<BuffRecord> res = buffRecords.getPlayerBuffs(player.getUniqueId());
             TwItemManager.getDatabaseManager().saveBuffRecords(res);
@@ -143,54 +137,10 @@ public class BuffManager {
      */
     public void updateHoldBuffs(@NotNull LivingEntity e) {
         /* 所有永久 buff 移除 */
-        BaseItem bit;
-//        if (preItems != null) {
-//            for (ItemStack item : preItems) {
-//                if (item == null) continue;
-//                bit = TwItemManager.getItemManager().getBaseItem(item);
-//                if (bit instanceof Item pi) deactivateBuff(e, pi.getHoldBuffs());
-//            }
-//        }
         deactivateAllHoldBuffs(e);
-
-        EntityEquipment equip = e.getEquipment();
-        if (equip == null) return;
-
-        ItemStack it;
-        it = equip.getItemInMainHand();
-        if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
-        }
-
-        it = equip.getItemInOffHand();
-        if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
-        }
-
-        it = equip.getHelmet();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
-        }
-
-        it = equip.getChestplate();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
-        }
-
-        it = equip.getLeggings();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
-        }
-
-        it = equip.getBoots();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(e, i.getHoldBuffs(), true);
+        /* 激活hold_buff */
+        for (Item i : EquipmentUtil.getActiveEquipmentItem(e)){
+            activeBuffs(e, i.getHoldBuffs(), true);
         }
     }
 
@@ -200,45 +150,8 @@ public class BuffManager {
      * @param b 被攻击方
      */
     public void doAttackBuffs(@NotNull LivingEntity a, @NotNull LivingEntity b) {
-        EntityEquipment equip = a.getEquipment();
-        if (equip == null) return;
-
-        ItemStack it;
-        BaseItem bit;
-        it = equip.getItemInMainHand();
-        if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
-        }
-
-        it = equip.getItemInOffHand();
-        if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
-        }
-
-        it = equip.getHelmet();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
-        }
-
-        it = equip.getChestplate();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
-        }
-
-        it = equip.getLeggings();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
-        }
-
-        it = equip.getBoots();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(b, i.getAttackBuffs(), false);
+        for (Item i : EquipmentUtil.getActiveEquipmentItem(a)){
+            activeBuffs(b, i.getAttackBuffs(), false);
         }
     }
 
@@ -248,45 +161,8 @@ public class BuffManager {
      * @param b 被攻击方
      */
     public void doDefenceBuffs(@NotNull LivingEntity a, @NotNull LivingEntity b) {
-        EntityEquipment equip = b.getEquipment();
-        if (equip == null) return;
-
-        ItemStack it;
-        BaseItem bit;
-        it = equip.getItemInMainHand();
-        if (SlotUtil.mainHandJudge(getSlot(it)) && isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
-        }
-
-        it = equip.getItemInOffHand();
-        if (SlotUtil.offHandJudge(getSlot(it)) && isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
-        }
-
-        it = equip.getHelmet();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
-        }
-
-        it = equip.getChestplate();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
-        }
-
-        it = equip.getLeggings();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
-        }
-
-        it = equip.getBoots();
-        if (isValid(it)) {
-            bit = TwItemManager.getItemManager().getBaseItem(it);
-            if (bit instanceof Item i) activeBuffs(a, i.getDefenseBuffs(), false);
+        for (Item i : EquipmentUtil.getActiveEquipmentItem(b)){
+            activeBuffs(a, i.getDefenseBuffs(), false);
         }
     }
 
@@ -398,14 +274,6 @@ public class BuffManager {
     }
 
     /**
-     * 物品不为空且不是宝石
-     * TODO 判断耐久度
-     */
-    private boolean isValid(@Nullable ItemStack item) {
-        return item != null && !(TwItemManager.getItemManager().getBaseItem(item) instanceof Gem);
-    }
-
-    /**
      * TIMER buff 失效
      */
     public void deactivatePlayerTimerBuff(@NotNull UUID playerId) {
@@ -441,7 +309,7 @@ public class BuffManager {
 
     private void loadBuffFilesAndBuffMap(){
         AtomicInteger total = new AtomicInteger();
-        Path buffDir = plugin.getDataFolder().toPath().resolve("buff");
+        Path buffDir = plugin.getDataFolder().toPath().resolve("buffs");
         if (!Files.exists(buffDir) || !Files.isDirectory(buffDir)) return;
         try (Stream<Path> files = Files.list(buffDir)) {
             files.forEach(file -> {
@@ -468,7 +336,7 @@ public class BuffManager {
             });
             logInfo("[loadBuffs]: 共加载BUFF" + total.get() + "个");
         } catch (IOException e) {
-            logWarning("加载BUFF文件错误: " + e);
+            logWarning("加载buffs文件错误: " + e);
         }
     }
 
