@@ -25,6 +25,14 @@ import org.jetbrains.annotations.NotNull;
 )
 public class TwiDamageMechanic implements ITargetedEntitySkill {
     @MythicField(
+            name = "damageK",
+            aliases = {"dk"},
+            defValue = "1",
+            description = "武器伤害计算完成后将乘算的值"
+    )
+    protected PlaceholderDouble damageK;
+
+    @MythicField(
             name = "damage",
             aliases = {"d"},
             defValue = "0",
@@ -33,12 +41,36 @@ public class TwiDamageMechanic implements ITargetedEntitySkill {
     protected PlaceholderDouble damage;
 
     @MythicField(
-            name = "k",
-            aliases = {"k"},
-            defValue = "1",
-            description = "武器伤害计算完成后将乘算的值"
+            name = "powerByDamageType",
+            aliases = {"p"},
+            defValue = "true",
+            description = "技能伤害是否受到伤害类型增伤属性影响"
     )
-    protected PlaceholderDouble k;
+    protected PlaceholderBoolean powerByDamageType;
+
+    @MythicField(
+            name = "critical",
+            aliases = {"c"},
+            defValue = "true",
+            description = "技能能否暴击"
+    )
+    protected PlaceholderBoolean canCritical;
+
+    @MythicField(
+            name = "criticalK",
+            aliases = {"ck"},
+            defValue = "1",
+            description = "技能暴击概率是武器的多少倍"
+    )
+    protected PlaceholderDouble criticalK;
+
+    @MythicField(
+            name = "criticalChance",
+            aliases = {"cc"},
+            defValue = "0",
+            description = "自定义此次伤害的暴击概率"
+    )
+    protected PlaceholderDouble criticalChance;
 
     @MythicField(
             name = "ignoreArmor",
@@ -69,7 +101,7 @@ public class TwiDamageMechanic implements ITargetedEntitySkill {
     protected PlaceholderBoolean ignoreInvulnerability;
 
     public TwiDamageMechanic(@NotNull MythicLineConfig mlc) {
-        this.k = mlc.getPlaceholderDouble(new String[]{"k"}, 1D);
+        this.damageK = mlc.getPlaceholderDouble(new String[]{"damageK", "k"}, 1D);
     }
 
     @Override
@@ -80,7 +112,19 @@ public class TwiDamageMechanic implements ITargetedEntitySkill {
         Entity defender = target.getBukkitEntity();
 
         if (attacker instanceof LivingEntity livingD && defender instanceof LivingEntity livingT) {
-            TwDamageEvent twDamageEvent = new TwSkillDamageEvent(livingD, livingT, new SkillDamageData("1"));
+            SkillDamageData skillDamageData = new SkillDamageData(
+                    damageK.get(data, target),
+                    damage.get(data, target),
+                    powerByDamageType.get(data, target),
+                    canCritical.get(data, target),
+                    criticalK.get(data, target),
+                    criticalChance.get(data, target),
+                    ignoreArmor.get(data, target),
+                    preventKnockback.get(data, target),
+                    preventImmunity.get(data, target),
+                    ignoreInvulnerability.get(data, target)
+            );
+            TwDamageEvent twDamageEvent = new TwSkillDamageEvent(livingD, livingT, skillDamageData);
             Bukkit.getPluginManager().callEvent(twDamageEvent);
         }
         return SkillResult.SUCCESS;

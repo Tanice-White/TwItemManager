@@ -86,6 +86,15 @@ public class ItemManager {
         this.loadQualityMap();
     }
 
+    public void onDisable() {
+        itemMap.clear();
+        qualityGroupMap.clear();
+        qualityMap.clear();
+        loreTemplateMap.clear();
+        // skillManagerMap.clear();
+        levelTemplateMap.clear();
+    }
+
     /**
      * 根据物品 item 获取内部的持久类
      */

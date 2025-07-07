@@ -22,17 +22,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 处理灵魂绑定和可食用物品
  */
-public class TwItemListener implements Listener {
+public class SoulBindAndConsumableListener implements Listener {
     private final JavaPlugin plugin;
 
-    public TwItemListener(JavaPlugin plugin) {
+    public SoulBindAndConsumableListener(JavaPlugin plugin) {
         this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
         plugin.getLogger().info("TwItemListener loaded");
-    }
-
-    public void onReload() {
-        plugin.getLogger().info("TwItemListener reloaded");
     }
 
     /**

@@ -89,12 +89,12 @@ public class TwDamageEvent extends Event implements Cancellable {
     public double getFinalDamage() {
         LivingEntityCombatPowerCalculator ac = new LivingEntityCombatPowerCalculator(attacker);
         LivingEntityCombatPowerCalculator bc = new LivingEntityCombatPowerCalculator(defender);
-        EnumMap<AttributeType, Double> aAttrMap = ac.getDamageModifiers();
-        EnumMap<AttributeType, Double> bAttrMap = bc.getDamageModifiers();
+        EnumMap<AttributeType, Double> aAttrMap = ac.getAttributeTypeModifiers();
+        EnumMap<AttributeType, Double> bAttrMap = bc.getAttributeTypeModifiers();
 
         if (Config.debug) {
             logInfo("[TwDamageEvent] attacker attribute map: " + enumMapToString(aAttrMap));
-            logInfo("[TwDamageEvent] attacker damage type map: " + enumMapToString(ac.getDamageTypeMap()));
+            logInfo("[TwDamageEvent] attacker damage type map: " + enumMapToString(ac.getDamageTypeModifiers()));
         }
         /* 计算玩家生效属性 */
         /* 非法属性都在OTHER中 */
@@ -137,7 +137,7 @@ public class TwDamageEvent extends Event implements Cancellable {
             finalDamage *= 0.15 + p.getAttackCooldown() * 0.85;
         }
 
-        finalDamage *=  (1 + ac.getDamageTypeMap().getOrDefault(weaponDamageType, 0D));
+        finalDamage *=  (1 + ac.getDamageTypeModifiers().getOrDefault(weaponDamageType, 0D));
         if (critical) finalDamage *= 1 + Config.originalCriticalStrikeAddition;
 
         /* 暴击 */

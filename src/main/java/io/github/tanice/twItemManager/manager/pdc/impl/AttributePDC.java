@@ -7,7 +7,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.util.List;
 
 import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
@@ -48,8 +47,8 @@ public class AttributePDC extends CalculablePDC {
                 "displayName='" + displayName + ", " +
                 "itemInnerName=" + innerName + ", " +
                 "attributeCalculateSection=" + attributeCalculateSection + ", " +
-                "attribute-addition=" + enumMapToString(vMap) +
-                "type-addition=" + enumMapToString(tMap) +
+                "attribute-addition=" + enumMapToString(attributeTypeModifiers) +
+                "type-addition=" + enumMapToString(damageTypeModifiers) +
                 "}";
     }
 }

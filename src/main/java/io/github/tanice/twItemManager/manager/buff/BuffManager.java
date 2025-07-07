@@ -44,19 +44,18 @@ public class BuffManager {
     /** 实体状态缓存 */
     private final Map<UUID, CachedEntity> entityCache;
 
-    private static BuffManager instance;
+    private static BuffManager instance;  /* 内部执行线程使用 */
     private final Random random;
 
     public BuffManager(@NotNull JavaPlugin plugin) {
         instance = this;
         this.plugin = plugin;
         buffMap = new HashMap<>();
-        this.loadBuffFilesAndBuffMap();
-
         random = new Random();
-
         buffRecords = new BuffRecords();
         entityCache = new ConcurrentHashMap<>();
+
+        this.loadBuffFilesAndBuffMap();
 
         buffTask = Bukkit.getScheduler().runTaskTimer(plugin, this::processBuffs, 10L, BUFF_RUN_CD);
         logInfo("BuffManager loaded, Scheduler started");
@@ -93,7 +92,9 @@ public class BuffManager {
      * 获取 buffPDC 的可变副本
      */
     public @Nullable BuffPDC getBuffPDC(@Nullable String bufInnerName) {
-        return buffMap.get(bufInnerName).clone();
+        BuffPDC buffPDC = buffMap.get(bufInnerName);
+        if (buffPDC == null) return null;
+        return buffPDC.clone();
     }
 
     /**
@@ -326,13 +327,13 @@ public class BuffManager {
                         buffMap.put(k, bPDC);
                         total.getAndIncrement();
                     }
-                }
-                else if (fileName.endsWith(".js")) {
+
+                } else if (fileName.endsWith(".js")) {
                     bPDC = new BuffPDC(name, file);
                     buffMap.put(bPDC.getInnerName(), bPDC);
                     total.getAndIncrement();
-                }
-                else logWarning("未知的文件格式: " + fileName);
+
+                } else logWarning("未知的文件格式: " + fileName);
             });
             logInfo("[loadBuffs]: 共加载BUFF" + total.get() + "个");
         } catch (IOException e) {

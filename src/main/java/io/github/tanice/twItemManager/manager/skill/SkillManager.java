@@ -36,7 +36,7 @@ public class SkillManager {
         this.loadSkills();
     }
 
-    public void OnReload() {
+    public void onReload() {
         skillMap.clear();
         this.loadSkills();
         logInfo("SkillManager reloaded");

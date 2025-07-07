@@ -21,7 +21,7 @@ import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getCalculable
 import static io.github.tanice.twItemManager.infrastructure.PDCAPI.getSlot;
 
 public class EquipmentUtil {
-    // TODO 原版护甲的护甲值按照正常的提供？
+    // TODO 原版护甲的护甲值按照正常的提供
 
     /**
      * 获取实体装备的内部Item
@@ -36,37 +36,37 @@ public class EquipmentUtil {
         BaseItem bit;
         it = equip.getItemInMainHand();
         bit = TwItemManager.getItemManager().getBaseItem(it);
-        if (SlotUtil.mainHandJudge(getSlot(it)) && bit instanceof Item i &&isValidItem(it)) {
+        if (bit instanceof Item i && SlotUtil.mainHandJudge(getSlot(it)) && isValidItem(it)) {
             res.add(i);
         }
 
         it = equip.getItemInOffHand();
         bit = TwItemManager.getItemManager().getBaseItem(it);
-        if (SlotUtil.offHandJudge(getSlot(it)) && bit instanceof Item i && isValidItem(it)) {
+        if (bit instanceof Item i && SlotUtil.offHandJudge(getSlot(it)) && isValidItem(it)) {
             res.add(i);
         }
 
         it = equip.getHelmet();
         bit = TwItemManager.getItemManager().getBaseItem(it);
-        if (SlotUtil.helmetJudge(getSlot(it)) && bit instanceof Item i && isValidItem(it)) {
+        if (bit instanceof Item i && SlotUtil.helmetJudge(getSlot(it)) && isValidItem(it)) {
             res.add(i);
         }
 
         it = equip.getChestplate();
         bit = TwItemManager.getItemManager().getBaseItem(it);
-        if (SlotUtil.chestJudge(getSlot(it)) && bit instanceof Item i && isValidItem(it)) {
+        if (bit instanceof Item i && SlotUtil.chestJudge(getSlot(it)) && isValidItem(it)) {
             res.add(i);
         }
 
         it = equip.getLeggings();
         bit = TwItemManager.getItemManager().getBaseItem(it);
-        if (SlotUtil.legsJudge(getSlot(it)) && bit instanceof Item i && isValidItem(it)) {
+        if (bit instanceof Item i && SlotUtil.legsJudge(getSlot(it)) && isValidItem(it)) {
             res.add(i);
         }
 
         it = equip.getBoots();
         bit = TwItemManager.getItemManager().getBaseItem(it);
-        if (SlotUtil.bootsJudge(getSlot(it)) && bit instanceof Item i && isValidItem(it)) {
+        if (bit instanceof Item i && SlotUtil.bootsJudge(getSlot(it)) && isValidItem(it)) {
             res.add(i);
         }
 
@@ -103,48 +103,43 @@ public class EquipmentUtil {
         }
 
         it = equip.getHelmet();
-        if (it != null) {
-            if (SlotUtil.helmetJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
+        if (it != null && SlotUtil.helmetJudge(getSlot(it))) {
+            cp = getCalculablePDC(it);
+            if (cp != null) {
+                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                res.add(cp);
             }
         }
+
 
         it = equip.getChestplate();
-        if (it != null) {
-            if (SlotUtil.chestJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
+        if (it != null && SlotUtil.chestJudge(getSlot(it))) {
+            cp = getCalculablePDC(it);
+            if (cp != null) {
+                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                res.add(cp);
             }
         }
 
+
         it = equip.getLeggings();
-        if (it != null) {
-            if (SlotUtil.legsJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
+        if (it != null && SlotUtil.legsJudge(getSlot(it))) {
+            cp = getCalculablePDC(it);
+            if (cp != null) {
+                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                res.add(cp);
             }
         }
 
         it = equip.getBoots();
-        if (it != null) {
-            if (SlotUtil.bootsJudge(getSlot(it))) {
-                cp = getCalculablePDC(it);
-                if (cp != null) {
-                    if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
-                    res.add(cp);
-                }
+        if (it != null && SlotUtil.bootsJudge(getSlot(it))) {
+            cp = getCalculablePDC(it);
+            if (cp != null) {
+                if (cp instanceof ItemPDC) ((ItemPDC) cp).selfCalculate();
+                res.add(cp);
             }
         }
+
         return res;
     }
 

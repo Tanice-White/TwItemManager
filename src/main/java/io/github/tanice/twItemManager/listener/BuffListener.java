@@ -2,6 +2,7 @@ package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
+import io.github.tanice.twItemManager.event.PlayerAttributeChangeEvent;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
@@ -33,10 +34,7 @@ public class BuffListener implements Listener {
         logInfo("BuffListener loaded");
     }
 
-    public void onReload() {
-        plugin.getLogger().info("BuffListener reloaded");
-    }
-
+    // 是不是不能用原版的立即复活，否则容易出问题
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDie (@NotNull PlayerDeathEvent event) {
         Player p =event.getPlayer();
@@ -55,6 +53,8 @@ public class BuffListener implements Listener {
     public void onPlayerRespawn(@NotNull PlayerRespawnEvent event) {
         Player p =event.getPlayer();
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(p), 1L);
+
+
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

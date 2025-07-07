@@ -25,10 +25,6 @@ public class PlayerDataListener implements Listener{
         logInfo("PlayerDataListener loaded");
     }
 
-    public void onReload() {
-        plugin.getLogger().info("BuffListener reloaded");
-    }
-
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         if (!Config.use_mysql) return;

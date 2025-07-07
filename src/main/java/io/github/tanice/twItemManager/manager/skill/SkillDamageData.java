@@ -1,5 +1,7 @@
 package io.github.tanice.twItemManager.manager.skill;
 
+import io.lumine.mythic.api.skills.placeholders.PlaceholderBoolean;
+import io.lumine.mythic.core.utils.annotations.MythicField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,6 +27,12 @@ public class SkillDamageData {
     private boolean canCritical;
     /** 技能暴击率是原技能暴击的占比 */
     private double criticalK;
-    /** 技能暴击 */
+    /** 技能暴击概率 */
     private double criticalChance;
+
+    /** 其他附加属性 */
+    protected boolean ignoreArmor;  /* 无视护甲 */
+    protected boolean preventKnockback;  /* 不击退 */
+    protected boolean preventImmunity;  /* 不造成无敌帧 */
+    protected boolean ignoreInvulnerability;  /* 无视无敌帧 */
 }

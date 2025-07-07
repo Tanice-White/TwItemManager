@@ -38,9 +38,9 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     protected AttributeCalculateSection attributeCalculateSection;
 
     /* 属性具体值 */
-    protected EnumMap<AttributeType, Double> vMap;
+    protected EnumMap<AttributeType, Double> attributeTypeModifiers;
     /* 职业增伤 */
-    protected EnumMap<DamageType, Double> tMap;
+    protected EnumMap<DamageType, Double> damageTypeModifiers;
 
     /**
      * 供序列化使用
@@ -49,16 +49,16 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         innerName = "default";
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = AttributeCalculateSection.OTHER;
-        vMap = new EnumMap<>(AttributeType.class);
-        tMap = new EnumMap<>(DamageType.class);
+        attributeTypeModifiers = new EnumMap<>(AttributeType.class);
+        damageTypeModifiers = new EnumMap<>(DamageType.class);
     }
 
     public CalculablePDC(AttributeCalculateSection attributeCalculateSection) {
         innerName = "default";
         priority = Integer.MAX_VALUE;
         this.attributeCalculateSection = attributeCalculateSection;
-        vMap = new EnumMap<>(AttributeType.class);
-        tMap = new EnumMap<>(DamageType.class);
+        attributeTypeModifiers = new EnumMap<>(AttributeType.class);
+        damageTypeModifiers = new EnumMap<>(DamageType.class);
     }
 
     /**
@@ -72,27 +72,27 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
         priority = Integer.MAX_VALUE;
         attributeCalculateSection = acs;
 
-        vMap = new EnumMap<>(AttributeType.class);
-        tMap = new EnumMap<>(DamageType.class);
+        attributeTypeModifiers = new EnumMap<>(AttributeType.class);
+        damageTypeModifiers = new EnumMap<>(DamageType.class);
 
         if (cfg == null) return;
         /* vMap初始化 */
-        vMap.put(AttributeType.ATTACK_DAMAGE, cfg.getDouble(BASE_DAMAGE, 0D));
-        vMap.put(AttributeType.ARMOR, cfg.getDouble(ARMOR, 0D));
-        vMap.put(AttributeType.CRITICAL_STRIKE_CHANCE, cfg.getDouble(CRITICAL_STRIKE_CHANCE, 0D));
-        vMap.put(AttributeType.CRITICAL_STRIKE_DAMAGE, cfg.getDouble(CRITICAL_STRIKE_DAMAGE, 0D));
-        vMap.put(AttributeType.ARMOR_TOUGHNESS, cfg.getDouble(ARMOR_TOUGHNESS, 0D));
-        vMap.put(AttributeType.PRE_ARMOR_REDUCTION, cfg.getDouble(PRE_ARMOR_REDUCTION, 0D));
-        vMap.put(AttributeType.AFTER_ARMOR_REDUCTION, cfg.getDouble(AFTER_ARMOR_REDUCTION, 0D));
-        vMap.put(AttributeType.SKILL_MANA_COST, cfg.getDouble(MANA_COST, 0D));
-        vMap.put(AttributeType.SKILL_COOLDOWN, cfg.getDouble(SKILL_COOLDOWN, 0D));
+        attributeTypeModifiers.put(AttributeType.ATTACK_DAMAGE, cfg.getDouble(BASE_DAMAGE, 0D));
+        attributeTypeModifiers.put(AttributeType.ARMOR, cfg.getDouble(ARMOR, 0D));
+        attributeTypeModifiers.put(AttributeType.CRITICAL_STRIKE_CHANCE, cfg.getDouble(CRITICAL_STRIKE_CHANCE, 0D));
+        attributeTypeModifiers.put(AttributeType.CRITICAL_STRIKE_DAMAGE, cfg.getDouble(CRITICAL_STRIKE_DAMAGE, 0D));
+        attributeTypeModifiers.put(AttributeType.ARMOR_TOUGHNESS, cfg.getDouble(ARMOR_TOUGHNESS, 0D));
+        attributeTypeModifiers.put(AttributeType.PRE_ARMOR_REDUCTION, cfg.getDouble(PRE_ARMOR_REDUCTION, 0D));
+        attributeTypeModifiers.put(AttributeType.AFTER_ARMOR_REDUCTION, cfg.getDouble(AFTER_ARMOR_REDUCTION, 0D));
+        attributeTypeModifiers.put(AttributeType.SKILL_MANA_COST, cfg.getDouble(MANA_COST, 0D));
+        attributeTypeModifiers.put(AttributeType.SKILL_COOLDOWN, cfg.getDouble(SKILL_COOLDOWN, 0D));
         /* tMap初始化 */
-        tMap.put(DamageType.MELEE, cfg.getDouble(MELEE, 0D));
-        tMap.put(DamageType.MAGIC, cfg.getDouble(MAGIC, 0D));
-        tMap.put(DamageType.RANGED, cfg.getDouble(RANGED, 0D));
-        tMap.put(DamageType.ROUGE, cfg.getDouble(ROUGE, 0D));
-        tMap.put(DamageType.SUMMON, cfg.getDouble(SUMMON, 0D));
-        tMap.put(DamageType.OTHER, cfg.getDouble(OTHER, 0D));
+        damageTypeModifiers.put(DamageType.MELEE, cfg.getDouble(MELEE, 0D));
+        damageTypeModifiers.put(DamageType.MAGIC, cfg.getDouble(MAGIC, 0D));
+        damageTypeModifiers.put(DamageType.RANGED, cfg.getDouble(RANGED, 0D));
+        damageTypeModifiers.put(DamageType.ROUGE, cfg.getDouble(ROUGE, 0D));
+        damageTypeModifiers.put(DamageType.SUMMON, cfg.getDouble(SUMMON, 0D));
+        damageTypeModifiers.put(DamageType.OTHER, cfg.getDouble(OTHER, 0D));
     }
 
     /**
@@ -107,10 +107,10 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
                 continue;
             }
             for (AttributeType type : AttributeType.values()) {
-                vMap.put(type, vMap.getOrDefault(type, 0D) + cPDC.vMap.getOrDefault(type, 0D));
+                attributeTypeModifiers.put(type, attributeTypeModifiers.getOrDefault(type, 0D) + cPDC.attributeTypeModifiers.getOrDefault(type, 0D));
             }
             for (DamageType type : DamageType.values()) {
-                tMap.put(type, tMap.getOrDefault(type, 0D) + cPDC.tMap.getOrDefault(type, 0D));
+                damageTypeModifiers.put(type, damageTypeModifiers.getOrDefault(type, 0D) + cPDC.damageTypeModifiers.getOrDefault(type, 0D));
             }
         }
     }
@@ -124,10 +124,10 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
             return;
         }
         for (AttributeType type : AttributeType.values()) {
-            vMap.put(type, vMap.getOrDefault(type, 0D) + cPDC.vMap.getOrDefault(type, 0D) * k);
+            attributeTypeModifiers.put(type, attributeTypeModifiers.getOrDefault(type, 0D) + cPDC.attributeTypeModifiers.getOrDefault(type, 0D) * k);
         }
         for (DamageType type : DamageType.values()) {
-            tMap.put(type, tMap.getOrDefault(type, 0D) + cPDC.tMap.getOrDefault(type, 0D) * k);
+            damageTypeModifiers.put(type, damageTypeModifiers.getOrDefault(type, 0D) + cPDC.damageTypeModifiers.getOrDefault(type, 0D) * k);
         }
     }
 
@@ -152,11 +152,11 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     public @NotNull Map<String, Double> getAttrMap() {
         // 使用HashMap，初始容量设置为足够大以避免扩容
         // 数据量较小的时候串行速度比并行快
-        Map<String, Double> result = new HashMap<>((vMap.size() + tMap.size()) * 2);
-        for (Map.Entry<AttributeType, Double> entry : vMap.entrySet()) {
+        Map<String, Double> result = new HashMap<>((attributeTypeModifiers.size() + damageTypeModifiers.size()) * 2);
+        for (Map.Entry<AttributeType, Double> entry : attributeTypeModifiers.entrySet()) {
             result.put(entry.getKey().name().toLowerCase(), entry.getValue());
         }
-        for (Map.Entry<DamageType, Double> entry : tMap.entrySet()) {
+        for (Map.Entry<DamageType, Double> entry : damageTypeModifiers.entrySet()) {
             result.put(entry.getKey().name().toLowerCase(), entry.getValue());
         }
         return result;

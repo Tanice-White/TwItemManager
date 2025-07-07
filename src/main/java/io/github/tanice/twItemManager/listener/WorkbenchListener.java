@@ -27,10 +27,6 @@ public class WorkbenchListener implements Listener {
         plugin.getLogger().info("WorkbenchListener Registered");
     }
 
-    public void onReload() {
-        plugin.getLogger().info("WorkbenchListener reloaded");
-    }
-
     /**
      * 处理武器升级和宝石镶嵌
      */

@@ -13,18 +13,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import static io.github.tanice.twItemManager.util.Logger.logInfo;
-
-public class MythicMobSkillListener implements Listener {
+public class MMSkillListener implements Listener {
     private final JavaPlugin plugin;
 
-    public MythicMobSkillListener(@NotNull JavaPlugin plugin) {
+    public MMSkillListener(@NotNull JavaPlugin plugin) {
         this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
-    }
-
-    public void onReload() {
-        plugin.getLogger().info("MythicMobSkillListener reloaded");
     }
 
     /* 注册自己的解释器 */
@@ -39,6 +33,7 @@ public class MythicMobSkillListener implements Listener {
     public void onCastSkill(@NotNull MythicSkillEvent event) {
         event.getSkill().getInternalName();
         // TODO 管理技能cd和mana
+        // TODO 需要获取玩家的cd和mana减免属性才能计算最终结果
     }
 
     // MythicDamageEvent 目前不需要监听, 可能包含其他情况

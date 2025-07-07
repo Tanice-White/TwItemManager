@@ -154,8 +154,8 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
             clone.particle = this.particle;
             clone.particleNum = this.particleNum;
             // 复制可变字段
-            clone.vMap = this.vMap.clone();
-            clone.tMap = this.tMap.clone();
+            clone.attributeTypeModifiers = this.attributeTypeModifiers.clone();
+            clone.damageTypeModifiers = this.damageTypeModifiers.clone();
             // 重置瞬态字段
             clone.jsContext = null;
             return clone;
@@ -171,8 +171,8 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
                 "jsName=" + jsName + ".js, " +
                 "buffInnerName=" + innerName + ", " +
                 "attributeCalculateSection=" + attributeCalculateSection + ", " +
-                "attribute-addition=" + enumMapToString(vMap) +
-                "type-addition=" + enumMapToString(tMap) +
+                "attribute-addition=" + enumMapToString(attributeTypeModifiers) +
+                "type-addition=" + enumMapToString(damageTypeModifiers) +
                 "endTimeStamp=" + endTimeStamp + ", " +
                 "chance=" + chance + ", " +
                 "cd=" + cd + ", " +
@@ -234,10 +234,10 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
         buffActiveCondition = BuffActiveCondition.valueOf(bac.toUpperCase());
 
         for (AttributeType at : AttributeType.values()) {
-            vMap.put(at, getScriptValue(at.toString().toLowerCase(), 0D));
+            attributeTypeModifiers.put(at, getScriptValue(at.toString().toLowerCase(), 0D));
         }
         for (DamageType dt : DamageType.values()) {
-            tMap.put(dt, getScriptValue(dt.toString().toLowerCase(), 0D));
+            damageTypeModifiers.put(dt, getScriptValue(dt.toString().toLowerCase(), 0D));
         }
     }
 

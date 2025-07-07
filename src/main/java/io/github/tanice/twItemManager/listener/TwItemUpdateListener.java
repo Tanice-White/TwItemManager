@@ -38,10 +38,6 @@ public class TwItemUpdateListener implements Listener {
         }, 20, 20);
     }
 
-    public void onReload() {
-        plugin.getLogger().info("TwItemUpdateListener reloaded");
-    }
-
     @EventHandler
     void onPlayerHeld(@NotNull PlayerItemHeldEvent event) {
         Inventory inv = event.getPlayer().getInventory();

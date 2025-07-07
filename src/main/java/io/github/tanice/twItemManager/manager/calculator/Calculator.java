@@ -22,7 +22,7 @@ import static io.github.tanice.twItemManager.util.Logger.logInfo;
 
 public abstract class Calculator {
     /** 是否使用玩家减伤平衡算法 */
-    private boolean useDamageReductionBalance;
+    protected boolean useDamageReductionBalance;
     /**
      * 最终的伤害属性计算map
      * 获取伤害计算各个区的顺序
@@ -30,55 +30,38 @@ public abstract class Calculator {
      * 根据攻击实体武器的伤害类型
      */
     @Getter
-    private EnumMap<AttributeType, Double> damageModifiers;
+    private EnumMap<AttributeType, Double> AttributeTypeModifiers;
     /**
-     * 根据就算区分好的属性Map
+     * 玩家 DamageType 对应的值 (武器伤害类型的增伤)
      */
     @Getter
-    protected final EnumMap<DamageType, Double> damageTypeMap = new EnumMap<>(DamageType.class);
-    @Getter
-    protected final EnumMap<AttributeCalculateSection, CalculablePDC> resultMap = new EnumMap<>(AttributeCalculateSection.class);
+    protected EnumMap<DamageType, Double> damageTypeModifiers;
 
-    protected final List<BuffPDC> beforeList = new ArrayList<>();
-    protected final List<BuffPDC> betweenList = new ArrayList<>();
-    protected final List<BuffPDC> afterList = new ArrayList<>();
+    protected List<BuffPDC> beforeList;
+    protected List<BuffPDC> betweenList;
+    protected List<BuffPDC> afterList;
+
+    /**
+     * 中间值 用于将属性从 AttributeCalculateSection 转化为 AttributeType 的 Map
+     */
+    protected EnumMap<AttributeCalculateSection, CalculablePDC> transformTmp;
 
     /* 序列化使用 */
-    public Calculator() {
+    protected Calculator() {
     }
 
-    public Calculator(@NotNull LivingEntity e) {
-        List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentItemPDC(e);
-        PDCs.addAll(EquipmentUtil.getEffectiveAccessoryAttributePDC(e));
-        /* buff计算 */
-        PDCs.addAll(getEntityCalculablePDC(e));
-
-        if (Config.debug) {
-            StringBuilder s = new StringBuilder("debug: [Calculator] PDCs in " + e.getName() + ": ");
-            for (CalculablePDC pdc : PDCs) s.append(pdc.getInnerName()).append(" ");
-            logInfo(s.toString());
-        }
-
-        AttributeCalculateSection acs;
-        CalculablePDC aPDC;
-        for (CalculablePDC pdc : PDCs) {
-            acs = pdc.getAttributeCalculateSection();
-            if (acs == AttributeCalculateSection.OTHER) continue;
-            /* 具体 */
-            if (acs == AttributeCalculateSection.BEFORE_DAMAGE) beforeList.add((BuffPDC) pdc);
-            else if (acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) betweenList.add((BuffPDC) pdc);
-            else if (acs == AttributeCalculateSection.AFTER_DAMAGE) afterList.add((BuffPDC) pdc);
-            else {
-                aPDC = resultMap.getOrDefault(acs, new AttributePDC(acs));
-                aPDC.merge(pdc, 1);
-                resultMap.put(acs, aPDC);
-            }
-        }
+    public Calculator(@NotNull LivingEntity livingEntity) {
         useDamageReductionBalance = Config.useDamageReductionBalanceForPlayer;
-        damageModifiers = new EnumMap<>(AttributeType.class);
+        damageTypeModifiers = new EnumMap<>(DamageType.class);
+        transformTmp = new EnumMap<>(AttributeCalculateSection.class);
+        beforeList = new ArrayList<>();
+        betweenList = new ArrayList<>();
+        afterList = new ArrayList<>();
+        AttributeTypeModifiers = new EnumMap<>(AttributeType.class);
 
-        initDamageMap();
-        initDamageModifiers();
+        initBuffListsAndTransformTmp(livingEntity);
+        initDamageTypeModifiers();
+        initAttributeTypeModifiers();
     }
 
     /**
@@ -115,62 +98,95 @@ public abstract class Calculator {
     /**
      * 获取目标生效的buff
      */
-    protected @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity e) {
-        EntityPDC ePDC = PDCAPI.getEntityPDC(e);
+    private @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity livingEntity) {
+        EntityPDC ePDC = PDCAPI.getEntityPDC(livingEntity);
         if (ePDC == null) return new ArrayList<>();
         return ePDC.getActiveBuffPDCs(System.currentTimeMillis());
     }
 
     /**
-     * 获取玩家 DamageType 属性 Map
+     * 获取 BuffList和中间 Map
      */
-    protected void initDamageMap() {
-        CalculablePDC cPDC;
-        EnumMap<DamageType, Double> ctMap;
-        for (AttributeCalculateSection acs : resultMap.keySet()) {
-            /* 排除 */
-            if (acs == AttributeCalculateSection.BEFORE_DAMAGE || acs == AttributeCalculateSection.AFTER_DAMAGE || acs == AttributeCalculateSection.OTHER || acs == AttributeCalculateSection.TIMER || acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) continue;
-            /* 数值整合计算 */
-            cPDC = resultMap.get(acs);
-            ctMap = cPDC.getTMap();
-            /* 1.属性统计(逐个CalculatePDC统计) */
-            for (DamageType dt : DamageType.values()) {
-                damageTypeMap.put(dt, damageTypeMap.getOrDefault(dt, 0D) + ctMap.getOrDefault(dt, 0D));
+    private void initBuffListsAndTransformTmp(LivingEntity livingEntity) {
+        List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentItemPDC(livingEntity);
+        PDCs.addAll(EquipmentUtil.getEffectiveAccessoryAttributePDC(livingEntity));
+        /* buff计算 */
+        PDCs.addAll(getEntityCalculablePDC(livingEntity));
+
+        if (Config.debug) {
+            StringBuilder s = new StringBuilder("debug: [Calculator] PDCs in " + livingEntity.getName() + ": ");
+            for (CalculablePDC pdc : PDCs) s.append(pdc.getInnerName()).append(" ");
+            logInfo(s.toString());
+        }
+
+        AttributeCalculateSection acs;
+        CalculablePDC aPDC;
+        for (CalculablePDC pdc : PDCs) {
+            acs = pdc.getAttributeCalculateSection();
+            if (acs == AttributeCalculateSection.OTHER) continue;
+            /* 具体 */
+            if (acs == AttributeCalculateSection.BEFORE_DAMAGE) beforeList.add((BuffPDC) pdc);
+            else if (acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) betweenList.add((BuffPDC) pdc);
+            else if (acs == AttributeCalculateSection.AFTER_DAMAGE) afterList.add((BuffPDC) pdc);
+                /* BASE ADD MULTIPLY FIX */
+            else {
+                aPDC = transformTmp.getOrDefault(acs, new AttributePDC(acs));
+                aPDC.merge(pdc, 1);
+                transformTmp.put(acs, aPDC);
             }
         }
     }
 
-    private void initDamageModifiers() {
+    /**
+     * 获取玩家 DamageType 属性 Map
+     */
+    private void initDamageTypeModifiers() {
+        CalculablePDC cPDC;
+        EnumMap<DamageType, Double> ctMap;
+        for (AttributeCalculateSection acs : transformTmp.keySet()) {
+            /* 排除 */
+            if (acs == AttributeCalculateSection.BEFORE_DAMAGE || acs == AttributeCalculateSection.AFTER_DAMAGE || acs == AttributeCalculateSection.OTHER || acs == AttributeCalculateSection.TIMER || acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) continue;
+            /* 数值整合计算 */
+            cPDC = transformTmp.get(acs);
+            ctMap = cPDC.getDamageTypeModifiers();
+            /* 1.属性统计(逐个CalculatePDC统计) */
+            for (DamageType dt : DamageType.values()) {
+                damageTypeModifiers.put(dt, damageTypeModifiers.getOrDefault(dt, 0D) + ctMap.getOrDefault(dt, 0D));
+            }
+        }
+    }
+
+    private void initAttributeTypeModifiers() {
         CalculablePDC pdc;
         Double result = null;
 
         for (AttributeType attrType : AttributeType.values()) {
-            pdc = resultMap.get(AttributeCalculateSection.BASE);
-            if (pdc != null) result = pdc.getVMap().get(attrType);
+            pdc = transformTmp.get(AttributeCalculateSection.BASE);
+            if (pdc != null) result = pdc.getAttributeTypeModifiers().get(attrType);
             if (result == null) result = 0D;
             if (result != 0D){
                 /* 计算顺序：BASE * ADD * MULTIPLY * FIX */
-                pdc = resultMap.get(AttributeCalculateSection.ADD);
+                pdc = transformTmp.get(AttributeCalculateSection.ADD);
                 if (pdc != null) {
-                    Double value = pdc.getVMap().get(attrType);
+                    Double value = pdc.getAttributeTypeModifiers().get(attrType);
                     result *= (1 + value);
                 }
-                pdc = resultMap.get(AttributeCalculateSection.MULTIPLY);
+                pdc = transformTmp.get(AttributeCalculateSection.MULTIPLY);
                 if (pdc != null) {
-                    Double value = pdc.getVMap().get(attrType);
+                    Double value = pdc.getAttributeTypeModifiers().get(attrType);
                     result *= (1 + value);
                 }
-                pdc = resultMap.get(AttributeCalculateSection.FIX);
+                pdc = transformTmp.get(AttributeCalculateSection.FIX);
                 if (pdc != null) {
-                    Double value = pdc.getVMap().get(attrType);
+                    Double value = pdc.getAttributeTypeModifiers().get(attrType);
                     result *= (1 + value);
                 }
             }
-            damageModifiers.put(attrType, result);
+            AttributeTypeModifiers.put(attrType, result);
         }
 
-        damageModifiers.put(AttributeType.PRE_ARMOR_REDUCTION, drBalance(damageModifiers.get(AttributeType.PRE_ARMOR_REDUCTION)));
-        damageModifiers.put(AttributeType.AFTER_ARMOR_REDUCTION, drBalance(damageModifiers.get(AttributeType.AFTER_ARMOR_REDUCTION)));
+        AttributeTypeModifiers.put(AttributeType.PRE_ARMOR_REDUCTION, drBalance(AttributeTypeModifiers.get(AttributeType.PRE_ARMOR_REDUCTION)));
+        AttributeTypeModifiers.put(AttributeType.AFTER_ARMOR_REDUCTION, drBalance(AttributeTypeModifiers.get(AttributeType.AFTER_ARMOR_REDUCTION)));
     }
 
     /**

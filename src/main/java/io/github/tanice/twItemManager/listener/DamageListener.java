@@ -17,7 +17,7 @@ import org.joml.Matrix4f;
 
 import java.util.Random;
 
-public class DamageEventListener implements Listener {
+public class DamageListener implements Listener {
     private final JavaPlugin plugin;
 
     /* 随机数 */
@@ -38,7 +38,7 @@ public class DamageEventListener implements Listener {
     private int delay;
     private int duration;
 
-    public DamageEventListener(JavaPlugin plugin) {
+    public DamageListener(JavaPlugin plugin) {
         this.plugin = plugin;
 
         /* 指示器配置 */
@@ -83,18 +83,21 @@ public class DamageEventListener implements Listener {
         plugin.getLogger().info("DamageEventListener reloaded");
     }
 
-//    /**
-//     * 实体受伤检测
-//     */
-//    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-//    public void onDamage(@NotNull EntityDamageEvent event) {
-//        if (!(event.getEntity() instanceof LivingEntity living)) return;
-//        if (event.getFinalDamage() <= 0) return;
-//
-//        if (event instanceof EntityDamageByEntityEvent) return;
-//
-//        if (damageIndicatorEnabled) Bukkit.getScheduler().runTaskLater(plugin, () -> generateIndicator(living, false, event.getFinalDamage()), 1L);
-//    }
+    /**
+     * 实体受伤检测
+     * TODO 由于 twDamage 也是调用的damage, 所以会触发两次指示器生成
+     * TODO 无源头伤害也要计算伤害的！
+     * TODO 原版武器的护甲等也需要计算伤害！
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDamage(@NotNull EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity living)) return;
+        if (event.getFinalDamage() <= 0) return;
+
+        if (event instanceof EntityDamageByEntityEvent) return;
+
+        if (damageIndicatorEnabled) Bukkit.getScheduler().runTaskLater(plugin, () -> generateIndicator(living, false, event.getFinalDamage()), 1L);
+    }
 
     /**
      * 伤害计算

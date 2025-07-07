@@ -180,8 +180,8 @@ public class ItemPDC extends CalculablePDC {
                 "gem=" + Arrays.toString(gems) + ", " +
                 "oriAttrs=" + mapToString1(oriAttrs) + ", " +
                 "attributeCalculateSection=" + attributeCalculateSection + ", " +
-                "attribute-addition=" + enumMapToString(vMap) + ", " +
-                "type-addition=" + enumMapToString(tMap) +
+                "attribute-addition=" + enumMapToString(attributeTypeModifiers) + ", " +
+                "type-addition=" + enumMapToString(damageTypeModifiers) +
                 "}";
     }
 
@@ -371,14 +371,14 @@ public class ItemPDC extends CalculablePDC {
      * 则判定他们的计算方式，若是base 则直接加算；否则乘算
      * 所有的乘算都是单独计算，不加算
      */
-    private void selfMerge(AttributePDC aPDC, double k){
+    private void selfMerge(@Nullable AttributePDC aPDC, double k){
         if (aPDC == null) return;
         for (AttributeType type : AttributeType.values()) {
-            if (aPDC.getAttributeCalculateSection() == AttributeCalculateSection.BASE) vMap.put(type, vMap.getOrDefault(type, 0D) + aPDC.getVMap().getOrDefault(type, 0D) * k);
-            else vMap.put(type, vMap.getOrDefault(type, 0D) * (1 + aPDC.getVMap().getOrDefault(type, 0D) * k));
+            if (aPDC.getAttributeCalculateSection() == AttributeCalculateSection.BASE) attributeTypeModifiers.put(type, attributeTypeModifiers.getOrDefault(type, 0D) + aPDC.getAttributeTypeModifiers().getOrDefault(type, 0D) * k);
+            else attributeTypeModifiers.put(type, attributeTypeModifiers.getOrDefault(type, 0D) * (1 + aPDC.getAttributeTypeModifiers().getOrDefault(type, 0D) * k));
         }
         for (DamageType type : DamageType.values()) {
-            tMap.put(type, tMap.getOrDefault(type, 0D) + aPDC.getTMap().getOrDefault(type, 0D) * k);
+            damageTypeModifiers.put(type, damageTypeModifiers.getOrDefault(type, 0D) + aPDC.getDamageTypeModifiers().getOrDefault(type, 0D) * k);
         }
     }
 }
