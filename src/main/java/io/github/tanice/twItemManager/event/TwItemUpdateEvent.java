@@ -1,6 +1,5 @@
 package io.github.tanice.twItemManager.event;
 
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

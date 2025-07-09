@@ -1,5 +1,6 @@
 package io.github.tanice.twItemManager.manager.calculator;
 
+import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
@@ -98,23 +99,23 @@ public abstract class Calculator {
     /**
      * 获取目标生效的buff
      */
-    private @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity livingEntity) {
-        EntityPDC ePDC = PDCAPI.getEntityPDC(livingEntity);
+    private @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity entity) {
+        EntityPDC ePDC = PDCAPI.getEntityPDC(entity);
         if (ePDC == null) return new ArrayList<>();
-        return ePDC.getActiveBuffPDCs(System.currentTimeMillis());
+        return TwItemManager.getBuffManager().getEntityActiveBuffs(entity);
     }
 
     /**
      * 获取 BuffList和中间 Map
      */
-    private void initBuffListsAndTransformTmp(LivingEntity livingEntity) {
-        List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentItemPDC(livingEntity);
-        PDCs.addAll(EquipmentUtil.getEffectiveAccessoryAttributePDC(livingEntity));
+    private void initBuffListsAndTransformTmp(LivingEntity entity) {
+        List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentItemPDC(entity);
+        PDCs.addAll(EquipmentUtil.getEffectiveAccessoryAttributePDC(entity));
         /* buff计算 */
-        PDCs.addAll(getEntityCalculablePDC(livingEntity));
+        PDCs.addAll(getEntityCalculablePDC(entity)); // TODO 获取玩家buff部分代码有问题
 
         if (Config.debug) {
-            StringBuilder s = new StringBuilder("debug: [Calculator] PDCs in " + livingEntity.getName() + ": ");
+            StringBuilder s = new StringBuilder("[Calculator] PDCs in " + entity.getName() + ": ");
             for (CalculablePDC pdc : PDCs) s.append(pdc.getInnerName()).append(" ");
             logInfo(s.toString());
         }
@@ -128,7 +129,7 @@ public abstract class Calculator {
             if (acs == AttributeCalculateSection.BEFORE_DAMAGE) beforeList.add((BuffPDC) pdc);
             else if (acs == AttributeCalculateSection.BETWEEN_DAMAGE_ADN_DEFENCE) betweenList.add((BuffPDC) pdc);
             else if (acs == AttributeCalculateSection.AFTER_DAMAGE) afterList.add((BuffPDC) pdc);
-                /* BASE ADD MULTIPLY FIX */
+            /* BASE ADD MULTIPLY FIX */
             else {
                 aPDC = transformTmp.getOrDefault(acs, new AttributePDC(acs));
                 aPDC.merge(pdc, 1);

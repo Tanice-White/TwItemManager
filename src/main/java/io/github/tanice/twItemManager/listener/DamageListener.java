@@ -86,7 +86,7 @@ public class DamageListener implements Listener {
     /**
      * 实体受伤检测
      * TODO 由于 twDamage 也是调用的damage, 所以会触发两次指示器生成
-     * TODO 无源头伤害也要计算伤害的！
+     * TODO 无源头伤害也要计算伤害的！(TwDamage需要支持这种算法和对应的初始化)
      * TODO 原版武器的护甲等也需要计算伤害！
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

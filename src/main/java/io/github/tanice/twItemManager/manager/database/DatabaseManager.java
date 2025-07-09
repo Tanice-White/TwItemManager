@@ -117,7 +117,7 @@ public class DatabaseManager {
     }
 
     /**
-     * 批量保存BuffRecords
+     * 批量保存 BuffRecords 是否为 holdbuff 不重要，玩家进入后需要重新加载的
      * @param records BuffRecord集合
      */
     public void saveBuffRecords(@NotNull Collection<BuffRecord> records){
@@ -152,8 +152,7 @@ public class DatabaseManager {
         CompletableFuture<List<BuffRecord>> future = new CompletableFuture<>();
         dbExecutor.execute(() -> {
             List<BuffRecord> res = new ArrayList<>();
-            String selectSql = "SELECT buff_inner_name, cooldown_counter, duration_counter "
-                    + "FROM buff_records WHERE uuid = ?";
+            String selectSql = "SELECT buff_inner_name, cooldown_counter, duration_counter FROM buff_records WHERE uuid = ?";
             try (PreparedStatement pst = connection.prepareStatement(selectSql)) {
                 pst.setString(1, uuid);
                 try (ResultSet rs = pst.executeQuery()) {
@@ -190,10 +189,8 @@ public class DatabaseManager {
     public void saveEntityPDC(@NotNull String uuid, @Nullable EntityPDC entityPDC) {
         final EntityPDC finalEntityPDC = (entityPDC == null) ? new EntityPDC() : entityPDC;
         dbExecutor.execute(() -> {
-            finalEntityPDC.simplify(System.currentTimeMillis());
             byte[] data = OriSerializationUtil.serialize(finalEntityPDC);
-            String sql = "INSERT INTO entity_pdc_data (uuid, data) VALUES (?, ?) "
-                    + "ON DUPLICATE KEY UPDATE data = VALUES(data)";
+            String sql = "INSERT INTO entity_pdc_data (uuid, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)";
             try (PreparedStatement pst = connection.prepareStatement(sql)) {
                 pst.setString(1, uuid);
                 pst.setBytes(2, data);

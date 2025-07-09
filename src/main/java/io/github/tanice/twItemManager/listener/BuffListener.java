@@ -1,24 +1,20 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.event.PlayerAttributeChangeEvent;
-import io.github.tanice.twItemManager.infrastructure.PDCAPI;
-import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
+import io.github.tanice.twItemManager.manager.item.base.BaseItem;
+import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.util.EquipmentUtil;
-import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,140 +23,71 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public class BuffListener implements Listener {
     private final JavaPlugin plugin;
-
-    public BuffListener(@NotNull JavaPlugin plugin) {
+    
+    public BuffListener(JavaPlugin plugin) {
         this.plugin = plugin;
-        Bukkit.getPluginManager().registerEvents(this, plugin);
+        
+        Bukkit.getPluginManager().registerEvents(this, TwItemManager.getInstance());
         logInfo("BuffListener loaded");
     }
 
-    // 是不是不能用原版的立即复活，否则容易出问题
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerDie (@NotNull PlayerDeathEvent event) {
-        Player p =event.getPlayer();
-        EntityPDC ePDC = PDCAPI.getEntityPDC(p);
-        if (ePDC != null) {
-            /* 若直接 new 可能会频繁扩容，增加 GC 的压力 */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            TwItemManager.getBuffManager().loadPlayerBuffs(event.getPlayer());
+        }, 1L);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
+        TwItemManager.getBuffManager().SaveAndClearPlayerBuffs(event.getPlayer());
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
+        TwItemManager.getBuffManager().deactivateEntityBuffs(event.getEntity());
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerRespawn(@NotNull PlayerRespawnEvent event) {
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            Player player = event.getPlayer();
+            /* 激活hold_buff */
+            for (Item i : EquipmentUtil.getActiveEquipmentItem(player)){
+                TwItemManager.getBuffManager().activateBuffs(player, i.getHoldBuffs(), true);
+            }
+        }, 1L);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityEquipmentChange(@NotNull EntityEquipmentChangedEvent event) {
+        /* 它的old和new不会换位（不是原物品的引用） */
+        // 判断更新的装备是否是TwItem
+        if (isTwItemChange(event)) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                ePDC.removeBuffs();
-                PDCAPI.setCalculablePDC(p, ePDC);
-                TwItemManager.getBuffManager().deactivatePlayerTimerBuff(p.getUniqueId());
+                LivingEntity entity = event.getEntity();
+                BaseItem bit;
+                for (EntityEquipmentChangedEvent.EquipmentChange equipmentChange : event.getEquipmentChanges().values()) {
+                    /* 旧物品 buff 移除 */
+                    bit = TwItemManager.getItemManager().getBaseItem(equipmentChange.oldItem());
+                    if (bit instanceof Item i) TwItemManager.getBuffManager().deactivateBuffs(entity, i.getHoldBuffs());
+                    /* 新物品 buff 增加 */
+                    bit = TwItemManager.getItemManager().getBaseItem(equipmentChange.newItem());
+                    if (bit instanceof Item i) TwItemManager.getBuffManager().activateBuffs(entity, i.getHoldBuffs(), true);
+                }
             }, 1L);
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerRespawn(@NotNull PlayerRespawnEvent event) {
-        Player p =event.getPlayer();
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(p), 1L);
-
-
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        if (!Config.use_mysql) return;
-        Player p =event.getPlayer();
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            TwItemManager.getBuffManager().clearAndStorePlayerBuffs(p);
-            TwItemManager.getDatabaseManager().saveEntityPDC(p.getUniqueId().toString(), PDCAPI.getEntityPDC(p));
-        }, 1L);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        if (!Config.use_mysql) return;
-        Player p = event.getPlayer();
-        TwItemManager.getDatabaseManager().loadEntityPDC(p.getUniqueId().toString())
-            .thenAccept(ePDC -> {
-                EntityPDC usePDC = (ePDC == null) ? new EntityPDC() : ePDC;
-                // 内部的 endTimeStamp 需要更新
-                if (!usePDC.getBuffPDCs().isEmpty()) {
-                    long curr = System.currentTimeMillis() + 99L;  // 手动延迟1tick
-                    for (BuffPDC bPDC : usePDC.getBuffPDCs()) {
-                        bPDC.setEndTimeStamp(bPDC.getDeltaTime() + curr);
-                    }
-                }
-                // 切回主线程
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    if (!PDCAPI.setCalculablePDC(p, usePDC)) logWarning("设置玩家PDC 失败");
-
-                    plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                        TwItemManager.getBuffManager().updateHoldBuffs(event.getPlayer());
-                        TwItemManager.getBuffManager().readPlayerBuffs(p);
-                    }, 1L);
-                });
-            });
-    }
-
     /**
-     * 背包的 副手、护甲物品变化
+     * 判断装备变化是否涉及TwItem
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryChange(@NotNull PlayerInventorySlotChangeEvent event) {
-        int slot = event.getSlot();
-        if (!EquipmentUtil.isArmorSlot(slot) && !EquipmentUtil.isHandSlot(slot)) return;
-        /* 原本位置的物品是否是twItem */
-        if (TwItemManager.getItemManager().isNotItemClassInTwItem(event.getOldItemStack()) && TwItemManager.getItemManager().isNotItemClassInTwItem(event.getNewItemStack())) return;
-        /* 这里获取的物品，延迟执行不会变化 */
-        /* 考虑到主副手交换，两个全都删除 */
-        changeBuff(event.getPlayer());
+    private boolean isTwItemChange(@NotNull EntityEquipmentChangedEvent event) {
+        for (EntityEquipmentChangedEvent.EquipmentChange c : event.getEquipmentChanges().values()) {
+            if (!TwItemManager.getItemManager().isNotItemClassInTwItem(c.oldItem()) || !TwItemManager.getItemManager().isNotItemClassInTwItem(c.newItem())) {
+                return true;
+            }
+        }
+        return false;
     }
-
-    /**
-     * 处理shift点击事件
-     */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryClick(@NotNull InventoryClickEvent event) {
-        /* shift 放入发射器, 得到的是发射器而不是Player */
-        if (!(event.getInventory().getHolder() instanceof Player player)) return;
-        /* event 的 getCurrentItem() 太抽象了, 直接全部更新得了 */
-        if (TwItemManager.getItemManager().isNotItemClassInTwItem(event.getCurrentItem()) && TwItemManager.getItemManager().isNotItemClassInTwItem(event.getCursor())) return;
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> changeBuff(player), 1L);
-    }
-
-    /**
-     * 主手手持变化
-     */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onItemHeld(@NotNull PlayerItemHeldEvent event) {
-        Player player = event.getPlayer();
-        ItemStack previousItem = player.getInventory().getItem(event.getPreviousSlot());
-        ItemStack newItem = player.getInventory().getItem(event.getNewSlot());
-
-        /* 原物品是插件物品则需要 */
-        if (TwItemManager.getItemManager().isNotItemClassInTwItem(previousItem) &&  TwItemManager.getItemManager().isNotItemClassInTwItem(newItem)) return;
-        changeBuff(player);
-    }
-
-    /**
-     * 玩家丢弃物品事件
-     * @param event 事件
-     */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onItemDrop(@NotNull PlayerDropItemEvent event) {
-        Player p = event.getPlayer();
-        ItemStack item = event.getItemDrop().getItemStack();
-        // 更新buff
-        if (!TwItemManager.getItemManager().isNotItemClassInTwItem(item)) changeBuff(p);
-    }
-
-    /**
-     * 玩家捡起物品事件
-     * @param event 事件
-     */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onItemPickup(@NotNull EntityPickupItemEvent event) {
-        ItemStack item = event.getItem().getItemStack();
-        // 更新buff
-        if (!TwItemManager.getItemManager().isNotItemClassInTwItem(item)) changeBuff(event.getEntity());
-    }
-
-    /**
-     * 玩家物品的 HoldBuff 生效
-     */
-    private void changeBuff(@NotNull LivingEntity e) {
-        if (Config.debug) logInfo(e.getName() + ": buff updated");
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> TwItemManager.getBuffManager().updateHoldBuffs(e), 1L);
-    }
-}
+} 

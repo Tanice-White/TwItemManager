@@ -10,6 +10,7 @@ import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
 import io.github.tanice.twItemManager.manager.buff.DamageInnerAttr;
+import io.github.tanice.twItemManager.util.EquipmentUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Material;
@@ -87,14 +88,14 @@ public class TwDamageEvent extends Event implements Cancellable {
     }
     
     public double getFinalDamage() {
-        LivingEntityCombatPowerCalculator ac = new LivingEntityCombatPowerCalculator(attacker);
-        LivingEntityCombatPowerCalculator bc = new LivingEntityCombatPowerCalculator(defender);
-        EnumMap<AttributeType, Double> aAttrMap = ac.getAttributeTypeModifiers();
-        EnumMap<AttributeType, Double> bAttrMap = bc.getAttributeTypeModifiers();
+        LivingEntityCombatPowerCalculator attackerCalculator = (LivingEntityCombatPowerCalculator) TwItemManager.getEntityAttributeManager().getCalculator(attacker);
+        LivingEntityCombatPowerCalculator defenderCalculator = (LivingEntityCombatPowerCalculator) TwItemManager.getEntityAttributeManager().getCalculator(defender);
+        EnumMap<AttributeType, Double> attackerAttributeTypeModifiers = attackerCalculator.getAttributeTypeModifiers();
+        EnumMap<AttributeType, Double> defenderAttributeTypeModifiers = defenderCalculator.getAttributeTypeModifiers();
 
         if (Config.debug) {
-            logInfo("[TwDamageEvent] attacker attribute map: " + enumMapToString(aAttrMap));
-            logInfo("[TwDamageEvent] attacker damage type map: " + enumMapToString(ac.getDamageTypeModifiers()));
+            logInfo("[TwDamageEvent] attacker attribute map: " + enumMapToString(attackerAttributeTypeModifiers));
+            logInfo("[TwDamageEvent] attacker damage type map: " + enumMapToString(attackerCalculator.getDamageTypeModifiers()));
         }
         /* 计算玩家生效属性 */
         /* 非法属性都在OTHER中 */
@@ -109,12 +110,12 @@ public class TwDamageEvent extends Event implements Cancellable {
             /* 否则武器类型保持OTHER不变 */
         }
 
-        double finalDamage = 0;
+        double finalDamage;
 
-        DamageInnerAttr damageInnerAttr = new DamageInnerAttr(attacker, defender, 0, aAttrMap, bAttrMap, weaponDamageType);
+        DamageInnerAttr damageInnerAttr = new DamageInnerAttr(attacker, defender, 0, attackerAttributeTypeModifiers, defenderAttributeTypeModifiers, weaponDamageType);
         /* BEFORE_DAMAGE 事件计算 */
-        List<BuffPDC> bd = ac.getBeforeList(BuffActiveCondition.ATTACKER);
-        bd.addAll(bc.getBeforeList(BuffActiveCondition.DEFENDER));
+        List<BuffPDC> bd = attackerCalculator.getBeforeList(BuffActiveCondition.ATTACKER);
+        bd.addAll(defenderCalculator.getBeforeList(BuffActiveCondition.DEFENDER));
         Collections.sort(bd);
         for (BuffPDC pdc : bd) {
             Object answer = pdc.execute(damageInnerAttr);
@@ -124,7 +125,7 @@ public class TwDamageEvent extends Event implements Cancellable {
         }
 
         /* 武器的对外白值（品质+宝石+白值） */
-        finalDamage = aAttrMap.get(AttributeType.ATTACK_DAMAGE);
+        finalDamage = attackerAttributeTypeModifiers.get(AttributeType.ATTACK_DAMAGE);
         /* 只要是twItemManager的物品，伤害一定是1，否则一定大于1 */
         /* 不影响原版武器伤害的任何计算 */
         /* 不是插件物品 */
@@ -137,14 +138,14 @@ public class TwDamageEvent extends Event implements Cancellable {
             finalDamage *= 0.15 + p.getAttackCooldown() * 0.85;
         }
 
-        finalDamage *=  (1 + ac.getDamageTypeModifiers().getOrDefault(weaponDamageType, 0D));
+        finalDamage *=  (1 + attackerCalculator.getDamageTypeModifiers().getOrDefault(weaponDamageType, 0D));
         if (critical) finalDamage *= 1 + Config.originalCriticalStrikeAddition;
 
         /* 暴击 */
         critical = false;
-        if (rand.nextDouble() < aAttrMap.get(AttributeType.CRITICAL_STRIKE_CHANCE)){
+        if (rand.nextDouble() < attackerAttributeTypeModifiers.get(AttributeType.CRITICAL_STRIKE_CHANCE)){
             critical = true;
-            finalDamage *= aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE) < 1 ? 1: aAttrMap.get(AttributeType.CRITICAL_STRIKE_DAMAGE);
+            finalDamage *= attackerAttributeTypeModifiers.get(AttributeType.CRITICAL_STRIKE_DAMAGE) < 1 ? 1: attackerAttributeTypeModifiers.get(AttributeType.CRITICAL_STRIKE_DAMAGE);
         }
 
         /* 伤害浮动 */
@@ -153,8 +154,8 @@ public class TwDamageEvent extends Event implements Cancellable {
         damageInnerAttr.setDamage(finalDamage);
 
         /* 中间属性生效 */
-        List<BuffPDC> be = ac.getBetweenList(BuffActiveCondition.ATTACKER);
-        be.addAll(bc.getBetweenList(BuffActiveCondition.DEFENDER));
+        List<BuffPDC> be = attackerCalculator.getBetweenList(BuffActiveCondition.ATTACKER);
+        be.addAll(defenderCalculator.getBetweenList(BuffActiveCondition.DEFENDER));
         Collections.sort(be);
         for (BuffPDC pdc : be) {
             Object answer = pdc.execute(damageInnerAttr);
@@ -164,17 +165,17 @@ public class TwDamageEvent extends Event implements Cancellable {
         }
 
         /* 最终伤害计算 */
-        finalDamage *= (1 - bAttrMap.get(AttributeType.PRE_ARMOR_REDUCTION));
-        finalDamage -= bAttrMap.get(AttributeType.ARMOR) * worldK;
+        finalDamage *= (1 - defenderAttributeTypeModifiers.get(AttributeType.PRE_ARMOR_REDUCTION));
+        finalDamage -= defenderAttributeTypeModifiers.get(AttributeType.ARMOR) * worldK;
         /* 数值修正 */
         finalDamage = Math.max(0, finalDamage);
-        finalDamage *= (1 - bAttrMap.get(AttributeType.AFTER_ARMOR_REDUCTION));
+        finalDamage *= (1 - defenderAttributeTypeModifiers.get(AttributeType.AFTER_ARMOR_REDUCTION));
 
         /* AFTER_DAMAGE 事件计算 */
         damageInnerAttr.setDamage(finalDamage);
 
-        List<BuffPDC> ad = ac.getAfterList(BuffActiveCondition.ATTACKER);
-        ad.addAll(bc.getAfterList(BuffActiveCondition.DEFENDER));
+        List<BuffPDC> ad = attackerCalculator.getAfterList(BuffActiveCondition.ATTACKER);
+        ad.addAll(defenderCalculator.getAfterList(BuffActiveCondition.DEFENDER));
         Collections.sort(ad);
         for (BuffPDC pdc : ad) {
             Object answer = pdc.execute(damageInnerAttr);
@@ -184,9 +185,13 @@ public class TwDamageEvent extends Event implements Cancellable {
         }
 
         /* a 给 b 增加 buff */
-        TwItemManager.getBuffManager().doAttackBuffs(attacker, defender);
+        for (Item i : EquipmentUtil.getActiveEquipmentItem(attacker)){
+            TwItemManager.getBuffManager().activateBuffs(defender, i.getAttackBuffs(), false);
+        }
         /* b 给 a 增加 buff */
-        TwItemManager.getBuffManager().doDefenceBuffs(attacker, defender);
+        for (Item i : EquipmentUtil.getActiveEquipmentItem(defender)){
+            TwItemManager.getBuffManager().activateBuffs(attacker, i.getDefenseBuffs(), false);
+        }
 
         /* TIMER 不处理，而是在增加buff的时候处理 */
         return finalDamage;

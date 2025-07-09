@@ -25,60 +25,43 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
 /**
- * BUFF的抽象
- * 只有 AttributionCalculateSection 中的 BEFORE_DAMAGE 、 AFTER_DAMAGE 、 TIMER 需要执行 execute 方法
- * 其中只有 TIMER 需要 cd属性
- * 其余计算类都能变为 AttributePDC 中
+ * BUFF的属性抽象
  */
 @Getter
 public class BuffPDC extends CalculablePDC implements Cloneable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /* js配置文件名 */
+    /** js配置文件名 */
     private String jsName;
     private String jsPath;
     private transient Context jsContext;
     private String jsContent;
 
-    /* 激活间隔(s) */
+    /** 激活间隔(s) */
     protected int cd;
-
-    /* buff生效的角色条件 */
+    /** buff生效的角色条件 */
     @Getter
     private BuffActiveCondition buffActiveCondition;
-
-    /* buff 是否启用 */
+    /** buff 是否启用 */
     @Getter
     private boolean enable;
-
-    /* buff 还能生效的时间 - 数据库读取使用, 其他情况不允许读取 */
-    @Getter
-    @Setter
-    private long deltaTime;
-
-    /* 属性结束时间(负数则永续) - 非js使用 */
-    @Getter
-    @Setter
-    private long endTimeStamp;
-
-    /* 激活几率 */
+    /** 激活几率 */
     @Getter
     @Setter
     private double chance;
-
-    /* 持续时间 - 均使用(Timer类只使用这个做判断) */
+    /** 持续时间 */
     @Getter
     @Setter
     private int duration;
+    /** 非实体显示的Lore */
+    @Getter
+    private List<String> lore;
 
-    /* 额外添加 */
+    /** 额外添加 */
     private String particle;
     private Color particleColor;
     private int particleNum;
-
-    /* 非实体显示的Lore */
-    private List<String> lore;
 
     /**
      * 序列化使用
@@ -93,8 +76,6 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
         jsPath = null;
         enable = cfg.getBoolean(ENABLE, true);
         cd = cfg.getInt(CD, -1);
-        deltaTime = -1;
-        endTimeStamp = -1;
         /* 覆写 */
         chance = cfg.getDouble(CHANCE, 1D);
         duration = cfg.getInt(DURATION, -1);
@@ -115,6 +96,7 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
     }
 
     /**
+     * 只有Timer这个函数有效
      * 传入的参数为: TwDamageEvent 类, 含 attacker(LivingEntity攻击方) defender(LivingEntity被攻击方) damage(伤害值) List(3)[防御前减伤, 护甲值, 防御后减伤]
      * 如果类型是 OTHER，除了EntityPDC之外一般为bug
      * 类型 TIMER 会根据 cd 和 duration 持续伤害或标记
@@ -166,18 +148,16 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
 
     @Override
     public @NotNull String toString() {
-        return "BuffPDC{" +
-                "priority=" + priority + ", " +
-                "jsName=" + jsName + ".js, " +
-                "buffInnerName=" + innerName + ", " +
-                "attributeCalculateSection=" + attributeCalculateSection + ", " +
-                "attribute-addition=" + enumMapToString(attributeTypeModifiers) +
-                "type-addition=" + enumMapToString(damageTypeModifiers) +
-                "endTimeStamp=" + endTimeStamp + ", " +
-                "chance=" + chance + ", " +
-                "cd=" + cd + ", " +
-                "duration=" + duration + ", " +
-                "deltaTime=" + deltaTime +
+        return "BuffPDC={\n" +
+                "priority=" + priority + ",\n" +
+                "jsName=" + jsName + ".js,\n" +
+                "buffInnerName=" + innerName + ",\n" +
+                "attributeCalculateSection=" + attributeCalculateSection + ",\n" +
+                "attribute-addition=" + enumMapToString(attributeTypeModifiers) + ",\n" +
+                "type-addition=" + enumMapToString(damageTypeModifiers) + ",\n" +
+                "chance=" + chance + ",\n" +
+                "cd=" + cd + ",\n" +
+                "duration=" + duration + ",\n" +
                 "}";
     }
 
