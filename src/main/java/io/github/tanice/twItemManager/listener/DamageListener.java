@@ -93,6 +93,7 @@ public class DamageListener implements Listener {
         if (event.getFinalDamage() <= 0) return;
 
         if (event instanceof EntityDamageByEntityEvent) return;
+        // TODO 实现无源（LivingEntity）伤害计算
 //        Bukkit.getPluginManager().callEvent(new TwEntityDamageEvent(entity, event.getDamage()));
     }
 
@@ -105,6 +106,16 @@ public class DamageListener implements Listener {
         Entity damager = event.getDamager();
         Entity target = event.getEntity();
         if (damager instanceof Projectile projectile) {
+            /* 受击方是活体，攻击不是箭或者烟花 则创建无源伤害 */
+            /* TODO 逻辑乱乱的 */
+            /* 药水是真伤 */
+//            if (target instanceof LivingEntity living && (!(projectile instanceof Arrow) || !(projectile instanceof Firework))) {
+//                TwEntityDamageEvent twEntityDamageEvent = new TwEntityDamageEvent(living, event.getDamage());
+//                Bukkit.getPluginManager().callEvent(twEntityDamageEvent);
+//                /* 取消原本的事件 */
+//                event.setCancelled(true);
+//                return;
+//            }
             ProjectileSource source = projectile.getShooter();
             if (source instanceof Entity sourceEntity) damager = sourceEntity;
         }

@@ -109,7 +109,7 @@ public abstract class Calculator {
      * 获取 BuffList和中间 Map
      */
     private void initBuffListsAndTransformTmp(LivingEntity entity) {
-        List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentItemPDC(entity);
+        List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentCalculatePDC(entity);
         PDCs.addAll(EquipmentUtil.getEffectiveAccessoryAttributePDC(entity));
         /* buff计算 */
         PDCs.addAll(getEntityBuffsAsCalculablePDC(entity));

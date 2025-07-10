@@ -27,7 +27,6 @@ public class AttributePDC extends CalculablePDC {
 
     public AttributePDC(){
         super();
-
     }
 
     public AttributePDC(AttributeCalculateSection s){
@@ -38,6 +37,14 @@ public class AttributePDC extends CalculablePDC {
         super(innerName, acs, cfg.getConfigurationSection(ATTR_SECTION_KEY));
         this.displayName = cfg.getString(DISPLAY_NAME, innerName);
         this.LoreTemplateName = cfg.getString(LORE_TEMPLATE);
+    }
+
+    /**
+     * 初始化原版物品专用
+     */
+    public AttributePDC(@NotNull String innerName, double attackDamage, double armor, double armor_toughness) {
+        super(innerName, attackDamage, armor, armor_toughness);
+        this.displayName = innerName;
     }
 
     @Override

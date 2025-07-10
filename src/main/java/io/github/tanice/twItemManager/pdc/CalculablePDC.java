@@ -96,6 +96,34 @@ public abstract class CalculablePDC implements Serializable, Comparable<Calculab
     }
 
     /**
+     * 创建原版物品专用
+     */
+    protected CalculablePDC(@NotNull String innerName, double attackDamage, double armor, double armor_toughness) {
+        this.innerName = innerName;
+        priority = Integer.MAX_VALUE;
+        attributeCalculateSection = AttributeCalculateSection.BASE;
+        attributeTypeModifiers = new EnumMap<>(AttributeType.class);
+        damageTypeModifiers = new EnumMap<>(DamageType.class);
+        /* vMap初始化 */
+        attributeTypeModifiers.put(AttributeType.ATTACK_DAMAGE, attackDamage);
+        attributeTypeModifiers.put(AttributeType.ARMOR, armor);
+        attributeTypeModifiers.put(AttributeType.CRITICAL_STRIKE_CHANCE, 0D);
+        attributeTypeModifiers.put(AttributeType.CRITICAL_STRIKE_DAMAGE, 0D);
+        attributeTypeModifiers.put(AttributeType.ARMOR_TOUGHNESS, armor_toughness);
+        attributeTypeModifiers.put(AttributeType.PRE_ARMOR_REDUCTION, 0D);
+        attributeTypeModifiers.put(AttributeType.AFTER_ARMOR_REDUCTION, 0D);
+        attributeTypeModifiers.put(AttributeType.SKILL_MANA_COST, 0D);
+        attributeTypeModifiers.put(AttributeType.SKILL_COOLDOWN, 0D);
+        /* tMap初始化 */
+        damageTypeModifiers.put(DamageType.MELEE, 0D);
+        damageTypeModifiers.put(DamageType.MAGIC, 0D);
+        damageTypeModifiers.put(DamageType.RANGED, 0D);
+        damageTypeModifiers.put(DamageType.ROUGE, 0D);
+        damageTypeModifiers.put(DamageType.SUMMON, 0D);
+        damageTypeModifiers.put(DamageType.OTHER, 0D);
+    }
+
+    /**
      * 数据整合(只整合统一的数据项)
      * 不同的type需要分类merge！
      * 此时的时间属性无效

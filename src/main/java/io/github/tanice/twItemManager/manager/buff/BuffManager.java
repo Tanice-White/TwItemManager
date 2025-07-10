@@ -325,7 +325,7 @@ public class BuffManager {
                     else logWarning("buff异步队列已满，无法添加");
                 }
                 /* 检查持续时间 - 永续类不减少持续时间 */
-                if (!record.isTimer()) record.durationCounter -= BUFF_RUN_CD;
+                if (!record.isPermanent()) record.durationCounter -= BUFF_RUN_CD;
                 if (record.durationCounter <= 0) {
                     changed = true;
                     innerIt.remove();

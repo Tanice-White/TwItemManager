@@ -69,7 +69,6 @@ public class BuffListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityEquipmentChange(@NotNull EntityEquipmentChangedEvent event) {
         /* 它的old和new不会换位（不是原物品的引用） */
-        // 判断更新的装备是否是TwItem
         if (isTwItemChange(event)) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 LivingEntity entity = event.getEntity();
@@ -88,13 +87,12 @@ public class BuffListener implements Listener {
     }
 
     /**
-     * 判断装备变化是否涉及TwItem
+     * 如果是TwItem, 那么耐久度是否还能使用
      */
     private boolean isTwItemChange(@NotNull EntityEquipmentChangedEvent event) {
         for (EntityEquipmentChangedEvent.EquipmentChange c : event.getEquipmentChanges().values()) {
-            if (!TwItemManager.getItemManager().isNotItemClassInTwItem(c.oldItem()) || !TwItemManager.getItemManager().isNotItemClassInTwItem(c.newItem())) {
-                return true;
-            }
+            // TODO 如果是 TwItem，判断耐久度， 否则 return true
+            return true;
         }
         return false;
     }

@@ -52,12 +52,12 @@ public class TwEntityDamageByEntityEvent extends TwEntityDamageEvent {
         /* 计算玩家生效属性 */
         /* 非法属性都在OTHER中 */
         DamageType weaponDamageType = DamageType.OTHER;
-        ItemStack itemStack = new ItemStack(Material.AIR);
+        ItemStack mainHandItem = new ItemStack(Material.AIR);
 
         EntityEquipment equipment = attacker.getEquipment();
         if (equipment != null) {
-            itemStack = equipment.getItemInMainHand();  // 单独写出来用于后续判断
-            BaseItem bit = TwItemManager.getItemManager().getBaseItem(itemStack);
+            mainHandItem = equipment.getItemInMainHand();  // 单独写出来用于后续判断
+            BaseItem bit = TwItemManager.getItemManager().getBaseItem(mainHandItem);
             if (bit instanceof Item it) weaponDamageType = it.getDamageType();
             /* 否则武器类型保持OTHER不变 */
         }
@@ -79,9 +79,8 @@ public class TwEntityDamageByEntityEvent extends TwEntityDamageEvent {
         /* 武器的对外白值（品质+宝石+白值） */
         finalDamage = attackerAttributeTypeModifiers.get(AttributeType.ATTACK_DAMAGE);
         /* 不影响原版武器伤害的任何计算 */
-        /* 不是插件物品 */
         /* 原版弓箭伤害就是会飘 */
-        if (TwItemManager.getItemManager().isNotItemClassInTwItem(itemStack)) finalDamage += damage;
+        if (TwItemManager.getItemManager().isNotItemClassInTwItem(mainHandItem)) finalDamage += damage;
             /* 怪物拿起的武器不受这个影响，伤害是满额的 */
             /* 所以玩家才计算比例 */
         else if (attacker instanceof Player p) {

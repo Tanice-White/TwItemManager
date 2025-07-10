@@ -26,7 +26,7 @@
   lore:  # 武器介绍/武器描述  对应模板名称中的 item_lore关键词
     - <gradient:#fcd228:#fc4828>这是武器的描述</gradient>
   hide_flags:  # 隐藏原版属性 [参考 https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/ItemFlag.html]
-#    - ATTRIBUTES  # 不需要写前面的 "HIDE_"
+    #    - ATTRIBUTES  # 不需要写前面的 "HIDE_"
     - UNBREAKABLE
   skills:  # 将 <技能名1>... 附加在武器上
     - 技能名1
@@ -61,8 +61,8 @@
   display_name: <gradient:#fcd228:#ffffff>盔甲内部名_头</gradient>  # 武器在游戏内呈现的名称
   custom_model_data: 1001  # 物品自定义模型或贴图
   attrs:
-    armor: 10  # 护甲值
-    critical_strike_chance: 100
+    armor: 5  # 护甲值
+    critical_strike_chance: 1
     knockback_resistance: 0.1  # 抗击退效果
   color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
   slot: head  # (所有配置的属性，包含技能等)生效位置 默认为ANY
@@ -79,8 +79,8 @@
   display_name: <gradient:#fcd228:#ffffff>盔甲内部名_胸甲</gradient>  # 武器在游戏内呈现的名称
   custom_model_data: 1001  # 物品自定义模型或贴图
   attrs:
-    armor: 10  # 护甲值
-    critical_strike_chance: 10
+    armor: 5  # 护甲值
+    critical_strike_chance: 0.1
     critical_strike_damage: 1.8
   color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
   slot: chest  # (所有配置的属性，包含技能等)生效位置 默认为ANY
@@ -93,7 +93,7 @@
   display_name: <gradient:#fcd228:#ffffff>盔甲内部名_裤子</gradient>  # 武器在游戏内呈现的名称
   custom_model_data: 1001  # 物品自定义模型或贴图
   attrs:
-    armor: 10  # 护甲值
+    armor: 5  # 护甲值
     attack_damage: 10
   color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
   slot: leggings  # (所有配置的属性，包含技能等)生效位置 默认为ANY
@@ -106,7 +106,7 @@
   display_name: <gradient:#fcd228:#ffffff>盔甲内部名_鞋子</gradient>  # 武器在游戏内呈现的名称
   custom_model_data: 1001  # 物品自定义模型或贴图
   attrs:
-    armor: 10  # 护甲值
+    armor: 2  # 护甲值
     pre_armor_reduction: 0.5
   color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
   slot: boots  # (所有配置的属性，包含技能等)生效位置 默认为ANY
@@ -120,7 +120,6 @@
   custom_model_data: 1001  # 物品自定义模型或贴图
   attrs:
     after_armor_reduction: 0.5
-  color: "#ffffff"  # rgb颜色配合 custom_model_data 使用(由于＃会转义为注释, 请务必使用双引号)
   slot: offhand  # (所有配置的属性，包含技能等)生效位置 默认为ANY
   lore_template: default
   lore:
