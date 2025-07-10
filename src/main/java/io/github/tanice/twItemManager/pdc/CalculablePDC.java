@@ -1,10 +1,10 @@
-package io.github.tanice.twItemManager.manager.pdc;
+package io.github.tanice.twItemManager.pdc;
 
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.type.AttributeType;
+import io.github.tanice.twItemManager.pdc.type.DamageType;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.configuration.ConfigurationSection;

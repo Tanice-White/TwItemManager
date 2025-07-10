@@ -1,10 +1,10 @@
-package io.github.tanice.twItemManager.manager.pdc.impl;
+package io.github.tanice.twItemManager.pdc.impl;
 
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
-import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.type.AttributeType;
+import io.github.tanice.twItemManager.pdc.type.BuffActiveCondition;
+import io.github.tanice.twItemManager.pdc.type.DamageType;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Color;
@@ -185,7 +185,7 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
                             var Location = Java.type('org.bukkit.Location');
                             var Sound = Java.type('org.bukkit.Sound');
                             
-                            var TwDamageEvent = Java.type('io.github.tanice.twItemManager.event.TwDamageEvent');
+                            var DamageAttributes = Java.type('io.github.tanice.twItemManager.manager.buff.DamageAttributes');
                             """
             );
 

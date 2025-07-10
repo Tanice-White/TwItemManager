@@ -2,23 +2,20 @@ package io.github.tanice.twItemManager.event;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.manager.calculator.LivingEntityCombatPowerCalculator;
+import io.github.tanice.twItemManager.calculator.LivingEntityCombatPowerCalculator;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
-import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
-import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
-import io.github.tanice.twItemManager.manager.buff.DamageInnerAttr;
+import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeType;
+import io.github.tanice.twItemManager.pdc.type.BuffActiveCondition;
+import io.github.tanice.twItemManager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.manager.buff.DamageAttributes;
 import io.github.tanice.twItemManager.util.EquipmentUtil;
 import lombok.Getter;
-import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -26,67 +23,22 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Random;
 
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Tool.enumMapToString;
 
-public class TwDamageEvent extends Event implements Cancellable {
-    protected static final HandlerList handlers = new HandlerList();
-    protected boolean cancelled;
-
-    protected final Random rand = new Random();
+@Getter
+public class TwEntityDamageByEntityEvent extends TwEntityDamageEvent {
     /** 攻击方 */
-    @Getter
+    @NotNull
     protected LivingEntity attacker;
-    /** 防御方 */
-    @Getter
-    protected LivingEntity defender;
-    /** 是否为原版跳劈 */
-    @Getter
-    protected boolean critical;
-    /** 初始伤害 */
-    @Getter
-    @Setter
-    protected double damage;
 
-    protected boolean damageFloat;
-    protected double floatRange;
-    protected double worldK;
-
-    public TwDamageEvent(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, double oriDamage, boolean critical) {
+    public TwEntityDamageByEntityEvent(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, double oriDamage, boolean critical) {
+        super(defender, oriDamage);
         this.attacker = attacker;
-        this.defender = defender;
-        this.damage = oriDamage;
         this.critical = critical;
-        this.initFormConfig();
     }
 
-    public TwDamageEvent(@NotNull LivingEntity attacker, @NotNull LivingEntity defender, boolean critical) {
-        this.attacker = attacker;
-        this.defender = defender;
-        this.damage = 0;
-        this.critical = critical;
-        this.initFormConfig();
-    }
-
-    public static HandlerList getHandlerList() {return handlers;}
-    
-    @Override
-    public @NotNull HandlerList getHandlers() {
-        return handlers;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean b) {
-        cancelled = b;
-    }
-    
     public double getFinalDamage() {
         LivingEntityCombatPowerCalculator attackerCalculator = (LivingEntityCombatPowerCalculator) TwItemManager.getEntityAttributeManager().getCalculator(attacker);
         LivingEntityCombatPowerCalculator defenderCalculator = (LivingEntityCombatPowerCalculator) TwItemManager.getEntityAttributeManager().getCalculator(defender);
@@ -112,21 +64,20 @@ public class TwDamageEvent extends Event implements Cancellable {
 
         double finalDamage;
 
-        DamageInnerAttr damageInnerAttr = new DamageInnerAttr(attacker, defender, 0, attackerAttributeTypeModifiers, defenderAttributeTypeModifiers, weaponDamageType);
+        DamageAttributes damageAttributes = new DamageAttributes(attacker, defender, 0, attackerAttributeTypeModifiers, defenderAttributeTypeModifiers, weaponDamageType);
         /* BEFORE_DAMAGE 事件计算 */
-        List<BuffPDC> bd = attackerCalculator.getBeforeList(BuffActiveCondition.ATTACKER);
-        bd.addAll(defenderCalculator.getBeforeList(BuffActiveCondition.DEFENDER));
+        List<BuffPDC> bd = attackerCalculator.getOrderedBeforeList(BuffActiveCondition.ATTACKER);
+        bd.addAll(defenderCalculator.getOrderedBeforeList(BuffActiveCondition.DEFENDER));
         Collections.sort(bd);
         for (BuffPDC pdc : bd) {
-            Object answer = pdc.execute(damageInnerAttr);
+            Object answer = pdc.execute(damageAttributes);
             /* 可能被更改 */
-            finalDamage = damageInnerAttr.getDamage();
+            finalDamage = damageAttributes.getDamage();
             if (answer.equals(false)) return finalDamage;
         }
 
         /* 武器的对外白值（品质+宝石+白值） */
         finalDamage = attackerAttributeTypeModifiers.get(AttributeType.ATTACK_DAMAGE);
-        /* 只要是twItemManager的物品，伤害一定是1，否则一定大于1 */
         /* 不影响原版武器伤害的任何计算 */
         /* 不是插件物品 */
         /* 原版弓箭伤害就是会飘 */
@@ -151,16 +102,16 @@ public class TwDamageEvent extends Event implements Cancellable {
         /* 伤害浮动 */
         if (damageFloat) finalDamage *= rand.nextDouble(1 - floatRange, 1 + floatRange);
 
-        damageInnerAttr.setDamage(finalDamage);
+        damageAttributes.setDamage(finalDamage);
 
         /* 中间属性生效 */
-        List<BuffPDC> be = attackerCalculator.getBetweenList(BuffActiveCondition.ATTACKER);
-        be.addAll(defenderCalculator.getBetweenList(BuffActiveCondition.DEFENDER));
+        List<BuffPDC> be = attackerCalculator.getOrderedBetweenList(BuffActiveCondition.ATTACKER);
+        be.addAll(defenderCalculator.getOrderedBetweenList(BuffActiveCondition.DEFENDER));
         Collections.sort(be);
         for (BuffPDC pdc : be) {
-            Object answer = pdc.execute(damageInnerAttr);
+            Object answer = pdc.execute(damageAttributes);
             /* 可能被更改 */
-            finalDamage = damageInnerAttr.getDamage();
+            finalDamage = damageAttributes.getDamage();
             if (answer.equals(false)) return finalDamage;
         }
 
@@ -172,38 +123,39 @@ public class TwDamageEvent extends Event implements Cancellable {
         finalDamage *= (1 - defenderAttributeTypeModifiers.get(AttributeType.AFTER_ARMOR_REDUCTION));
 
         /* AFTER_DAMAGE 事件计算 */
-        damageInnerAttr.setDamage(finalDamage);
+        damageAttributes.setDamage(finalDamage);
 
-        List<BuffPDC> ad = attackerCalculator.getAfterList(BuffActiveCondition.ATTACKER);
-        ad.addAll(defenderCalculator.getAfterList(BuffActiveCondition.DEFENDER));
+        List<BuffPDC> ad = attackerCalculator.getOrderedAfterList(BuffActiveCondition.ATTACKER);
+        ad.addAll(defenderCalculator.getOrderedAfterList(BuffActiveCondition.DEFENDER));
         Collections.sort(ad);
         for (BuffPDC pdc : ad) {
-            Object answer = pdc.execute(damageInnerAttr);
+            Object answer = pdc.execute(damageAttributes);
             /* 可能被更改 */
-            finalDamage = damageInnerAttr.getDamage();
+            finalDamage = damageAttributes.getDamage();
             if (answer.equals(false)) return finalDamage;
         }
 
-        /* a 给 b 增加 buff */
-        for (Item i : EquipmentUtil.getActiveEquipmentItem(attacker)){
-            TwItemManager.getBuffManager().activateBuffs(defender, i.getAttackBuffs(), false);
-        }
-        /* b 给 a 增加 buff */
-        for (Item i : EquipmentUtil.getActiveEquipmentItem(defender)){
-            TwItemManager.getBuffManager().activateBuffs(attacker, i.getDefenseBuffs(), false);
-        }
+        this.activateBuffForAttackerAndDefender(attacker, defender);
 
-        /* TIMER 不处理，而是在增加buff的时候处理 */
         return finalDamage;
     }
 
     /**
-     * 加载全局配置中的信息
+     * 为攻击方和防御方激活相关 buff
      */
-    private void initFormConfig() {
-        /* 伤害计算配置 */
-        worldK = Config.worldK;
-        damageFloat = Config.damageFloat;
-        floatRange = Config.damageFloatRange;
+    protected void activateBuffForAttackerAndDefender(@NotNull LivingEntity attacker, @NotNull LivingEntity defender) {
+        /* attacker 给 defender 增加 buff */
+        boolean fa = false, fb = false;
+        for (Item i : EquipmentUtil.getActiveEquipmentItem(attacker)){
+            fa |= TwItemManager.getBuffManager().activateBuffs(attacker, i.getAttackBuffs().getFirst());
+            fb |= TwItemManager.getBuffManager().activateBuffs(defender, i.getAttackBuffs().get(1));
+        }
+        /* defender 给 attacker 增加 buff */
+        for (Item i : EquipmentUtil.getActiveEquipmentItem(defender)){
+            fb |= TwItemManager.getBuffManager().activateBuffs(defender, i.getDefenseBuffs().getFirst());
+            fa |= TwItemManager.getBuffManager().activateBuffs(attacker, i.getDefenseBuffs().get(1));
+        }
+        if (fa) Bukkit.getPluginManager().callEvent(new EntityAttributeChangeEvent(attacker));
+        if (fb) Bukkit.getPluginManager().callEvent(new EntityAttributeChangeEvent(defender));
     }
 }

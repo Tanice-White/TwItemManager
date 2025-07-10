@@ -8,17 +8,15 @@ import io.github.tanice.twItemManager.manager.item.ItemManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
-import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.pdc.impl.ItemPDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +29,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC.EMPTY_GEM;
+import static io.github.tanice.twItemManager.pdc.impl.ItemPDC.EMPTY_GEM;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 /**

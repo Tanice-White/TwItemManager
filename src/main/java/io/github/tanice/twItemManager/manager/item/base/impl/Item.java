@@ -1,10 +1,12 @@
 package io.github.tanice.twItemManager.manager.item.base.impl;
 
+import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.pdc.impl.ItemPDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.type.DamageType;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
@@ -15,6 +17,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static io.github.tanice.twItemManager.constance.key.AttributeKey.*;
@@ -55,13 +58,13 @@ public class Item extends BaseItem {
 
     /** 持有自带buff */
     @Getter
-    private List<String> holdBuffs;
-    /** 攻击生效buff */
+    private List<BuffPDC> holdBuffs;
+    /** 攻击生效buff 0-给自己  1-给对方 */
     @Getter
-    private List<String> attackBuffs;
-    /** 受击生效buff */
+    private List<List<BuffPDC>> attackBuffs;
+    /** 受击生效buff 0-给自己  1-给对方 */
     @Getter
-    private List<String> defenseBuffs;
+    private List<List<BuffPDC>> defenseBuffs;
 
     /**
      * 依据内部名称和对应的config文件创建mc基础物品
@@ -77,9 +80,9 @@ public class Item extends BaseItem {
         gemStackNumber = cfg.getInt(GEM_STACK_NUMBER, 0);
         setName = cfg.getString(SET_NAME, "");
         damageType = DamageType.valueOf(cfg.getString(DAMAGE_TYPE, "OTHER").toUpperCase());
-        holdBuffs = cfg.getStringList(HOLD_BUFF);
-        attackBuffs = cfg.getStringList(ATTACK_BUFF);
-        defenseBuffs = cfg.getStringList(DEFENCE_BUFF);
+        holdBuffs = initBuffList(HOLD_BUFF).get(1);
+        attackBuffs = initBuffList(ATTACK_BUFF);
+        defenseBuffs = initBuffList(DEFENCE_BUFF);
     }
 
     /**
@@ -146,4 +149,49 @@ public class Item extends BaseItem {
     public @NotNull List<String> getSkills() {return new ArrayList<>(skills);}
 
     public @NotNull List<String> getQualityGroups() {return new ArrayList<>(qualityGroups);}
+
+    /**
+     * 初始化 attack_buff 和 defence_buff 以及 hold_buff
+     */
+    private @NotNull List<List<BuffPDC>> initBuffList(@NotNull String sectionKey) {
+        List<List<BuffPDC>> res = Arrays.asList(new ArrayList<>(), new ArrayList<>());
+        List<String> configLines = cfg.getStringList(sectionKey);
+
+        for (String line : configLines) {
+            String[] tokens = line.trim().split("\\s+");
+
+            if (tokens.length < 1 || tokens.length > 4) {
+                logWarning("物品: " + innerName + " 的 " + sectionKey + " 描述错误: " + line + " 格式错误, 应为[buff内部名] [#持续tick] [%触发概率] [@self/@other](其中@other可省略)");
+                continue;
+            }
+
+            String buffName = tokens[0];
+            BuffPDC bPDC = TwItemManager.getBuffManager().getBuffPDC(buffName);
+            if (bPDC == null) {
+                logWarning("物品: " + innerName + " 的 " + sectionKey + " 中找不到Buff: " + buffName);
+                continue;
+            }
+
+            int duration;
+            double chance;
+            boolean isSelf = false;
+
+            for (int i = 1; i < tokens.length; i++) {
+                String token = tokens[i].toLowerCase();
+
+                if (token.startsWith("#")) {
+                duration = Integer.parseInt(token.substring(1));
+                if (duration > 0) bPDC.setDuration(duration);
+
+                } else if (token.startsWith("%")) {
+                chance = Double.parseDouble(token.substring(1));
+                if (chance > 0 && chance <= 100) bPDC.setChance(chance);
+
+                } else if (token.equals("@self") || token.equals("@other")) isSelf = token.equals("@self");
+            }
+            res.get(isSelf ? 0 : 1).add(bPDC);
+        }
+
+        return res;
+    }
 }

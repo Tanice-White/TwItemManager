@@ -37,14 +37,14 @@
   soul_bind: true  # 灵魂绑定 如果绑定则无法丢出(能放到容器中) 默认false
   level_template: 示例武器升级模板  # 在 /level_up/任意文件名内的 [升级模板名] 下
   gem_stack: 3  # 宝石槽位数量(所有宝石通用) 默认为0
-  # 增加
-  hold_buff:
-    - 测试持续掉血  # 默认给自己
-    - 测试吸血
-  attack_buff:
-    - 测试持续掉血  #（攻击方（自己）给受击方的buff）
-  defence_buff:
-    # - 测试吸血  #（受击方（自己）给攻击方的buff）
+  # 增加 buff [buff内部名] [#持续tick] [%触发概率] [@self/@other](其中@other可省略)
+  hold_buff:  # 只给自己, 只要穿戴或手持就会持续生效, 只能写 buff 内部名称
+    - "测试持续掉血"
+  attack_buff:  # 默认 @other
+    - "测试持续掉血 @other #200 %60"
+    - "测试增益_1_damage_add @self"  # 给自己名为 "测试增益_1_damage_add" 的 buff
+  defence_buff:  # 默认 @other
+    - "测试吸血 self"  # 给自己一个测试吸血的buff，概率在测试吸血中配置
   # quality 预设 (不在qualities内则会置空)
   quality:
   # level 预设 (不符合升级模板内则会置为模板中的最低等级)
@@ -178,8 +178,8 @@
   effect:  # 原版buff
     - "glowing 1 40"  # 表示食用后给予使用者发光1, 持续40个tick (1s=20tick)  # 这里的等级就是游戏中的效果等级，不需要额外-1
   buff:  # 自定义buff
-    - "测试持续掉血 20"  # 持续时间 10个tick的内部名为 测试持续掉血 的 buff
-  command:  # 执行指令 使用 self 做玩家名称占位符(检测的是[空格][self][空格] 所以当self在最后的时候，需要空一格)
+    - "测试持续掉血 #20"  # 持续时间 10个tick的内部名为 测试持续掉血 的 buff  [buff名] [#持续tick] [%概率]  # 可以只写buff名，其余使用buff配置中的默认值
+  command:  # 执行指令 使用 @self 做玩家名称占位符
     - ""
   lore:
     - "<green>吃了我大大滴好:)</green>"

@@ -30,7 +30,7 @@
   priority: 0
   calculate_type: ADD
   chance: 0.5  # 作为 attack_buff 时有效，概率为对方挂上 buff
-  damage: 0.5
+  damage: 0.5  # 在加算区，伤害提升 50%
 
 测试增益_2_damage_mul:
   priority: 0

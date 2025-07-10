@@ -64,10 +64,9 @@ public final class TwItemManager extends JavaPlugin {
         Config.onEnable(this);  // 读取全局配置文件
         databaseManager = new DatabaseManager();
 
-        itemManager = new ItemManager(this);
         buffManager = new BuffManager(this);
         skillManager = new SkillManager(this);
-        buffListener = new BuffListener(this);
+        itemManager = new ItemManager(this); /* 顺序不可变 */
         entityAttributeManager = new EntityAttributeManager();
 
         soulBindAndConsumableListener = new SoulBindAndConsumableListener(this);
@@ -77,6 +76,7 @@ public final class TwItemManager extends JavaPlugin {
         PacketEvents.getAPI().getEventManager().registerListener(particleListener, PacketListenerPriority.NORMAL);
         damageListener = new DamageListener(this);
         updateListener = new TwItemUpdateListener(this);
+        buffListener = new BuffListener(this);
 
         Plugin mythicMobs = Bukkit.getPluginManager().getPlugin("MythicMobs");
         if (mythicMobs != null && mythicMobs.isEnabled()) {

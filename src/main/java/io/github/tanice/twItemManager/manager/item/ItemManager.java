@@ -10,10 +10,10 @@ import io.github.tanice.twItemManager.manager.item.base.impl.Material;
 import io.github.tanice.twItemManager.manager.item.level.LevelTemplate;
 import io.github.tanice.twItemManager.manager.item.lore.LoreTemplate;
 import io.github.tanice.twItemManager.manager.item.quality.QualityGroup;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
+import io.github.tanice.twItemManager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.pdc.EntityPDC;
+import io.github.tanice.twItemManager.pdc.impl.ItemPDC;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import org.bukkit.Bukkit;
 

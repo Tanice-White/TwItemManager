@@ -2,8 +2,8 @@ package io.github.tanice.twItemManager.manager.item.base.impl;
 
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;

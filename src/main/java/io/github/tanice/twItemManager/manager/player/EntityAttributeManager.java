@@ -1,8 +1,8 @@
 package io.github.tanice.twItemManager.manager.player;
 
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.manager.calculator.Calculator;
-import io.github.tanice.twItemManager.manager.calculator.LivingEntityCombatPowerCalculator;
+import io.github.tanice.twItemManager.calculator.Calculator;
+import io.github.tanice.twItemManager.calculator.LivingEntityCombatPowerCalculator;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.LivingEntity;

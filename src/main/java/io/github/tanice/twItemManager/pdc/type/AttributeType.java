@@ -1,4 +1,4 @@
-package io.github.tanice.twItemManager.manager.pdc.type;
+package io.github.tanice.twItemManager.pdc.type;
 
 import java.io.Serializable;
 

@@ -1,7 +1,7 @@
-package io.github.tanice.twItemManager.manager.pdc.impl;
+package io.github.tanice.twItemManager.pdc.impl;
 
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;

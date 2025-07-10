@@ -1,9 +1,8 @@
 package io.github.tanice.twItemManager.manager.item.quality;
 
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
 import io.github.tanice.twItemManager.util.AlgorithmUtil;
-import io.github.tanice.twItemManager.util.MiniMessageUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

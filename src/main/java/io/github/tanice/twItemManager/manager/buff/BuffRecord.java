@@ -1,7 +1,7 @@
 package io.github.tanice.twItemManager.manager.buff;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.LivingEntity;
@@ -26,6 +26,18 @@ public class BuffRecord {
     public int cooldownCounter;
     public int durationCounter;
 
+    public BuffRecord(@NotNull LivingEntity entity, @NotNull BuffPDC buff) {
+        this.uuid = entity.getUniqueId();
+        this.buff = buff;
+        this.buffInnerName = buff.getInnerName();
+
+        this.isPermanent = false;
+        this.isTimer = buff.isTimer();
+
+        this.cooldownCounter = buff.getCd();
+        this.durationCounter = buff.getDuration();
+    }
+
     public BuffRecord(@NotNull LivingEntity entity, @NotNull BuffPDC buff, boolean isPermanent) {
         this.uuid = entity.getUniqueId();
         this.buff = buff;
@@ -34,7 +46,7 @@ public class BuffRecord {
         this.isPermanent = isPermanent;
         this.isTimer = buff.isTimer();
 
-        this.cooldownCounter = buff.getCd();
+        this.cooldownCounter = 0;
         this.durationCounter = buff.getDuration();
     }
 

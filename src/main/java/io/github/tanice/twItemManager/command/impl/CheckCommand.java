@@ -32,9 +32,10 @@ public class CheckCommand extends SubCommand {
         if (!item.getType().isAir()) {
             player.sendMessage("§a\n物品[PDC]" + "\n" + im.getCalculablePDCAsString(item));
             if (bit instanceof Item it) {
-                player.sendMessage("hold_buff: " + it.getHoldBuffs());
-                player.sendMessage("attack_buff: " + it.getAttackBuffs());
-                player.sendMessage("defence_buff: " + it.getDefenseBuffs());
+                player.sendMessage("hold_buff=" + it.getHoldBuffs() + "\n"
+                        + "attack_buff={" + it.getAttackBuffs().getFirst() + ", " + it.getAttackBuffs().get(1) + "}\n"
+                        + "defence_buff={"+ it.getDefenseBuffs().getFirst() + ", " + it.getDefenseBuffs().get(1) + "}"
+                );
             }
         }
 

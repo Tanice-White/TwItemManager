@@ -1,6 +1,6 @@
 package io.github.tanice.twItemManager.helper.mythicmobs;
 
-import io.github.tanice.twItemManager.event.TwDamageEvent;
+import io.github.tanice.twItemManager.event.TwEntityDamageByEntityEvent;
 import io.github.tanice.twItemManager.event.TwSkillDamageEvent;
 import io.github.tanice.twItemManager.manager.skill.SkillDamageData;
 import io.lumine.mythic.api.adapters.AbstractEntity;
@@ -124,8 +124,8 @@ public class TwiDamageMechanic implements ITargetedEntitySkill {
                     preventImmunity.get(data, target),
                     ignoreInvulnerability.get(data, target)
             );
-            TwDamageEvent twDamageEvent = new TwSkillDamageEvent(livingD, livingT, skillDamageData);
-            Bukkit.getPluginManager().callEvent(twDamageEvent);
+            TwEntityDamageByEntityEvent twEntityDamageByEntityEvent = new TwSkillDamageEvent(livingD, livingT, skillDamageData);
+            Bukkit.getPluginManager().callEvent(twEntityDamageByEntityEvent);
         }
         return SkillResult.SUCCESS;
     }

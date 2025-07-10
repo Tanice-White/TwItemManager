@@ -3,8 +3,8 @@ package io.github.tanice.twItemManager.manager.buff;
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.event.EntityAttributeChangeEvent;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -30,6 +30,7 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
 public class BuffManager {
     private static final int BUFF_RUN_CD = 2;
     private final JavaPlugin plugin;
+    private final Random random;
 
     /** 全局可用Buff */
     private final Map<String, BuffPDC> buffMap;
@@ -53,6 +54,7 @@ public class BuffManager {
         this.entityBuffMap = new ConcurrentHashMap<>();
         this.buffTaskQueue = new LinkedBlockingQueue<>();
         this.eventQueue = new LinkedBlockingQueue<>();
+        this.random = new Random();
         this.initAsyncExecutor();
         this.initSyncBuffExecutor();
         this.loadBuffMap();
@@ -68,6 +70,8 @@ public class BuffManager {
     }
 
     public void onDisable() {
+        this.saveAllPlayerRecords();
+
         if (syncBuffExecutor != null && !syncBuffExecutor.isCancelled()) syncBuffExecutor.cancel();
         if (executor != null && !executor.isShutdown()) {
             executor.shutdown();
@@ -120,7 +124,7 @@ public class BuffManager {
     }
 
     /**
-     * 获取实体的有效buff
+     * 获取实体的有效 buff
      */
     public @NotNull List<CalculablePDC> getEntityActiveBuffs(@NotNull LivingEntity entity) {
         UUID uuid = entity.getUniqueId();
@@ -168,87 +172,80 @@ public class BuffManager {
     }
 
     /**
-     * 为实体增加buff
+     * 为实体增加 buff
+     * 完成后请触发 EntityAttributeChangeEvent 事件
+     * @return  buff 是否被触发
      */
-    public void activateBuff(@NotNull LivingEntity entity, @NotNull String buffInnerName, boolean isPermanent) {
-        BuffPDC buffPDC = getBuffPDC(buffInnerName);
-        if (buffPDC == null || !buffPDC.isEnable()) return;
+    public boolean activateBuff(@NotNull LivingEntity entity, @NotNull BuffPDC buff) {
+        return activateBuff(entity,buff, false);
+    }
 
+    /**
+     * 为实体增加 buff
+     * 完成后请触发 EntityAttributeChangeEvent 事件
+     */
+    public boolean activateBuff(@NotNull LivingEntity entity, @NotNull BuffPDC buff, boolean isPermanent) {
+        if (random.nextDouble() > buff.getChance()) return false;
         UUID playerId = entity.getUniqueId();
         entityCache.computeIfAbsent(playerId, id -> new CachedEntity(entity));
         ConcurrentMap<String, BuffRecord> innerMap = entityBuffMap.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>());
 
         /* 创建或更新 Buff 记录 */
-        innerMap.compute(buffInnerName, (name, existingRecord) -> {
+        innerMap.compute(buff.getInnerName(), (name, existingRecord) -> {
             if (existingRecord != null) {
                 existingRecord.setPermanent(isPermanent);
-                existingRecord.merge(buffPDC);
+                existingRecord.merge(buff);
                 return existingRecord;
 
-            } else return new BuffRecord(entity, buffPDC, isPermanent);
+            } else return new BuffRecord(entity, buff, isPermanent);
         });
-
-        this.syncCallAttributeChangeEvent(entity);
+        return true;
     }
 
     /**
-     * 让 buff 以 传入时间 生效
+     * 为实体激活一组非永久的 buff
+     * 完成后请触发 EntityAttributeChangeEvent 事件
+     * @return 是否有 buff 被触发
      */
-    public void activeBuffWithTimeLimit(@NotNull LivingEntity entity, @NotNull String buffName, int duration) {
-        BuffPDC buffPDC = getBuffPDC(buffName);
-        if (buffPDC == null || !buffPDC.isEnable()) return;
-        if (duration <= 0) return;
-
-        UUID entityId = entity.getUniqueId();
-        entityCache.computeIfAbsent(entityId, id -> new CachedEntity(entity));
-        ConcurrentMap<String, BuffRecord> innerMap = entityBuffMap.computeIfAbsent(entityId, id -> new ConcurrentHashMap<>());
-
-        innerMap.compute(buffName, (name, existingRecord) -> {
-            if (existingRecord != null) {
-                existingRecord.merge(buffPDC);
-                return existingRecord;
-
-            } else {
-                buffPDC.setDuration(duration);
-                return new BuffRecord(entity, buffPDC, false);
-            }
-        });
-
-        this.syncCallAttributeChangeEvent(entity);
+    public boolean activateBuffs(@NotNull LivingEntity entity, @NotNull Collection<BuffPDC> buffs) {
+        return activateBuffs(entity, buffs, false);
     }
 
     /**
      * 为实体激活一组 buff
+     * 完成后请触发 EntityAttributeChangeEvent 事件
      */
-    public void activateBuffs(@NotNull LivingEntity entity, @NotNull List<String> buffInnerNames, boolean isPermanent) {
+    public boolean activateBuffs(@NotNull LivingEntity entity, @NotNull Collection<BuffPDC> buffs, boolean isPermanent) {
         UUID playerId;
         ConcurrentMap<String, BuffRecord> innerMap;
 
-        for (String bn : buffInnerNames) {
-            BuffPDC buffPDC = getBuffPDC(bn);
-            if (buffPDC == null || !buffPDC.isEnable()) return;
+        boolean f = isPermanent;
 
+        for (BuffPDC bPDC : buffs) {
+            if (!isPermanent && random.nextDouble() > bPDC.getChance()) continue;
             playerId = entity.getUniqueId();
             entityCache.computeIfAbsent(playerId, id -> new CachedEntity(entity));
             innerMap = entityBuffMap.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>());
 
             /* 创建或更新 Buff 记录 */
-            innerMap.compute(bn, (name, existingRecord) -> {
+            innerMap.compute(bPDC.getInnerName(), (name, existingRecord) -> {
                 if (existingRecord != null) {
                     existingRecord.setPermanent(isPermanent);
-                    existingRecord.merge(buffPDC);
+                    existingRecord.merge(bPDC);
                     return existingRecord;
 
-                } else return new BuffRecord(entity, buffPDC, isPermanent);
+                } else return new BuffRecord(entity, bPDC, isPermanent);
             });
+            f = true;
         }
-        this.syncCallAttributeChangeEvent(entity);
+        return f;
     }
 
     /**
      * 批量清除实体的 buff 效果
+     * 完成后请触发 EntityAttributeChangeEvent 事件
      */
-    public void deactivateBuffs(@NotNull LivingEntity entity, @NotNull Collection<String> buffInnerNames) {
+    public void deactivateBuffs(@NotNull LivingEntity entity, @NotNull Collection<BuffPDC> buffs) {
         UUID uuid = entity.getUniqueId();
 
         CachedEntity e = entityCache.get(entity.getUniqueId());
@@ -256,15 +253,18 @@ public class BuffManager {
         ConcurrentMap<String, BuffRecord> innerMap = entityBuffMap.get(uuid);
         if (innerMap == null || innerMap.isEmpty()) return;
 
-        for (String buffName : buffInnerNames) innerMap.remove(buffName);
+        for (BuffPDC bPDC : buffs) innerMap.remove(bPDC.getInnerName());
 
         if (innerMap.isEmpty()) {
             entityBuffMap.remove(uuid);
             entityCache.remove(uuid);
         }
-        this.syncCallAttributeChangeEvent(entity);
     }
 
+    /**
+     * 去除实体的所有 buff
+     * 完成后请触发 EntityAttributeChangeEvent 事件
+     */
     public void deactivateEntityBuffs(@NotNull LivingEntity entity) {
         UUID uuid = entity.getUniqueId();
 
@@ -273,8 +273,6 @@ public class BuffManager {
 
         entityBuffMap.remove(uuid);
         entityCache.remove(uuid);
-
-        this.syncCallAttributeChangeEvent(entity);
     }
 
     /**
@@ -320,22 +318,17 @@ public class BuffManager {
             if (innerMap == null || innerMap.isEmpty()) continue;
             for (Iterator<BuffRecord> innerIt = innerMap.values().iterator(); innerIt.hasNext();) {
                 record = innerIt.next();
-                /* 只处理非永久buff*/
-                if (record.isPermanent()) continue;
 
                 record.cooldownCounter -= BUFF_RUN_CD;
-                if (record.cooldownCounter <= 0) {
+                if (record.cooldownCounter <= 0 && record.isTimer()) {
                     if (buffTaskQueue.offer(record)) record.cooldownCounter = Math.max(1, record.getBuff().getCd());
                     else logWarning("buff异步队列已满，无法添加");
-                    record.cooldownCounter = Math.max(1, record.getBuff().getCd());
                 }
-                /* 检查持续时间 */
-                if (record.durationCounter >= 0) {
-                    record.durationCounter -= BUFF_RUN_CD;
-                    if (record.durationCounter <= 0) {
-                        changed = true;
-                        innerIt.remove();
-                    }
+                /* 检查持续时间 - 永续类不减少持续时间 */
+                if (!record.isTimer()) record.durationCounter -= BUFF_RUN_CD;
+                if (record.durationCounter <= 0) {
+                    changed = true;
+                    innerIt.remove();
                 }
             }
             if (changed) eventQueue.offer(cached.entity);
@@ -365,16 +358,12 @@ public class BuffManager {
                 executor.submit(BuffManager.this::asyncProcessEntityBuffs);
                 /* 主线程执行buff效果 */
                 buffTaskQueue.drainTo(buffsToExecute);
-                // TODO 可以设置负载，过高则分给下 RUN_CD - 1 个tick
+                // 可以设置负载，过高则分给下 RUN_CD - 1 个tick
                 for (BuffRecord record : buffsToExecute) {
-                    try {
-                        /* 获取缓存的实体并执行buff */
-                        LivingEntity entity = entityCache.get(record.getUuid()).entity;
-                        if (entity != null && entity.isValid() && !entity.isDead()) record.getBuff().execute(entity);
-                        else entityCache.remove(record.getUuid());
-                    } catch (Exception e) {
-                        logWarning("Error executing buff: " + e.getMessage());
-                    }
+                    /* 获取缓存的实体并执行buff */
+                    LivingEntity entity = entityCache.get(record.getUuid()).entity;
+                    if (entity != null && entity.isValid() && !entity.isDead()) record.getBuff().execute(entity);
+                    else entityCache.remove(record.getUuid());
                 }
                 /* 唤起事件 - 改变玩家属性 */
                 eventQueue.drainTo(attributeToChange);

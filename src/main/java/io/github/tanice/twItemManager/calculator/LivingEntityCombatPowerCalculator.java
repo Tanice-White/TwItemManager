@@ -1,4 +1,4 @@
-package io.github.tanice.twItemManager.manager.calculator;
+package io.github.tanice.twItemManager.calculator;
 
 import lombok.Getter;
 import org.bukkit.entity.LivingEntity;

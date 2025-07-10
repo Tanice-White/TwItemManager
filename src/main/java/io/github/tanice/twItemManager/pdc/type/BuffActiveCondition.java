@@ -1,4 +1,4 @@
-package io.github.tanice.twItemManager.manager.pdc.type;
+package io.github.tanice.twItemManager.pdc.type;
 
 public enum BuffActiveCondition {
     ATTACKER,  /* buff持有者作为攻击方激活 = ATTACKER_PHYSICAL + ATTACKER_SKILL */

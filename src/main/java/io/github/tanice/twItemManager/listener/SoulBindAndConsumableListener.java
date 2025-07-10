@@ -5,7 +5,7 @@ import io.github.tanice.twItemManager.infrastructure.PDCAPI;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
-import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
+import io.github.tanice.twItemManager.pdc.EntityPDC;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

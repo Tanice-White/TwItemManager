@@ -1,6 +1,7 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
+import io.github.tanice.twItemManager.event.EntityAttributeChangeEvent;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.util.EquipmentUtil;
@@ -26,7 +27,6 @@ public class BuffListener implements Listener {
     
     public BuffListener(JavaPlugin plugin) {
         this.plugin = plugin;
-        
         Bukkit.getPluginManager().registerEvents(this, TwItemManager.getInstance());
         logInfo("BuffListener loaded");
     }
@@ -34,18 +34,24 @@ public class BuffListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            TwItemManager.getBuffManager().loadPlayerBuffs(event.getPlayer());
+            Player player = event.getPlayer();
+            TwItemManager.getBuffManager().loadPlayerBuffs(player);
+            Bukkit.getPluginManager().callEvent(new EntityAttributeChangeEvent(player));
         }, 1L);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        TwItemManager.getBuffManager().SaveAndClearPlayerBuffs(event.getPlayer());
+        Player player = event.getPlayer();
+        TwItemManager.getBuffManager().SaveAndClearPlayerBuffs(player);
+        Bukkit.getPluginManager().callEvent(new EntityAttributeChangeEvent(player));
     }
     
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
+        Player player = event.getPlayer();
         TwItemManager.getBuffManager().deactivateEntityBuffs(event.getEntity());
+        Bukkit.getPluginManager().callEvent(new EntityAttributeChangeEvent(player));
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -56,6 +62,7 @@ public class BuffListener implements Listener {
             for (Item i : EquipmentUtil.getActiveEquipmentItem(player)){
                 TwItemManager.getBuffManager().activateBuffs(player, i.getHoldBuffs(), true);
             }
+            Bukkit.getPluginManager().callEvent(new EntityAttributeChangeEvent(player));
         }, 1L);
     }
 
@@ -75,6 +82,7 @@ public class BuffListener implements Listener {
                     bit = TwItemManager.getItemManager().getBaseItem(equipmentChange.newItem());
                     if (bit instanceof Item i) TwItemManager.getBuffManager().activateBuffs(entity, i.getHoldBuffs(), true);
                 }
+                Bukkit.getPluginManager().callEvent(new EntityAttributeChangeEvent(entity));
             }, 1L);
         }
     }

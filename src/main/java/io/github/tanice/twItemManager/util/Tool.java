@@ -1,6 +1,6 @@
 package io.github.tanice.twItemManager.util;
 
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.pdc.type.DamageType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

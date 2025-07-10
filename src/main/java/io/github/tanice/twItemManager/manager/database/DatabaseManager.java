@@ -2,7 +2,7 @@ package io.github.tanice.twItemManager.manager.database;
 
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.buff.BuffRecord;
-import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
+import io.github.tanice.twItemManager.pdc.EntityPDC;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.util.serialize.OriSerializationUtil;
 import org.jetbrains.annotations.NotNull;

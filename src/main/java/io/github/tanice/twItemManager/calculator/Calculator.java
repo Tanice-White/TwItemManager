@@ -1,16 +1,16 @@
-package io.github.tanice.twItemManager.manager.calculator;
+package io.github.tanice.twItemManager.calculator;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.AttributePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeCalculateSection;
-import io.github.tanice.twItemManager.manager.pdc.type.AttributeType;
-import io.github.tanice.twItemManager.manager.pdc.type.BuffActiveCondition;
-import io.github.tanice.twItemManager.manager.pdc.type.DamageType;
+import io.github.tanice.twItemManager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.pdc.impl.AttributePDC;
+import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
+import io.github.tanice.twItemManager.pdc.EntityPDC;
+import io.github.tanice.twItemManager.pdc.type.AttributeCalculateSection;
+import io.github.tanice.twItemManager.pdc.type.AttributeType;
+import io.github.tanice.twItemManager.pdc.type.BuffActiveCondition;
+import io.github.tanice.twItemManager.pdc.type.DamageType;
 import io.github.tanice.twItemManager.util.EquipmentUtil;
 import lombok.Getter;
 import org.bukkit.entity.LivingEntity;
@@ -68,7 +68,7 @@ public abstract class Calculator {
     /**
      * 获取伤害前生效的 buff
      */
-    public List<BuffPDC> getBeforeList(@NotNull BuffActiveCondition role) {
+    public List<BuffPDC> getOrderedBeforeList(@NotNull BuffActiveCondition role) {
         // 内部的 buffActiveCondition == role || buffActiveCondition == BuffActiveCondition.ALL 才返回
         return beforeList.stream()
                 .filter(buff ->
@@ -79,7 +79,7 @@ public abstract class Calculator {
     /**
      * 获取防御计算前的生效 buff
      */
-    public List<BuffPDC> getBetweenList(@NotNull BuffActiveCondition role) {
+    public List<BuffPDC> getOrderedBetweenList(@NotNull BuffActiveCondition role) {
         return betweenList.stream()
                 .filter(buff ->
                         buff.isEnable() && (buff.getBuffActiveCondition() == role || buff.getBuffActiveCondition() == BuffActiveCondition.ALL)
@@ -89,7 +89,7 @@ public abstract class Calculator {
     /**
      * 获取最后生效的 buff
      */
-    public List<BuffPDC> getAfterList(@NotNull BuffActiveCondition role) {
+    public List<BuffPDC> getOrderedAfterList(@NotNull BuffActiveCondition role) {
         return afterList.stream()
                 .filter(buff ->
                         buff.isEnable() && (buff.getBuffActiveCondition() == role || buff.getBuffActiveCondition() == BuffActiveCondition.ALL)
@@ -99,7 +99,7 @@ public abstract class Calculator {
     /**
      * 获取目标生效的buff
      */
-    private @NotNull List<CalculablePDC> getEntityCalculablePDC(@NotNull LivingEntity entity) {
+    private @NotNull List<CalculablePDC> getEntityBuffsAsCalculablePDC(@NotNull LivingEntity entity) {
         EntityPDC ePDC = PDCAPI.getEntityPDC(entity);
         if (ePDC == null) return new ArrayList<>();
         return TwItemManager.getBuffManager().getEntityActiveBuffs(entity);
@@ -112,7 +112,7 @@ public abstract class Calculator {
         List<CalculablePDC> PDCs = EquipmentUtil.getActiveEquipmentItemPDC(entity);
         PDCs.addAll(EquipmentUtil.getEffectiveAccessoryAttributePDC(entity));
         /* buff计算 */
-        PDCs.addAll(getEntityCalculablePDC(entity)); // TODO 获取玩家buff部分代码有问题
+        PDCs.addAll(getEntityBuffsAsCalculablePDC(entity));
 
         if (Config.debug) {
             StringBuilder s = new StringBuilder("[Calculator] PDCs in " + entity.getName() + ": ");

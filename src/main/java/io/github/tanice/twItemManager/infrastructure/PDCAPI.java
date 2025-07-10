@@ -2,9 +2,9 @@ package io.github.tanice.twItemManager.infrastructure;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.manager.pdc.CalculablePDC;
-import io.github.tanice.twItemManager.manager.pdc.impl.ItemPDC;
-import io.github.tanice.twItemManager.manager.pdc.EntityPDC;
+import io.github.tanice.twItemManager.pdc.CalculablePDC;
+import io.github.tanice.twItemManager.pdc.impl.ItemPDC;
+import io.github.tanice.twItemManager.pdc.EntityPDC;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -70,12 +70,11 @@ public class PDCAPI {
         return (EntityPDC) deserialize(dataBytes);
     }
 
-    public static boolean setCalculablePDC(@NotNull ItemStack item, @NotNull CalculablePDC cPDC) {
+    public static void setCalculablePDC(@NotNull ItemStack item, @NotNull CalculablePDC cPDC) {
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return false;
-        if (!setCalculablePDC(meta, cPDC)) return false;
+        if (meta == null) return;
+        if (!setCalculablePDC(meta, cPDC)) return;
         item.setItemMeta(meta);
-        return true;
     }
 
     public static boolean setCalculablePDC(@NotNull ItemMeta meta, @NotNull CalculablePDC cPDC) {
@@ -88,7 +87,7 @@ public class PDCAPI {
         return true;
     }
 
-    public static boolean setCalculablePDC(@NotNull LivingEntity entity, @NotNull EntityPDC ePDC) {
+    public static void setCalculablePDC(@NotNull LivingEntity entity, @NotNull EntityPDC ePDC) {
         if (ePDC.getVersion() != Config.version) {
             ePDC = new EntityPDC();
         }
@@ -97,42 +96,7 @@ public class PDCAPI {
             PersistentDataType.BYTE_ARRAY,
             serialize(ePDC)
         );
-        return true;
     }
-
-//    public static boolean setConsumablePDC(@NotNull ItemStack item, @NotNull ConsumablePDC cPDC) {
-//        ItemMeta meta = item.getItemMeta();
-//        if (meta == null) return false;
-//        return setConsumablePDC(meta, cPDC);
-//    }
-//
-//    public static boolean setConsumablePDC(@NotNull ItemMeta meta, @NotNull ConsumablePDC cPDC) {
-//        /* 内容失效 */
-//        if (cPDC.getVersion() != Config.version) return false;
-//
-//        meta.getPersistentDataContainer().set(
-//                new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
-//                PersistentDataType.BYTE_ARRAY,
-//                serialize(cPDC)
-//        );
-//        return true;
-//    }
-//
-//    public static @Nullable ConsumablePDC getConsumablePDC(@Nullable ItemStack item) {
-//        if (item == null) return null;
-//        ItemMeta meta = item.getItemMeta();
-//        if (meta == null) return null;
-//        return getConsumablePDC(meta);
-//    }
-//
-//    public static @Nullable ConsumablePDC getConsumablePDC(@NotNull ItemMeta meta) {
-//        byte[] dataBytes =  meta.getPersistentDataContainer().get(
-//          new NamespacedKey(PDC_NAMESPACE, ITEM_PDC_DATA_KEY),
-//          PersistentDataType.BYTE_ARRAY
-//        );
-//        if (dataBytes == null) return null;
-//        return (ConsumablePDC) deserialize(dataBytes);
-//    }
 
     /**
      * 获取物品内部名称

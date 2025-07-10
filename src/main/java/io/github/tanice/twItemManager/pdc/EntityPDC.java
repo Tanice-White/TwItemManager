@@ -1,8 +1,7 @@
-package io.github.tanice.twItemManager.manager.pdc;
+package io.github.tanice.twItemManager.pdc;
 
 import io.github.tanice.twItemManager.config.Config;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
-import io.github.tanice.twItemManager.manager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.util.Tool;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
