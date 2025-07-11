@@ -185,7 +185,7 @@ public class BuffPDC extends CalculablePDC implements Cloneable {
                             var Location = Java.type('org.bukkit.Location');
                             var Sound = Java.type('org.bukkit.Sound');
                             
-                            var DamageAttributes = Java.type('io.github.tanice.twItemManager.manager.buff.DamageAttributes');
+                            var DamageAttributes = Java.type('io.github.tanice.twItemManager.manager.global.DamageAttributes');
                             """
             );
 

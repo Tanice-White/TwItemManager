@@ -53,7 +53,7 @@
   nbt:
     # namespace:key :value 的格式，具体参考目标插件NBT的写入格式 (大小写严格判定)
     # 这里使用mm中mmc的技能嵌入格式
-    mythicmobs:type: 青风
+    # mythicmobs:type: 青风
 
 
 盔甲内部名_头:
