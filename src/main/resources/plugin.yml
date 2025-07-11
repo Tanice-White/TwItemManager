@@ -7,7 +7,7 @@ author: tanicewhite
 website: 'https://github.com/Tanice-White/TwItems'
 load: STARTUP
 
-prefix: §aTwItemManager
+prefix: TwItemManager
 depend: [packetevents]
 softdepend: [MythicMobs]
 loadbefore: [MythicMobs]

@@ -231,7 +231,7 @@ public class SkillManager extends AsyncDirtyUpdateManager {
      * 定期清理过期记录
      */
     private void asyncCleanupExpiredRecords() {
-        if (!isSchedulerRunning.get()) {
+        if (isSchedulerRunning.get()) {
             logWarning("SKillManager 中技能回收线程运行时间过长");
             return;
         }
@@ -264,8 +264,10 @@ public class SkillManager extends AsyncDirtyUpdateManager {
                         subsection = section.getConfigurationSection(k);
                         if (subsection == null) continue;
                         final ConfigurationSection cfg = subsection;
+                        String t = cfg.getString(TRIGGER);
+                        if (t == null) continue;
                         skillMap.computeIfAbsent(k,
-                                s -> new SkillMeta(new SkillRowData(k, cfg), Trigger.valueOf(cfg.getString(TRIGGER))));
+                                s -> new SkillMeta(new SkillRowData(k, cfg), Trigger.valueOf(t)));
                         total.getAndIncrement();
                     }
                 }
