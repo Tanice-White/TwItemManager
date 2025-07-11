@@ -1,4 +1,4 @@
-package io.github.tanice.twItemManager.event;
+package io.github.tanice.twItemManager.event.entity;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
@@ -9,7 +9,7 @@ import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
 import io.github.tanice.twItemManager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.pdc.type.BuffActiveCondition;
 import io.github.tanice.twItemManager.pdc.type.DamageType;
-import io.github.tanice.twItemManager.manager.buff.DamageAttributes;
+import io.github.tanice.twItemManager.manager.global.DamageAttributes;
 import io.github.tanice.twItemManager.util.EquipmentUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;

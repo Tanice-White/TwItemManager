@@ -1,8 +1,8 @@
 package io.github.tanice.twItemManager.helper.mythicmobs;
 
-import io.github.tanice.twItemManager.event.TwEntityDamageByEntityEvent;
-import io.github.tanice.twItemManager.event.TwSkillDamageEvent;
-import io.github.tanice.twItemManager.manager.skill.SkillDamageData;
+import io.github.tanice.twItemManager.event.entity.TwEntityDamageByEntityEvent;
+import io.github.tanice.twItemManager.event.entity.TwSkillDamageEvent;
+import io.github.tanice.twItemManager.manager.global.SkillDamageData;
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.ITargetedEntitySkill;
@@ -101,7 +101,16 @@ public class TwiDamageMechanic implements ITargetedEntitySkill {
     protected PlaceholderBoolean ignoreInvulnerability;
 
     public TwiDamageMechanic(@NotNull MythicLineConfig mlc) {
-        this.damageK = mlc.getPlaceholderDouble(new String[]{"damageK", "k"}, 1D);
+        this.damageK = mlc.getPlaceholderDouble(new String[]{"damageK", "dk"}, 1D);
+        this.damage = mlc.getPlaceholderDouble(new String[]{"damage", "d"}, 0D);
+        this.powerByDamageType = mlc.getPlaceholderBoolean(new String[]{"powerByDamageType", "p"}, true);
+        this.canCritical = mlc.getPlaceholderBoolean(new String[]{"critical", "c"}, true);
+        this.criticalK = mlc.getPlaceholderDouble(new String[]{"criticalK", "ck"}, 1D);
+        this.criticalChance = mlc.getPlaceholderDouble(new String[]{"criticalChance", "cc"}, 0D);
+        this.ignoreArmor = mlc.getPlaceholderBoolean(new String[]{"ignoreArmor", "ia"}, false);
+        this.preventKnockback = mlc.getPlaceholderBoolean(new String[]{"preventKnockback", "pk"}, false);
+        this.preventImmunity = mlc.getPlaceholderBoolean(new String[]{"preventImmunity", "pi"}, false);
+        this.ignoreInvulnerability = mlc.getPlaceholderBoolean(new String[]{"ignoreInvulnerability", "ii"}, false);
     }
 
     @Override

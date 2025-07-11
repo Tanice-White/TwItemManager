@@ -2,7 +2,7 @@ package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.event.PlayerDataLimitChangeEvent;
+import io.github.tanice.twItemManager.event.entity.PlayerDataLimitChangeEvent;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

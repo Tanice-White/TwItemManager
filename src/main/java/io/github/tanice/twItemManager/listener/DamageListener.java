@@ -1,8 +1,8 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.event.TwEntityDamageByEntityEvent;
-import io.github.tanice.twItemManager.event.TwEntityDamageEvent;
+import io.github.tanice.twItemManager.event.entity.TwEntityDamageByEntityEvent;
+import io.github.tanice.twItemManager.event.entity.TwEntityDamageEvent;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -103,30 +103,36 @@ public class DamageListener implements Listener {
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEntityDamageByEntityEvent(@NotNull EntityDamageByEntityEvent event) {
-        Entity damager = event.getDamager();
-        Entity target = event.getEntity();
-        if (damager instanceof Projectile projectile) {
-            /* 受击方是活体，攻击不是箭或者烟花 则创建无源伤害 */
-            /* TODO 逻辑乱乱的 */
-            /* 药水是真伤 */
-//            if (target instanceof LivingEntity living && (!(projectile instanceof Arrow) || !(projectile instanceof Firework))) {
-//                TwEntityDamageEvent twEntityDamageEvent = new TwEntityDamageEvent(living, event.getDamage());
-//                Bukkit.getPluginManager().callEvent(twEntityDamageEvent);
-//                /* 取消原本的事件 */
-//                event.setCancelled(true);
-//                return;
-//            }
-            ProjectileSource source = projectile.getShooter();
-            if (source instanceof Entity sourceEntity) damager = sourceEntity;
-        }
-        if (!(damager instanceof LivingEntity livingD) || !(target instanceof LivingEntity livingT)) return;
+        Entity eventAttacker = event.getDamager();
+        Entity eventTarget = event.getEntity();
+        if (!(eventTarget instanceof LivingEntity target)) return;
 
         /* 荆棘伤害取消计算 */
-        if (event.getDamageSource().getDamageType() == org.bukkit.damage.DamageType.THORNS) return;
+        // if (event.getDamageSource().getDamageType() == org.bukkit.damage.DamageType.THORNS) return;
 
-        TwEntityDamageByEntityEvent twEntityDamageByEntityEvent = new TwEntityDamageByEntityEvent(livingD, livingT, event.getDamage(), event.isCritical());
-        Bukkit.getPluginManager().callEvent(twEntityDamageByEntityEvent);
-        /* 取消原本的事件 */
+        /* 抛射物情况 */
+        if (eventAttacker instanceof Projectile projectile) {
+            ProjectileSource source = projectile.getShooter();
+            /* 实体发射的 箭 或者 三叉戟 或者 烟花火箭 */
+            if ((projectile instanceof Arrow || projectile instanceof Trident || projectile instanceof Firework) && source instanceof LivingEntity attacker) {
+                TwEntityDamageByEntityEvent twEntityDamageByEntityEvent = new TwEntityDamageByEntityEvent(attacker, target, event.getDamage(), event.isCritical());
+                Bukkit.getPluginManager().callEvent(twEntityDamageByEntityEvent);
+            } else {
+                TwEntityDamageEvent twEntityDamageEvent = new TwEntityDamageEvent(target, event.getDamage());
+                Bukkit.getPluginManager().callEvent(twEntityDamageEvent);
+            }
+            event.setCancelled(true);
+            return;
+        }
+
+        if (eventAttacker instanceof LivingEntity attacker) {
+            TwEntityDamageByEntityEvent twEntityDamageByEntityEvent = new TwEntityDamageByEntityEvent(attacker, target, event.getDamage(), event.isCritical());
+            Bukkit.getPluginManager().callEvent(twEntityDamageByEntityEvent);
+            event.setCancelled(true);
+            return;
+        }
+        TwEntityDamageEvent twEntityDamageEvent = new TwEntityDamageEvent(target, event.getDamage());
+        Bukkit.getPluginManager().callEvent(twEntityDamageEvent);
         event.setCancelled(true);
     }
 

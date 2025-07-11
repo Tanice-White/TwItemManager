@@ -1,8 +1,7 @@
-package io.github.tanice.twItemManager.manager.buff;
+package io.github.tanice.twItemManager.manager.global;
 
 import io.github.tanice.twItemManager.pdc.type.AttributeType;
 import io.github.tanice.twItemManager.pdc.type.DamageType;
-import io.github.tanice.twItemManager.manager.skill.SkillDamageData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.LivingEntity;

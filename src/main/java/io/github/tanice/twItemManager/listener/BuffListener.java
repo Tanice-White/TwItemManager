@@ -1,7 +1,7 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.event.EntityAttributeChangeEvent;
+import io.github.tanice.twItemManager.event.entity.EntityAttributeChangeEvent;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.util.EquipmentUtil;
@@ -20,7 +20,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
-import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
 public class BuffListener implements Listener {
     private final JavaPlugin plugin;

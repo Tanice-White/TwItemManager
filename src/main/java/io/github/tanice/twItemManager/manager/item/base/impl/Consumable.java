@@ -1,8 +1,8 @@
 package io.github.tanice.twItemManager.manager.item.base.impl;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.event.EntityAttributeChangeEvent;
-import io.github.tanice.twItemManager.event.PlayerDataLimitChangeEvent;
+import io.github.tanice.twItemManager.event.entity.EntityAttributeChangeEvent;
+import io.github.tanice.twItemManager.event.entity.PlayerDataLimitChangeEvent;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.pdc.impl.BuffPDC;

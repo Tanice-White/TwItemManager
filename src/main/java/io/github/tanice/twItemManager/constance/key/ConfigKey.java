@@ -55,4 +55,8 @@ public final class ConfigKey {
     public static final String MAX = "max";
     public static final String LEVEL_UP_NEED = "level_up_need";
     public static final String LEVEL_DOWN_WHEN_FAILED = "level_down_when_failed";
+
+    /* 技能类 */
+    public static final String TRIGGER = "trigger";
+    public static final String MYTHIC_SKILL_NAME = "mythic_name";
 }

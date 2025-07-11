@@ -1,7 +1,8 @@
 package io.github.tanice.twItemManager.manager.database;
 
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.manager.buff.BuffRecord;
+import io.github.tanice.twItemManager.manager.IManager;
+import io.github.tanice.twItemManager.manager.global.BuffRecord;
 import io.github.tanice.twItemManager.pdc.EntityPDC;
 import io.github.tanice.twItemManager.manager.player.PlayerData;
 import io.github.tanice.twItemManager.util.serialize.OriSerializationUtil;
@@ -18,7 +19,7 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
 /**
  * 数据库管理
  */
-public class DatabaseManager {
+public class DatabaseManager implements IManager {
     private Connection connection;
     private ExecutorService dbExecutor;
 
@@ -26,6 +27,9 @@ public class DatabaseManager {
         onEnable();
     }
 
+    /**
+     * 单独写 -> 考虑到 reload 后更改数据库
+     */
     public void onEnable(){
         if (!Config.use_mysql) {
             logInfo("不使用数据库同步数据");
@@ -60,9 +64,9 @@ public class DatabaseManager {
     }
 
     public void onReload() {
-        logInfo("DatabaseManager reloading...");
         onDisable();
         onEnable();
+        logInfo("DatabaseManager reload");
     }
 
     public void onDisable() {

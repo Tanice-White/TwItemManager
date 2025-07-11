@@ -1,29 +1,28 @@
 package io.github.tanice.twItemManager.manager.skill;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
-import static io.github.tanice.twItemManager.constance.key.ConfigKey.CD;
-import static io.github.tanice.twItemManager.constance.key.ConfigKey.MANA_COST;
+import static io.github.tanice.twItemManager.constance.key.ConfigKey.*;
 
 @Getter
-public class SkillData {
+public class SkillRowData {
     /** 技能名 */
     @NotNull
     private final String skillName;
-    /** 技能原本 cd (tick) */
+    @NotNull
+    private final String mythicSkillName;
+    /** 技能基础 cd (tick) */
     private final int cd;
-    /** 技能原本的蓝耗 */
+    /** 技能基础的蓝耗 */
     private final double manaCost;
-    @Setter
-    private long nextAbleTimeStamp;
 
-    public SkillData(@NotNull String skillName, @NotNull ConfigurationSection cfg) {
+    public SkillRowData(@NotNull String skillName, @NotNull ConfigurationSection cfg) {
         this.skillName = skillName;
+        String mn = cfg.getString(MYTHIC_SKILL_NAME);
+        this.mythicSkillName = mn == null ? skillName : mn;
         this.cd = cfg.getInt(CD, 0);
         this.manaCost = cfg.getDouble(MANA_COST, 0D);
-        nextAbleTimeStamp = 0;
     }
 }

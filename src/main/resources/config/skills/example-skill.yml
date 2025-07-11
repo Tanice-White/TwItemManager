@@ -1,11 +1,9 @@
+# 内部名称不能重复
 技能1:
-  name: test1  # 与 mm 技能同名
+  mythic_name: test1  # 与 mm 技能同名
   cd: 1  # (秒)  # 受到技能cd减免影响
   mana: 10  # 蓝量消耗 （正数为减少，负数增加）
-  damage_k: 0.5 # 面板伤害乘数(1)  也会进入伤害计算  # 在mm中写一个伤害占位符就好了，直接在mm限制比例
-  can_critical_strike: true # 遵循武器面板暴击概率
-  lore:
-    - "测试技能的LORE"
+  trigger: left_click  # 不写则不加载
 
 技能2:
   name: test2

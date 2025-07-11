@@ -1,4 +1,4 @@
-package io.github.tanice.twItemManager.manager.buff;
+package io.github.tanice.twItemManager.manager.global;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.pdc.impl.BuffPDC;

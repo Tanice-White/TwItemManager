@@ -1,12 +1,14 @@
 package io.github.tanice.twItemManager.listener;
 
 import io.github.tanice.twItemManager.TwItemManager;
-import io.github.tanice.twItemManager.event.EntityAttributeChangeEvent;
-import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import io.github.tanice.twItemManager.event.entity.EntityAttributeChangeEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -31,11 +33,22 @@ public class EntityAttributeListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onAttributeChange(@NotNull EntityAttributeChangeEvent event) {
-        TwItemManager.getEntityAttributeManager().submitAsyncCalculation(event.getEntity());
+        TwItemManager.getEntityAttributeManager().submitAsyncTask(event.getEntity());
     }
+
+    /* PlayerJoin 在 BuffListener 中 */
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        TwItemManager.getEntityAttributeManager().removeEntity(event.getPlayer().getUniqueId());
+        TwItemManager.getEntityAttributeManager().removeEntityData(event.getPlayer());
     }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityDeath(@NotNull EntityDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (entity instanceof Player) return;
+        TwItemManager.getEntityAttributeManager().removeEntityData(entity);
+    }
+
+    /* PlayerRespawn 在 BuffListener 中 */
 }

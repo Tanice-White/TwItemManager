@@ -2,7 +2,9 @@ package io.github.tanice.twItemManager.manager.buff;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.event.EntityAttributeChangeEvent;
+import io.github.tanice.twItemManager.event.entity.EntityAttributeChangeEvent;
+import io.github.tanice.twItemManager.manager.AsyncManager;
+import io.github.tanice.twItemManager.manager.global.BuffRecord;
 import io.github.tanice.twItemManager.pdc.CalculablePDC;
 import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
 import org.bukkit.Bukkit;
@@ -27,7 +29,7 @@ import java.util.stream.Stream;
 import static io.github.tanice.twItemManager.util.Logger.logInfo;
 import static io.github.tanice.twItemManager.util.Logger.logWarning;
 
-public class BuffManager {
+public class BuffManager extends AsyncManager {
     private static final int BUFF_RUN_CD = 2;
     private final JavaPlugin plugin;
     private final Random random;
@@ -39,15 +41,15 @@ public class BuffManager {
     private final ConcurrentMap<UUID, CachedEntity> entityCache;
     /** 实体的 Buff 列表(实体id, (buff内部名, buff记录)) */
     private final ConcurrentMap<UUID, ConcurrentMap<String, BuffRecord>> entityBuffMap;
-    /** 线程池 - 处理buff */
-    private ExecutorService executor;
+
     /** 主线程任务调度器 */
-    private BukkitTask syncBuffExecutor;
+    private final BukkitTask syncBuffExecutor;
     /** 需要主线程执行的 buff 队列 */
     private final LinkedBlockingQueue<BuffRecord> buffTaskQueue;
     private final LinkedBlockingQueue<LivingEntity> eventQueue;
 
     public BuffManager(@NotNull JavaPlugin plugin) {
+        super();
         this.plugin = plugin;
         this.buffMap = new ConcurrentHashMap<>();
         this.entityCache = new ConcurrentHashMap<>();
@@ -55,32 +57,66 @@ public class BuffManager {
         this.buffTaskQueue = new LinkedBlockingQueue<>();
         this.eventQueue = new LinkedBlockingQueue<>();
         this.random = new Random();
-        this.initAsyncExecutor();
-        this.initSyncBuffExecutor();
-        this.loadBuffMap();
+        this.loadResourceFiles();
+
+        syncBuffExecutor = new BukkitRunnable() {
+            @Override
+            public void run() {
+                List<BuffRecord> buffsToExecute = new ArrayList<>();
+                List<LivingEntity> attributeToChange = new ArrayList<>();
+
+                /* 让异步线程调用 buff处理 函数 */
+                asyncExecutor.submit(BuffManager.this::asyncRun);
+                /* 主线程执行buff效果 */
+                buffTaskQueue.drainTo(buffsToExecute);
+                // 可以设置负载，过高则分给下 RUN_CD - 1 个tick
+                CachedEntity cached;
+                LivingEntity entity;
+                for (BuffRecord record : buffsToExecute) {
+                    /* 获取缓存的实体并执行buff */
+                    cached = entityCache.get(record.getUuid());
+                    if (cached == null) continue;
+                    entity = cached.entity;
+                    if (entity != null && entity.isValid() && !entity.isDead()) record.getBuff().execute(entity);
+                    else entityCache.remove(record.getUuid());
+                }
+                /* 唤起事件 - 改变玩家属性 */
+                eventQueue.drainTo(attributeToChange);
+                for (LivingEntity e : attributeToChange) syncCallAttributeChangeEvent(e);
+            }
+        }.runTaskTimer(plugin, 1L, BUFF_RUN_CD);
+
         logInfo("BuffManager loaded, Scheduler started");
     }
 
     public void onReload() {
-        this.onDisable();
-        this.initAsyncExecutor();
-        this.initSyncBuffExecutor();
-        this.loadBuffMap();
+        super.onReload();
+
+        this.saveAllPlayerRecords();
+        buffMap.clear();
+        entityCache.clear();
+        entityBuffMap.clear();
+        buffTaskQueue.clear();
+        eventQueue.clear();
+        this.loadResourceFiles();
         logInfo("BuffManager reload");
     }
 
     public void onDisable() {
+        super.onDisable();
+
         this.saveAllPlayerRecords();
 
         if (syncBuffExecutor != null && !syncBuffExecutor.isCancelled()) syncBuffExecutor.cancel();
-        if (executor != null && !executor.isShutdown()) {
-            executor.shutdown();
+        if (asyncExecutor != null && !asyncExecutor.isShutdown()) {
+            asyncExecutor.shutdown();
             try {
-                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    executor.shutdownNow();
+                if (!asyncExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    asyncExecutor.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                executor.shutdownNow();
+                logWarning("BuffManager 中同步线程关闭失败, 即将强制关闭: " + e.getMessage());
+                asyncExecutor.shutdownNow();
             }
         }
 
@@ -279,7 +315,7 @@ public class BuffManager {
      * 获取线程池状态信息
      */
     public String getThreadPoolStatus() {
-        ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
+        ThreadPoolExecutor tpe = (ThreadPoolExecutor) asyncExecutor;
         return String.format("活跃线程: %d, 核心线程: %d, 最大线程: %d, 队列大小: %d",
                 tpe.getActiveCount(), tpe.getCorePoolSize(), tpe.getMaximumPoolSize(), tpe.getQueue().size());
     }
@@ -294,7 +330,7 @@ public class BuffManager {
     /**
      * 处理 buff
      */
-    private void asyncProcessEntityBuffs() {
+    private void asyncRun() {
         Map.Entry<UUID, ConcurrentMap<String, BuffRecord>> buffMapEntry;
         UUID uid;
         ConcurrentMap<String, BuffRecord> innerMap;
@@ -335,44 +371,7 @@ public class BuffManager {
         }
     }
 
-    private void initAsyncExecutor() {
-        int coreThreads = Math.max(2, Runtime.getRuntime().availableProcessors());
-        int maxThreads = Math.max(2, Runtime.getRuntime().availableProcessors() + 1);
-        executor = new ThreadPoolExecutor(
-                coreThreads,
-                maxThreads,
-                60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(20000),
-                new ThreadPoolExecutor.DiscardOldestPolicy() // 丢弃旧任务保留新任务
-        );
-    }
-
-    private void initSyncBuffExecutor() {
-        syncBuffExecutor = new BukkitRunnable() {
-            @Override
-            public void run() {
-                List<BuffRecord> buffsToExecute = new ArrayList<>();
-                List<LivingEntity> attributeToChange = new ArrayList<>();
-
-                /* 让异步线程调用 buff处理 函数 */
-                executor.submit(BuffManager.this::asyncProcessEntityBuffs);
-                /* 主线程执行buff效果 */
-                buffTaskQueue.drainTo(buffsToExecute);
-                // 可以设置负载，过高则分给下 RUN_CD - 1 个tick
-                for (BuffRecord record : buffsToExecute) {
-                    /* 获取缓存的实体并执行buff */
-                    LivingEntity entity = entityCache.get(record.getUuid()).entity;
-                    if (entity != null && entity.isValid() && !entity.isDead()) record.getBuff().execute(entity);
-                    else entityCache.remove(record.getUuid());
-                }
-                /* 唤起事件 - 改变玩家属性 */
-                eventQueue.drainTo(attributeToChange);
-                for (LivingEntity entity : attributeToChange) syncCallAttributeChangeEvent(entity);
-            }
-        }.runTaskTimer(plugin, 1L, BUFF_RUN_CD);
-    }
-
-    private void loadBuffMap(){
+    private void loadResourceFiles(){
         AtomicInteger total = new AtomicInteger();
         Path buffDir = plugin.getDataFolder().toPath().resolve("buffs");
         if (!Files.exists(buffDir) || !Files.isDirectory(buffDir)) return;
@@ -402,18 +401,6 @@ public class BuffManager {
             logInfo("[loadBuffs]: 共加载BUFF" + total.get() + "个");
         } catch (IOException e) {
             logWarning("加载buffs文件错误: " + e);
-        }
-    }
-
-    // 实体状态缓存
-    // 避免通过uuid获取实体这种复杂操作
-    private static class CachedEntity {
-        final UUID uuid;
-        LivingEntity entity;
-
-        CachedEntity(@NotNull LivingEntity entity) {
-            this.uuid = entity.getUniqueId();
-            this.entity = entity;
         }
     }
 }

@@ -1,0 +1,93 @@
+# 武器类  不需要写入, 插件会获取原本的伤害
+
+# 护甲类 默认计算区域 Base 手动设置无效
+# KEY 必须是 原版物品的Type
+turtle_helmet:
+  armor: 2
+
+leather_helmet:
+  armor: 1
+leather_chestplate:
+  armor: 3
+leather_leggings:
+  armor: 2
+leather_boots:
+  armor: 1
+
+chainmail_helmet:
+  armor: 2
+chainmail_chestplate:
+  armor: 5
+chainmail_leggings:
+  armor: 4
+chainmail_boots:
+  armor: 1
+
+iron_helmet:
+  armor: 2
+iron_chestplate:
+  armor: 6
+iron_leggings:
+  armor: 5
+iron_boots:
+  armor: 2
+
+golden_helmet:
+  armor: 2
+golden_chestplate:
+  armor: 5
+golden_leggings:
+  armor: 3
+golden_boots:
+  armor: 1
+
+diamond_helmet:
+  armor: 3
+  armor_toughness: 2
+diamond_chestplate:
+  armor: 8
+  armor_toughness: 2
+diamond_leggings:
+  armor: 6
+  armor_toughness: 2
+diamond_boots:
+  armor: 3
+  armor_toughness: 2
+
+netherite_helmet:
+  armor: 3
+  armor_toughness: 3
+netherite_chestplate:
+  armor: 8
+  armor_toughness: 3
+netherite_leggings:
+  armor: 6
+  armor_toughness: 3
+netherite_boots:
+  armor: 3
+  armor_toughness: 3
+
+leather_horse_armor:
+  armor: 3
+iron_horse_armor:
+  armor: 5
+  armor_toughness: 3
+golden_horse_armor:
+  armor: 7
+  armor_toughness: 3
+diamond_horse_armor:
+  armor: 11
+  armor_toughness: 2
+wolf_armor:
+  armor: 11
+
+# 原版药水效果（伤害类药水效果） 其余的没必要
+strength:
+  attack_damage: 3  # 等级会自动计算（*K）
+
+weakness:
+  attack_damage: -4
+
+# 瞬间伤害 仍旧保持真伤
+
+# 原版附魔

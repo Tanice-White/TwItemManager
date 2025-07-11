@@ -1,7 +1,5 @@
-package io.github.tanice.twItemManager.manager.skill;
+package io.github.tanice.twItemManager.manager.global;
 
-import io.lumine.mythic.api.skills.placeholders.PlaceholderBoolean;
-import io.lumine.mythic.core.utils.annotations.MythicField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

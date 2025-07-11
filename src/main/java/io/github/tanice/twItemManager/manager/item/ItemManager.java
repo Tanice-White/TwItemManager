@@ -2,6 +2,7 @@ package io.github.tanice.twItemManager.manager.item;
 
 import io.github.tanice.twItemManager.event.TwItemUpdateEvent;
 import io.github.tanice.twItemManager.infrastructure.PDCAPI;
+import io.github.tanice.twItemManager.manager.IManager;
 import io.github.tanice.twItemManager.manager.item.base.BaseItem;
 import io.github.tanice.twItemManager.manager.item.base.impl.Consumable;
 import io.github.tanice.twItemManager.manager.item.base.impl.Gem;
@@ -38,7 +39,7 @@ import static io.github.tanice.twItemManager.util.Logger.logWarning;
 /**
  * 将 base lore quality skill 集合成最终的TwItem实例
  */
-public class ItemManager {
+public class ItemManager implements IManager {
     private final JavaPlugin plugin;
     /** 主目录文件 */
     private final File rootDir;
@@ -473,7 +474,6 @@ public class ItemManager {
         this.loadQualityFiles();
         this.loadItemFiles();
         this.loadLoreTemplateFiles();
-        this.loadSkillFiles();
     }
 
     /**
@@ -588,9 +588,5 @@ public class ItemManager {
                 loreTemplateMap.put(key, new LoreTemplate(key, lt));
             }
         }
-    }
-
-    private void loadSkillFiles() {
-        // Map<String, ConfigurationSection> cfg = loadSubFiles("skills");
     }
 }

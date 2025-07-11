@@ -1,4 +1,4 @@
-package io.github.tanice.twItemManager.event;
+package io.github.tanice.twItemManager.event.entity;
 
 import lombok.Getter;
 import org.bukkit.entity.LivingEntity;

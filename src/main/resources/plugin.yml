@@ -1,15 +1,16 @@
 name: TwItemManager
 version: '1.0-SNAPSHOT'
 main: io.github.tanice.twItemManager.TwItemManager
-api-version: '1.21'
+api-version: '1.21.4'
 description: 'Items Manager for mm skills with mana'
 author: tanicewhite
 website: 'https://github.com/Tanice-White/TwItems'
 load: STARTUP
 
-prefix: TwItemManager
+prefix: §aTwItemManager
 depend: [packetevents]
 softdepend: [MythicMobs]
+loadbefore: [MythicMobs]
 
 commands:
   twitemmanager:

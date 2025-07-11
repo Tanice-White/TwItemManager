@@ -1,8 +1,8 @@
-package io.github.tanice.twItemManager.event;
+package io.github.tanice.twItemManager.event.entity;
 
 import io.github.tanice.twItemManager.TwItemManager;
 import io.github.tanice.twItemManager.config.Config;
-import io.github.tanice.twItemManager.manager.buff.DamageAttributes;
+import io.github.tanice.twItemManager.manager.global.DamageAttributes;
 import io.github.tanice.twItemManager.calculator.LivingEntityCombatPowerCalculator;
 import io.github.tanice.twItemManager.manager.item.base.impl.Item;
 import io.github.tanice.twItemManager.pdc.impl.BuffPDC;
